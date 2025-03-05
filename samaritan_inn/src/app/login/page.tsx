@@ -26,7 +26,7 @@ const Login = () => {
           </button>
           <p className="text-center text-black">
             New User?{' '}
-            <a href="/login" className="text-blue-500 hover:underline">
+            <a href="/signup" className="text-blue-500 hover:underline">
               Create an account
             </a>
           </p>
