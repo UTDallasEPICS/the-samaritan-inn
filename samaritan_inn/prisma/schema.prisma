@@ -17,3 +17,62 @@ model Post{
   id String @id @default(cuid())
   name String
 }
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  role          String    @default("resident") // e.g., "resident", "staff", "admin"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  appointments  Appointment[]
+  classSignups  ClassSignup[]
+}
+
+model Appointment {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Class {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  instructor  String
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  capacity    Int
+  signups     ClassSignup[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ClassSignup {
+  id        String   @id @default(cuid())
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([classId, userId])
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  important Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

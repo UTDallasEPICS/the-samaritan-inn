@@ -11,17 +11,17 @@ const Signup = () => {
           <input
             type="email"
             placeholder="Email (ex. john@email.com)"
-            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="border border-gray-300 rounded px-3 py-2 text-black focus:outline-none focus:border-blue-500"
           />
           <input
             type="password"
             placeholder="Enter a password"
-            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="border border-gray-300 rounded px-3 py-2 text-black focus:outline-none focus:border-blue-500"
           />
           <input
             type="password"
             placeholder="Confirm your password"
-            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="border border-gray-300 rounded px-3 py-2 text-black focus:outline-none focus:border-blue-500"
           />
           <button
             type="submit"
