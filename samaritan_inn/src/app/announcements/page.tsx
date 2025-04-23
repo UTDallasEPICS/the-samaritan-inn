@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 const Announcements = () => {
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; content: string; author: string; createdAt: string }[]>([]);
   const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
-  const [isAdmin, setIsAdmin] = useState(false); // Replace with actual admin check logic
+  const [isAdmin, setIsAdmin] = useState(true); // Replace with actual admin check logic
 
   useEffect(() => {
     // Fetch announcements
