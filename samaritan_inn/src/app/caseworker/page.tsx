@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  SelectChangeEvent,
   TextField,
   IconButton,
   Select,
@@ -364,7 +365,6 @@ const AnnouncementDialog = memo(({ open, onClose, announcement, onSubmit }: Anno
               name="priority"
               value={formData.priority}
               label="Priority"
-              onChange={handleChange}
             >
               <MenuItem value="high">High</MenuItem>
               <MenuItem value="medium">Medium</MenuItem>
