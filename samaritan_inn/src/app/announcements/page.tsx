@@ -200,10 +200,11 @@ export default function Announcements() {
 
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
+            {/* section selector */}
             <Button
               onClick={handleSectionClick}
               endIcon={<ExpandMoreIcon />}
-              className="bg-gray-100 border border-gray-300 rounded px-4 py-2 text-black font-bold"
+              color="primary"
               sx={{ fontSize: '1.25rem' }}
             >
               {section === 'announcements' ? 'Announcements' : 'Events'}
@@ -216,6 +217,7 @@ export default function Announcements() {
                 Events
               </MenuItem>
             </Menu>
+            {/* “New Announcement” / “New Event” */}
             {isAdmin && (
               <Button
                 variant="contained"

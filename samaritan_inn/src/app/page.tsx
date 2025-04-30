@@ -61,7 +61,7 @@ const Home = async () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Link 
                 href="/auth-status" 
-                className="block p-4 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 text-center"
+                className="block p-4 bg-blue-600 text-white rounded-md hover:bg-indigo-600 text-center"
               >
                 Check Authentication Status
               </Link>
@@ -75,7 +75,7 @@ const Home = async () => {
               ) : (
                 <Link 
                   href="/login" 
-                  className="block p-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-center"
+                  className="block p-4 bg-blue-600 text-white rounded-md hover:bg-blue-600 text-center"
                 >
                   Login to Your Account
                 </Link>
