@@ -23,6 +23,7 @@ export async function POST(req: Request) {
       data: {
         title,
         content,
+        author: 'Admin', // ← include your author here
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         startTime: new Date(`${startDate}T${startTime}`),

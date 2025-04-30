@@ -112,7 +112,7 @@ export default function Announcements() {
       const res = await fetch('/api/announcements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newAnnouncement, author: 'Admin' }),
+        body: JSON.stringify({ ...newAnnouncement, author: 'Admin', isAdmin}),
       });
       if (!res.ok) return console.error('Post failed');
       const data = await res.json();

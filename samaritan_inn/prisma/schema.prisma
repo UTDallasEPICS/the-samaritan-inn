@@ -117,6 +117,7 @@ model Event {
   id        String   @id @default(cuid())
   title     String
   content   String
+  author    String
   startDate DateTime
   endDate   DateTime
   startTime DateTime
