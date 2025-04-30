@@ -87,7 +87,7 @@ const ResourcesPage = () => {
 };
 
 // Resource Card Component
-const ResourceCard = ({ title, href, color }) => {
+const ResourceCard = ({ title, href, color }: { title: string; href: string; color: 'blue' | 'green' | 'yellow' | 'purple' | 'orange' }) => {
   const colorClasses = {
     blue: "border-blue-600 hover:bg-blue-50",
     green: "border-green-600 hover:bg-green-50",
