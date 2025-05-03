@@ -4,6 +4,13 @@ import React, { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
+import { Montserrat } from 'next/font/google';
+
+// Initialize the Montserrat font
+const montserrat = Montserrat({ 
+  subsets: ['latin'],
+  variable: '--font-montserrat',
+});
 
 const Signup = () => {
   const router = useRouter();
@@ -59,7 +66,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen flex flex-col ${montserrat.className}`}>
       <Navigation />
       
       <div className="flex-grow flex items-center justify-center bg-gray-100 p-4">
@@ -107,7 +114,7 @@ const Signup = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
+              className="w-full bg-[#00167c] text-white py-2 px-4 rounded hover:bg-blue-900"
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>

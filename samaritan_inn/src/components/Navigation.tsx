@@ -9,7 +9,7 @@ export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   return (
-    <nav className="bg-blue-600 text-white shadow-md">
+    <nav className="bg-[#00167c] text-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -22,16 +22,16 @@ export default function Navigation() {
           
           {/* Desktop navigation */}
           <div className="hidden md:flex md:items-center md:space-x-4">
-            <Link href="/" className="px-3 py-2 rounded-md hover:bg-blue-700">
+            <Link href="/" className="px-3 py-2 rounded-md hover:bg-[#001463]">
               Home
             </Link>
             
             {status === 'authenticated' ? (
               <>
-                <Link href="/dashboard" className="px-3 py-2 rounded-md hover:bg-blue-700">
+                <Link href="/dashboard" className="px-3 py-2 rounded-md hover:bg-[#001463]">
                   Dashboard
                 </Link>
-                <Link href="/auth-status" className="px-3 py-2 rounded-md hover:bg-blue-700">
+                <Link href="/auth-status" className="px-3 py-2 rounded-md hover:bg-[#001463]">
                   Auth Status
                 </Link>
                 <button
@@ -46,13 +46,13 @@ export default function Navigation() {
               </>
             ) : (
               <>
-                <Link href="/auth-status" className="px-3 py-2 rounded-md hover:bg-blue-700">
+                <Link href="/auth-status" className="px-3 py-2 rounded-md hover:bg-[#001463]">
                   Auth Status
                 </Link>
-                <Link href="/login" className="px-3 py-2 rounded-md hover:bg-blue-700">
+                <Link href="/login" className="px-3 py-2 rounded-md hover:bg-[#001463]">
                   Login
                 </Link>
-                <Link href="/signup" className="px-3 py-2 rounded-md bg-green-500 hover:bg-green-600">
+                <Link href="/signup" className="px-3 py-2 rounded-md hover:bg-[#001463]">
                   Sign Up
                 </Link>
               </>
@@ -63,7 +63,7 @@ export default function Navigation() {
           <div className="flex md:hidden items-center">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-blue-700 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-[#001463] focus:outline-none"
             >
               <svg
                 className="h-6 w-6"
@@ -89,7 +89,7 @@ export default function Navigation() {
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link 
               href="/"
-              className="block px-3 py-2 rounded-md hover:bg-blue-700"
+              className="block px-3 py-2 rounded-md hover:bg-[#001463]"
               onClick={() => setIsMenuOpen(false)}
             >
               Home
@@ -99,14 +99,14 @@ export default function Navigation() {
               <>
                 <Link 
                   href="/dashboard" 
-                  className="block px-3 py-2 rounded-md hover:bg-blue-700"
+                  className="block px-3 py-2 rounded-md hover:bg-[#001463]"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
                 <Link 
                   href="/auth-status" 
-                  className="block px-3 py-2 rounded-md hover:bg-blue-700"
+                  className="block px-3 py-2 rounded-md hover:bg-[#001463]"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Auth Status
@@ -120,7 +120,7 @@ export default function Navigation() {
                 >
                   Sign Out
                 </button>
-                <div className="px-3 py-2 border-t border-blue-700 mt-2 pt-2">
+                <div className="px-3 py-2 border-t border-[#001463] mt-2 pt-2">
                   <span className="text-sm">Logged in as: {session.user.name}</span>
                 </div>
               </>
@@ -128,14 +128,14 @@ export default function Navigation() {
               <>
                 <Link 
                   href="/auth-status" 
-                  className="block px-3 py-2 rounded-md hover:bg-blue-700"
+                  className="block px-3 py-2 rounded-md hover:bg-[#001463]"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Auth Status
                 </Link>
                 <Link 
                   href="/login" 
-                  className="block px-3 py-2 rounded-md hover:bg-blue-700"
+                  className="block px-3 py-2 rounded-md hover:bg-[#001463]"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Login

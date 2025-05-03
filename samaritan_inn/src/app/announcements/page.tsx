@@ -193,7 +193,7 @@ export default function Announcements() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ fontFamily: 'Montserrat, sans-serif' }}>
       <Navigation />
       <div className="flex-grow flex flex-col items-center bg-gray-100 p-4">
         <div className="w-full max-w-3xl p-6 bg-white shadow-md rounded-md">
@@ -205,11 +205,16 @@ export default function Announcements() {
               onClick={handleSectionClick}
               endIcon={<ExpandMoreIcon />}
               color="primary"
-              sx={{ fontSize: '1.25rem' }}
+              sx={{ fontSize: '1.25rem', fontFamily: 'Montserrat, sans-serif' }}
             >
               {section === 'announcements' ? 'Announcements' : 'Events'}
             </Button>
-            <Menu anchorEl={anchorEl} open={open} onClose={handleSectionClose}>
+            <Menu 
+              anchorEl={anchorEl} 
+              open={open} 
+              onClose={handleSectionClose}
+              sx={{ '& .MuiPaper-root': { fontFamily: 'Montserrat' } }}
+            >
               <MenuItem onClick={() => handleSectionSelect('announcements')}>
                 Announcements
               </MenuItem>
@@ -217,12 +222,13 @@ export default function Announcements() {
                 Events
               </MenuItem>
             </Menu>
-            {/* “New Announcement” / “New Event” */}
+            {/* "New Announcement" / "New Event" */}
             {isAdmin && (
               <Button
                 variant="contained"
                 color="primary"
                 onClick={() => setShowModal(true)}
+                sx={{ fontFamily: 'Montserrat, sans-serif' }}
               >
                 New {section === 'announcements' ? 'Announcement' : 'Event'}
               </Button>
@@ -232,7 +238,7 @@ export default function Announcements() {
           {/* Modal */}
           {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
+              <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                 <h2 className="text-xl font-semibold mb-4 text-black">
                   {editingId
                     ? `Edit ${
@@ -264,6 +270,7 @@ export default function Announcements() {
                     }
                   }}
                   className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+                  style={{ fontFamily: 'Montserrat, sans-serif' }}
                 />
 
                 {/* Content */}
@@ -286,6 +293,7 @@ export default function Announcements() {
                     }
                   }}
                   className="w-full border border-gray-300 rounded px-3 py-2 h-24 mb-4 text-black placeholder-gray-400"
+                  style={{ fontFamily: 'Montserrat, sans-serif' }}
                 />
 
                 {/* Event-only fields */}
@@ -301,6 +309,7 @@ export default function Announcements() {
                           : setNewEvent({ ...newEvent, startDate: e.target.value })
                       }
                       className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+                      style={{ fontFamily: 'Montserrat, sans-serif' }}
                     />
 
                     <label className="block mb-1 text-black">End Date</label>
@@ -313,6 +322,7 @@ export default function Announcements() {
                           : setNewEvent({ ...newEvent, endDate: e.target.value })
                       }
                       className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+                      style={{ fontFamily: 'Montserrat, sans-serif' }}
                     />
 
                     <label className="block mb-1 text-black">Start Time</label>
@@ -325,6 +335,7 @@ export default function Announcements() {
                           : setNewEvent({ ...newEvent, startTime: e.target.value })
                       }
                       className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+                      style={{ fontFamily: 'Montserrat, sans-serif' }}
                     />
 
                     <label className="block mb-1 text-black">End Time</label>
@@ -337,6 +348,7 @@ export default function Announcements() {
                           : setNewEvent({ ...newEvent, endTime: e.target.value })
                       }
                       className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+                      style={{ fontFamily: 'Montserrat, sans-serif' }}
                     />
                   </>
                 )}
@@ -347,10 +359,15 @@ export default function Announcements() {
                     onClick={editingId ? handleSaveItem : handlePostItem}
                     variant="contained"
                     color="primary"
+                    sx={{ fontFamily: 'Montserrat, sans-serif' }}
                   >
                     {editingId ? 'Save' : 'Post'}
                   </Button>
-                  <Button onClick={handleModalClose} variant="outlined">
+                  <Button 
+                    onClick={handleModalClose} 
+                    variant="outlined"
+                    sx={{ fontFamily: 'Montserrat, sans-serif' }}
+                  >
                     Cancel
                   </Button>
                 </div>
