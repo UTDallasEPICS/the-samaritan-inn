@@ -6,7 +6,7 @@ export async function PUT(
   req: Request,
   { params }: { params: any }
 ) {
-  const { id } = await params
+  const { id } = params
   try {
     const { title, content, startDate, endDate, startTime, endTime } =
       await req.json()

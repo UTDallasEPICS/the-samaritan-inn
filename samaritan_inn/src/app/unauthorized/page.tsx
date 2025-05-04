@@ -37,10 +37,10 @@ export default function Unauthorized() {
               Return Home
             </Link>
             <Link 
-              href="/auth-status"
+              href="/profile"
               className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
             >
-              Check Auth Status
+              Check your Profile
             </Link>
           </div>
         </div>

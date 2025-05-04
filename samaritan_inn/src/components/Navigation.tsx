@@ -31,8 +31,8 @@ export default function Navigation() {
                 <Link href="/dashboard" className="px-3 py-2 rounded-md hover:bg-blue-700">
                   Dashboard
                 </Link>
-                <Link href="/auth-status" className="px-3 py-2 rounded-md hover:bg-blue-700">
-                  Auth Status
+                <Link href="/profile" className="px-3 py-2 rounded-md hover:bg-blue-700">
+                  Profile
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}
@@ -46,8 +46,8 @@ export default function Navigation() {
               </>
             ) : (
               <>
-                <Link href="/auth-status" className="px-3 py-2 rounded-md hover:bg-blue-700">
-                  Auth Status
+                <Link href="/profile" className="px-3 py-2 rounded-md hover:bg-blue-700">
+                  Profile
                 </Link>
                 <Link href="/login" className="px-3 py-2 rounded-md hover:bg-blue-700">
                   Login
@@ -105,11 +105,11 @@ export default function Navigation() {
                   Dashboard
                 </Link>
                 <Link 
-                  href="/auth-status" 
+                  href="/profile" 
                   className="block px-3 py-2 rounded-md hover:bg-blue-700"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Auth Status
+                  Profile
                 </Link>
                 <button
                   onClick={() => {
@@ -127,11 +127,11 @@ export default function Navigation() {
             ) : (
               <>
                 <Link 
-                  href="/auth-status" 
+                  href="/profile" 
                   className="block px-3 py-2 rounded-md hover:bg-blue-700"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Auth Status
+                  profile
                 </Link>
                 <Link 
                   href="/login" 

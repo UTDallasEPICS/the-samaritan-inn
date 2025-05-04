@@ -34,7 +34,7 @@ export default async function Dashboard() {
               <h3 className="text-lg font-medium mb-2">Quick Actions</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Link
-                  href="/auth-status"
+                  href="/profile"
                   className="block p-3 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200"
                 >
                   View Authentication Status

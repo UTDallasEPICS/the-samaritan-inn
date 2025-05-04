@@ -9,6 +9,8 @@ import Button from '@mui/material/Button';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface Announcement {
   id: string;
@@ -32,7 +34,7 @@ interface EventItem {
 
 type Section = 'announcements' | 'events';
 
-// Turn an ISO timestamp into a human‑readable string
+// Turn an ISO timestamp into a human-readable string
 const formatDateTime = (isoStr: string) => {
   const dt = new Date(isoStr);
   return isNaN(dt.getTime())
@@ -41,6 +43,11 @@ const formatDateTime = (isoStr: string) => {
 };
 
 export default function Announcements() {
+  // 1) Authentication hooks
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // 2) State hooks (always at top)
   const [section, setSection] = useState<Section>('announcements');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -54,17 +61,39 @@ export default function Announcements() {
     startTime: '',
     endTime: '',
   });
-  const [isAdmin] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<any>({});
   const [showModal, setShowModal] = useState(false);
 
-  // derive unified list
-  const items = section === 'announcements'
-    ? announcements
-    : events;
+  // 3) Derived values
+  const isAdmin = session?.user?.role === 'admin';
+  const items = section === 'announcements' ? announcements : events;
 
-  // Reset modal state
+  // 4) Redirect unauthenticated users
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/unauthorized');
+    }
+  }, [status, router]);
+
+  // 5) Load announcements and events
+  useEffect(() => {
+    fetch('/api/announcements')
+      .then(res => res.json())
+      .then(setAnnouncements)
+      .catch(console.error);
+    fetch('/api/events')
+      .then(res => res.json())
+      .then(setEvents)
+      .catch(console.error);
+  }, []);
+
+// 5) While session is still loading, render nothing
+  if (status === 'loading') {
+    return null;
+  }
+
+  // 7) Handlers
   const handleModalClose = () => {
     setShowModal(false);
     setEditingId(null);
@@ -80,19 +109,6 @@ export default function Announcements() {
     });
   };
 
-  // Load data
-  useEffect(() => {
-    fetch('/api/announcements')
-      .then(res => res.json())
-      .then(setAnnouncements)
-      .catch(console.error);
-    fetch('/api/events')
-      .then(res => res.json())
-      .then(setEvents)
-      .catch(console.error);
-  }, []);
-
-  // Dropdown handlers
   const open = Boolean(anchorEl);
   const handleSectionClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     setAnchorEl(e.currentTarget);
@@ -102,17 +118,17 @@ export default function Announcements() {
     setAnchorEl(null);
   };
 
-  // Create new
   const handlePostItem = async () => {
     if (!isAdmin) return;
     if (section === 'announcements') {
       const { title, content } = newAnnouncement;
-      if (!title.trim() || !content.trim())
+      if (!title.trim() || !content.trim()) {
         return alert('Title and content required');
+      }
       const res = await fetch('/api/announcements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newAnnouncement, author: 'Admin', isAdmin}),
+        body: JSON.stringify({ ...newAnnouncement, author: 'Admin', isAdmin }),
       });
       if (!res.ok) return console.error('Post failed');
       const data = await res.json();
@@ -133,8 +149,9 @@ export default function Announcements() {
         !endDate ||
         !startTime ||
         !endTime
-      )
+      ) {
         return alert('All fields required');
+      }
       const res = await fetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -147,7 +164,6 @@ export default function Announcements() {
     handleModalClose();
   };
 
-  // Save edits
   const handleSaveItem = async () => {
     if (!isAdmin || !editingId) return;
     const path =
@@ -169,7 +185,6 @@ export default function Announcements() {
     handleModalClose();
   };
 
-  // Delete item
   const handleDeleteItem = async (id: string) => {
     if (!isAdmin || !confirm('Confirm delete?')) return;
     const path =
@@ -185,22 +200,20 @@ export default function Announcements() {
     }
   };
 
-  // Begin edit
   const initEdit = (item: any) => {
     setEditingId(item.id);
     setEditingItem({ ...item });
     setShowModal(true);
   };
 
+  // 8) Render
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
       <div className="flex-grow flex flex-col items-center bg-gray-100 p-4">
         <div className="w-full max-w-3xl p-6 bg-white shadow-md rounded-md">
-
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            {/* section selector */}
             <Button
               onClick={handleSectionClick}
               endIcon={<ExpandMoreIcon />}
@@ -217,7 +230,6 @@ export default function Announcements() {
                 Events
               </MenuItem>
             </Menu>
-            {/* “New Announcement” / “New Event” */}
             {isAdmin && (
               <Button
                 variant="contained"
@@ -390,8 +402,8 @@ export default function Announcements() {
 
                   {isEvent && (
                     <small className="text-gray-500 block mt-2">
-                      {formatDateTime((item as EventItem).startTime)} –{' '}
-                      {formatDateTime((item as EventItem).endTime)}
+                      {formatDateTime((item as EventItem).startDate + 'T' + (item as EventItem).startTime)} –{' '}
+                      {formatDateTime((item as EventItem).endDate + 'T' + (item as EventItem).endTime)}
                     </small>
                   )}
 

@@ -60,7 +60,7 @@ const Home = async () => {
             <h2 className="text-2xl font-semibold mb-4">Quick Links</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Link 
-                href="/auth-status" 
+                href="/profile" 
                 className="block p-4 bg-blue-600 text-white rounded-md hover:bg-indigo-600 text-center"
               >
                 Check Authentication Status
