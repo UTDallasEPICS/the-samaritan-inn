@@ -3,70 +3,61 @@
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function Navigation() {
   const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+  const pathname = usePathname();
+
+  // Helper to apply active styling to nav links
+  const linkClass = (path: string) =>
+    `px-3 py-2 rounded-md font-bold hover:bg-[#29abe2] ${pathname === path ? 'bg-[#29abe2]' : ''}`;
+
   return (
     <nav className="bg-[#00167c] text-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-xl font-bold">
-                The Samaritan Inn
-              </Link>
-            </div>
+        <div className="flex justify-between h-16 items-center">
+          {/* Brand title (static, no active highlight) */}
+          <div className="flex-shrink-0 flex items-center">
+            <Link href="/" className="text-xl font-bold px-3 py-2">
+              The Samaritan Inn
+            </Link>
           </div>
-          
+
           {/* Desktop navigation */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
-            <Link href="/" className="px-3 py-2 rounded-md hover:bg-[#29abe2]">
-              Home
-            </Link>
-            <Link
-              href="/resources"
-              className="px-3 py-2 rounded-md hover:bg-[#29abe2]"
-            >
-              Resources
-            </Link>
-            <Link
-              href="/announcements"
-              className="px-3 py-2 rounded-md hover:bg-[#29abe2]"
-            >
-              Announcements
-            </Link>
+          <div className="hidden md:flex md:items-center md:space-x-6">
+            <Link href="/" className={linkClass('/')}>Home</Link>
+            <Link href="/schedule" className={linkClass('/schedule')}>Schedule</Link>
+            <Link href="/resources" className={linkClass('/resources')}>Resources</Link>
+            <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
             {status === 'authenticated' ? (
               <>
-                <Link href="/profile" className="px-3 py-2 rounded-md hover:bg-[#29abe2]">
-                  Profile
-                </Link>
+                <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}
-                  className="px-3 py-2 rounded-md bg-red-500 hover:bg-red-600"
+                  className={`px-3 py-2 rounded-md font-bold ${pathname === '/login' ? 'bg-red-600' : 'bg-red-500 hover:bg-red-600'}`}
                 >
                   Sign Out
                 </button>
                 <div className="px-3 py-2">
-                  <span className="text-sm">Hi, {session.user.name}</span>
+                  <span className="text-sm font-bold">Hi, {session.user.name}</span>
                 </div>
               </>
             ) : (
               <>
-                <Link href="/profile" className="px-3 py-2 rounded-md hover:bg-[#29abe2]">
-                  Profile
-                </Link>
-                <Link href="/login" className="px-3 py-2 rounded-md hover:bg-[#29abe2]">
-                  Login
-                </Link>
-                <Link href="/signup" className="px-3 py-2 rounded-md bg-green-500 hover:bg-green-600">
+                <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
+                <Link href="/login" className={linkClass('/login')}>Login</Link>
+                <Link
+                  href="/signup"
+                  className={`px-3 py-2 rounded-md font-bold ${pathname === '/signup' ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'}`}
+                >
                   Sign Up
                 </Link>
               </>
             )}
           </div>
-          
+
           {/* Mobile menu button */}
           <div className="flex md:hidden items-center">
             <button
@@ -90,77 +81,36 @@ export default function Navigation() {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link 
-              href="/"
-              className="block px-3 py-2 rounded-md hover:bg-[#29abe2]"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Home
-            </Link>
-            <Link
-              href="/resources"
-              className="block px-3 py-2 rounded-md hover:bg-[#29abe2]"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Resources
-            </Link>
-            <Link
-              href="/announcements"
-              className="block px-3 py-2 rounded-md hover:bg-[#29abe2]"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Announcements
-            </Link>
+          <div className="px-2 pt-2 pb-3 space-y-2 sm:px-3">
+            <Link href="/" className={linkClass('/')} onClick={() => setIsMenuOpen(false)}>Home</Link>
+            <Link href="/schedule" className={linkClass('/schedule')} onClick={() => setIsMenuOpen(false)}>Schedule</Link>
+            <Link href="/resources" className={linkClass('/resources')} onClick={() => setIsMenuOpen(false)}>Resources</Link>
+            <Link href="/announcements" className={linkClass('/announcements')} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
             {status === 'authenticated' ? (
               <>
-                <Link 
-                  href="/profile" 
-                  className="block px-3 py-2 rounded-md hover:bg-[#29abe2]"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Profile
-                </Link>
+                <Link href="/profile" className={linkClass('/profile')} onClick={() => setIsMenuOpen(false)}>Profile</Link>
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);
                     signOut({ callbackUrl: '/login' });
                   }}
-                  className="block w-full text-left px-3 py-2 rounded-md bg-red-500 hover:bg-red-600"
+                  className="block w-full text-left px-3 py-2 rounded-md bg-red-500 hover:bg-red-600 font-bold"
                 >
                   Sign Out
                 </button>
                 <div className="px-3 py-2 border-t border-blue-700 mt-2 pt-2">
-                  <span className="text-sm">Logged in as: {session.user.name}</span>
+                  <span className="text-sm font-bold">Logged in as: {session.user.name}</span>
                 </div>
               </>
             ) : (
               <>
-                <Link 
-                  href="/profile" 
-                  className="block px-3 py-2 rounded-md hover:bg-[#29abe2]"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  profile
-                </Link>
-                <Link 
-                  href="/login" 
-                  className="block px-3 py-2 rounded-md hover:bg-[#29abe2]"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Login
-                </Link>
-                <Link 
-                  href="/signup" 
-                  className="block px-3 py-2 rounded-md bg-green-500 hover:bg-green-600"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign Up
-                </Link>
+                <Link href="/profile" className={linkClass('/profile')} onClick={() => setIsMenuOpen(false)}>Profile</Link>
+                <Link href="/login" className={linkClass('/login')} onClick={() => setIsMenuOpen(false)}>Login</Link>
+                <Link href="/signup" className={linkClass('/signup')} onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
               </>
             )}
           </div>
