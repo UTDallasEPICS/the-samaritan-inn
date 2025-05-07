@@ -31,10 +31,10 @@ export default function Unauthorized() {
           </p>
           <div className="flex justify-center space-x-4">
             <Link 
-              href="/"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              href="/login"
+              className="bg-[#29abe2] text-white px-4 py-2 rounded hover:bg-blue-600"
             >
-              Return Home
+              Return to Login
             </Link>
             <Link 
               href="/profile"

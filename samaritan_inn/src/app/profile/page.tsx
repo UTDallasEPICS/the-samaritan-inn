@@ -53,14 +53,14 @@ export default function Profile() {
             ) : (
               <>
                 <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative">
-                  <strong className="font-bold">Not Authenticated</strong>
+                  <strong className="font-bold">Not Authenticated. </strong>
                   <p className="block sm:inline">You are not logged in.</p>
                 </div>
                 
                 <div className="flex justify-between">
                   <Link 
                     href="/login"
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    className="bg-[#29abe2] text-white px-4 py-2 rounded hover:bg-blue-600"
                   >
                     Login
                   </Link>

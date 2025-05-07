@@ -1,25 +1,10 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import Navigation from '@/components/Navigation';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 
 const HomePage = () => {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  // redirect unauthenticated users off the homepage
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.replace('/unauthorized');
-    }
-  }, [status, router]);
-
-  // while loading session, render nothing
-  if (status === 'loading') return null;
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
@@ -41,6 +26,7 @@ const HomePage = () => {
           {/* Quick Access Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
+            {/* Pass Request */}
             <div className="bg-white border-2 border-[#0caebb] rounded-lg p-6 text-center hover:shadow-lg transition duration-300">
               <div className="mb-4 flex justify-center">
                 <svg width="120" height="120" viewBox="0 0 400 400">
@@ -51,16 +37,17 @@ const HomePage = () => {
                   <path d="M107.574 292.426L292.426 107.574" stroke="white" strokeWidth="24" />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-[#00167c] mb-2">Announcements</h2>
-              <p className="text-[#231f20] mb-4">Get caught up on lastest events!</p>
+              <h2 className="text-xl font-bold text-[#00167c] mb-2">Scheduling</h2>
+              <p className="text-[#231f20] mb-4">Schedule/Update your curfew or connect with your assigned case worker</p>
               <Link
-                href="/announcements"
+                href="/scheduling"
                 className="inline-block bg-[#0caebb] text-white py-2 px-6 rounded-md hover:bg-[#29abe2] transition duration-300"
               >
-                View
+                Schedule
               </Link>
             </div>
 
+            {/* Case Worker */}
             <div className="bg-white border-2 border-[#0caebb] rounded-lg p-6 text-center hover:shadow-lg transition duration-300">
               <div className="mb-4 flex justify-center">
                 <svg width="120" height="120" viewBox="0 0 400 400">
@@ -68,13 +55,13 @@ const HomePage = () => {
                   <circle cx="200" cy="200" r="100" stroke="white" strokeWidth="40" fill="none" />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-[#00167c] mb-2">Schedule</h2>
-              <p className="text-[#231f20] mb-4">Schedule/Update your curfew or connect with your assigned case worker</p>
+              <h2 className="text-xl font-bold text-[#00167c] mb-2">Case Worker</h2>
+              <p className="text-[#231f20] mb-4">Connect with your assigned case worker</p>
               <Link
-                href="/scheduling"
+                href="/caseworker"
                 className="inline-block bg-[#0caebb] text-white py-2 px-6 rounded-md hover:bg-[#29abe2] transition duration-300"
               >
-                Schedule
+                Contact
               </Link>
             </div>
 

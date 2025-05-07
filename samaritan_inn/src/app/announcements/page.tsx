@@ -233,8 +233,13 @@ export default function Announcements() {
             {isAdmin && (
               <Button
                 variant="contained"
-                color="primary"
                 onClick={() => setShowModal(true)}
+                sx={{
+                  backgroundColor: '#29abe2',
+                  '&:hover': {
+                    backgroundColor: '#1f8fbf',
+                  },
+                }}
               >
                 New {section === 'announcements' ? 'Announcement' : 'Event'}
               </Button>
