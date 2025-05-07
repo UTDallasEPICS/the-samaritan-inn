@@ -49,6 +49,9 @@ export default function Navigation() {
                 <Link href="/auth-status" className="px-3 py-2 rounded-md hover:bg-blue-700">
                   Auth Status
                 </Link>
+                <Link href="/translator" className="px-3 py-2 rounded-md hover:bg-blue-700">
+                  Translator
+                </Link>
                 <Link href="/login" className="px-3 py-2 rounded-md hover:bg-blue-700">
                   Login
                 </Link>
