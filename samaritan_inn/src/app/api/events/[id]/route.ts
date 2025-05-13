@@ -26,23 +26,17 @@ export async function PUT(
       )
     }
 
-    // parse times — handle both “HH:mm” and full ISO strings
-    const parsedStartTime = startTime.includes('T')
-      ? new Date(startTime)
-      : new Date(`${startDate}T${startTime}`)
-    const parsedEndTime = endTime.includes('T')
-      ? new Date(endTime)
-      : new Date(`${endDate}T${endTime}`)
-
+    // Option A: client already sends full ISO strings for startTime/endTime,
+    // so just parse them directly:
     const updatedEvent = await prisma.event.update({
       where: { id },
       data: {
         title,
         content,
         startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        startTime: parsedStartTime,
-        endTime: parsedEndTime,
+        endDate:   new Date(endDate),
+        startTime: new Date(startTime),
+        endTime:   new Date(endTime),
       },
     })
 
@@ -61,7 +55,7 @@ export async function DELETE(
   _req: Request,
   { params }: { params: any }
 ) {
-  const { id } = await params
+  const { id } = params
   try {
     await prisma.event.delete({ where: { id } })
     return NextResponse.json({ success: true })

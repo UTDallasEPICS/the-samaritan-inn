@@ -407,8 +407,7 @@ export default function Announcements() {
 
                   {isEvent && (
                     <small className="text-gray-500 block mt-2">
-                      {formatDateTime((item as EventItem).startDate + 'T' + (item as EventItem).startTime)} –{' '}
-                      {formatDateTime((item as EventItem).endDate + 'T' + (item as EventItem).endTime)}
+                      {formatDateTime((item as EventItem).startTime)} – {formatDateTime((item as EventItem).endTime)}
                     </small>
                   )}
 
