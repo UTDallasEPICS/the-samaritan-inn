@@ -102,22 +102,64 @@ Samaritan Inn Scheduling App is a web application serving the residents and staf
 
 ## Project Structure
 
-```plaintext
-.
-├── prisma
-│   ├── schema.prisma
-│   └── seed.ts
-├── public
-├── src
-│   ├── pages
-│   ├── components
-│   ├── styles
-│   └── lib
-├── .env
-├── next.config.js
-├── package.json
-└── README.md
-```
+```text
+├── .env  
+├── .gitignore  
+├── eslint.config.mjs  
+├── next-env.d.ts  
+├── next.config.ts  
+├── package.json  
+├── postcss.config.mjs  
+├── README.md  
+├── tailwind.config.ts  
+├── tsconfig.json  
+├── prisma  
+│   ├── schema.prisma  
+│   ├── dev.db  
+│   └── migrations  
+├── public  
+│   ├── file.svg  
+│   ├── globe.svg  
+│   ├── next.svg  
+│   ├── vercel.svg  
+│   └── window.svg  
+├── src  
+│   ├── app  
+│   │   ├── favicon.ico  
+│   │   ├── globals.css  
+│   │   ├── layout.tsx  
+│   │   ├── page.tsx  
+│   │   ├── announcements  
+│   │   ├── api  
+│   │   │   ├── announcements  
+│   │   │   ├── auth  
+│   │   │   ├── login  
+│   │   │   └── register  
+│   │   ├── auth-status  
+│   │   ├── caseworker  
+│   │   ├── curfew  
+│   │   ├── dashboard  
+│   │   ├── homepage  
+│   │   ├── login  
+│   │   ├── signup  
+│   │   ├── unauthorized  
+│   │   └── Resources  
+│   ├── components  
+│   │   ├── Navigation.tsx  
+│   │   └── providers  
+│   │       └── SessionProvider.tsx  
+│   ├── lib  
+│   │   ├── auth.ts  
+│   │   └── prisma.ts  
+│   └── types  
+│       └── next-auth.d.ts  
+└── .next  
+    ├── app-build-manifest.json  
+    ├── build-manifest.json  
+    ├── cache  
+    ├── server  
+    └── static  
+
 
 ### Scripts
 
@@ -162,4 +204,3 @@ This project uses NextAuth.js for authentication with two roles:
    ```
 
 ---
-
