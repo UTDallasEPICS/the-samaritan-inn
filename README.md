@@ -204,4 +204,3 @@ This project uses NextAuth.js for authentication with two roles:
    ```
 
 ---
-

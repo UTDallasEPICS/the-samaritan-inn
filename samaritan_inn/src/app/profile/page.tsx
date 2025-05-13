@@ -4,7 +4,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 
-export default function AuthStatus() {
+export default function Profile() {
   const { data: session, status } = useSession();
   
   return (
@@ -13,7 +13,7 @@ export default function AuthStatus() {
       
       <div className="flex-grow flex items-center justify-center bg-gray-100 p-4">
         <div className="w-full max-w-md p-6 bg-white shadow-md rounded-md">
-          <h1 className="text-2xl font-bold mb-6 text-center text-black">Authentication Status</h1>
+          <h1 className="text-2xl font-bold mb-6 text-center text-black">Profile</h1>
           
           <div className="space-y-4">
             {status === 'loading' ? (
@@ -21,8 +21,8 @@ export default function AuthStatus() {
             ) : status === 'authenticated' ? (
               <>
                 <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-                  <strong className="font-bold">Authenticated</strong>
-                  <p className="block sm:inline">You are logged in!</p>
+                  <strong className="font-bold">Authenticated! </strong>
+                  <p className="block sm:inline"> You are logged in!</p>
                 </div>
                 
                 <div className="rounded-md bg-gray-50 p-4">
@@ -53,14 +53,14 @@ export default function AuthStatus() {
             ) : (
               <>
                 <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative">
-                  <strong className="font-bold">Not Authenticated</strong>
+                  <strong className="font-bold">Not Authenticated. </strong>
                   <p className="block sm:inline">You are not logged in.</p>
                 </div>
                 
                 <div className="flex justify-between">
                   <Link 
                     href="/login"
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    className="bg-[#29abe2] text-white px-4 py-2 rounded hover:bg-blue-600"
                   >
                     Login
                   </Link>

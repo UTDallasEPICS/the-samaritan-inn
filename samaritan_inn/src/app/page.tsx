@@ -1,97 +1,109 @@
-import { prisma } from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth';
+'use client';
+
+import React, { useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
-const Home = async () => {
-  const posts = await prisma.post.findMany();
-  const user = await getCurrentUser();
+const HomePage = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // redirect unauthenticated users off the homepage
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/unauthorized');
+    }
+  }, [status, router]);
+
+  // while loading session, render nothing
+  if (status === 'loading') return null;
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
-      
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Welcome to The Samaritan Inn</h1>
+
+      <div className="flex-grow bg-gray-100 p-4 flex flex-col items-center">
+        {/* added only top padding here */}
+        <div className="w-full max-w-4xl pt-4">
           
-          {user ? (
-            <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
-              <p className="text-green-800">
-                You are logged in as <strong>{user.name}</strong>. 
-                <Link href="/dashboard" className="text-blue-600 hover:underline ml-2">
-                  View your dashboard
-                </Link>
-              </p>
-            </div>
-          ) : (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
-              <p className="text-blue-800">
-                Please 
-                <Link href="/login" className="text-blue-600 hover:underline mx-1">
-                  login
-                </Link>
-                or
-                <Link href="/signup" className="text-blue-600 hover:underline mx-1">
-                  sign up
-                </Link>
-                to access all features.
-              </p>
-            </div>
-          )}
-          
-          <h2 className="text-2xl font-semibold mb-4">Latest Announcements</h2>
-          
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <ul className="divide-y divide-gray-200">
-              {posts.length > 0 ? (
-                posts.map((post) => (
-                  <li key={post.id} className="py-4">
-                    <h3 className="text-lg font-medium">{post.name}</h3>
-                  </li>
-                ))
-              ) : (
-                <li className="py-4 text-gray-500">No announcements yet.</li>
-              )}
-            </ul>
+          {/* Welcome Section */}
+          <div className="flex flex-col items-center text-center mb-16">
+            <h1 className="text-5xl md:text-6xl font-bold text-[#00167c] mb-6">
+              Welcome to The Samaritan Inn
+            </h1>
+            <p className="text-xl text-[#231f20] max-w-2xl">
+              A safe place providing shelter, support, and hope for those in need.
+            </p>
           </div>
-          
-          <div className="mt-8">
-            <h2 className="text-2xl font-semibold mb-4">Quick Links</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Link 
-                href="/auth-status" 
-                className="block p-4 bg-blue-600 text-white rounded-md hover:bg-indigo-600 text-center"
+
+          {/* Quick Access Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <div className="bg-white border-2 border-[#0caebb] rounded-lg p-6 text-center hover:shadow-lg transition duration-300">
+              <div className="mb-4 flex justify-center">
+                <svg width="120" height="120" viewBox="0 0 400 400">
+                  <circle cx="200" cy="200" r="200" fill="#0caebb" />
+                  <path d="M200 60V340" stroke="white" strokeWidth="24" />
+                  <path d="M60 200H340" stroke="white" strokeWidth="24" />
+                  <path d="M107.574 107.574L292.426 292.426" stroke="white" strokeWidth="24" />
+                  <path d="M107.574 292.426L292.426 107.574" stroke="white" strokeWidth="24" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-[#00167c] mb-2">Announcements</h2>
+              <p className="text-[#231f20] mb-4">Get caught up on lastest events!</p>
+              <Link
+                href="/announcements"
+                className="inline-block bg-[#0caebb] text-white py-2 px-6 rounded-md hover:bg-[#29abe2] transition duration-300"
               >
-                Check Authentication Status
+                View
               </Link>
-              {user ? (
-                <Link 
-                  href="/dashboard" 
-                  className="block p-4 bg-green-500 text-white rounded-md hover:bg-green-600 text-center"
-                >
-                  Go to Dashboard
-                </Link>
-              ) : (
-                <Link 
-                  href="/login" 
-                  className="block p-4 bg-blue-600 text-white rounded-md hover:bg-blue-600 text-center"
-                >
-                  Login to Your Account
-                </Link>
-              )}
             </div>
+
+            <div className="bg-white border-2 border-[#0caebb] rounded-lg p-6 text-center hover:shadow-lg transition duration-300">
+              <div className="mb-4 flex justify-center">
+                <svg width="120" height="120" viewBox="0 0 400 400">
+                  <circle cx="200" cy="200" r="200" fill="#0caebb" />
+                  <circle cx="200" cy="200" r="100" stroke="white" strokeWidth="40" fill="none" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-[#00167c] mb-2">Schedule</h2>
+              <p className="text-[#231f20] mb-4">Schedule/Update your curfew or connect with your assigned case worker</p>
+              <Link
+                href="/scheduling"
+                className="inline-block bg-[#0caebb] text-white py-2 px-6 rounded-md hover:bg-[#29abe2] transition duration-300"
+              >
+                Schedule
+              </Link>
+            </div>
+
+            {/* Resources */}
+            <div className="bg-white border-2 border-[#0caebb] rounded-lg p-6 text-center hover:shadow-lg transition duration-300">
+              <div className="mb-4 flex justify-center">
+                <svg width="120" height="120" viewBox="0 0 400 400">
+                  <circle cx="200" cy="200" r="200" fill="#0caebb" />
+                  <path d="M200 60V340" stroke="white" strokeWidth="24" />
+                  <path d="M60 200H340" stroke="white" strokeWidth="24" />
+                  <path d="M107.574 107.574L292.426 292.426" stroke="white" strokeWidth="24" />
+                  <path d="M107.574 292.426L292.426 107.574" stroke="white" strokeWidth="24" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-[#00167c] mb-2">Resources</h2>
+              <p className="text-[#231f20] mb-4">Access helpful community resources</p>
+              <Link
+                href="/resources"
+                className="inline-block bg-[#0caebb] text-white py-2 px-6 rounded-md hover:bg-[#29abe2] transition duration-300"
+              >
+                View
+              </Link>
+            </div>
+
           </div>
         </div>
-      </main>
-      
-      <footer className="bg-gray-800 text-white py-6">
-        <div className="container mx-auto px-4">
-          <p className="text-center">&copy; 2025 The Samaritan Inn. All rights reserved.</p>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 };
 
-export default Home;
+export default HomePage;

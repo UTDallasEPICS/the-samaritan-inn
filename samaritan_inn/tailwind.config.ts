@@ -11,6 +11,14 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        primary:   "#00167c",
+        secondary: "#0caebb",
+        light:     "#c7c8ca",
+        white:     "#ffffff",
+      },
+      fontFamily: {
+        // `font-sans` → Montserrat everywhere
+        sans: ["Montserrat", "sans‑serif"],
       },
     },
   },
