@@ -204,3 +204,10 @@ This project uses NextAuth.js for authentication with two roles:
    ```
 
 ---
+## Future requirements:
+
+1. Allow admin to add attachements to announcements and events
+2. Change curfew to more of a form and then sends admin response to user in form of email or notification
+3. Change scheduling to Salesforce rather than Calendly
+4. User request form to fulfill order in inflow. 
+---
