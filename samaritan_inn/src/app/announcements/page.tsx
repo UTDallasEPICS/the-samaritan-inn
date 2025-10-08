@@ -210,26 +210,15 @@ export default function Announcements() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
-      <div className="flex-grow flex flex-col items-center bg-gray-100 p-4">
+      <div className="flex-grow flex flex-col items-start bg-gray-100 p-4">
         <div className="w-full max-w-3xl p-6 bg-white shadow-md rounded-md">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <Button
-              onClick={handleSectionClick}
-              endIcon={<ExpandMoreIcon />}
-              color="primary"
-              sx={{ fontSize: '1.25rem' }}
-            >
-              {section === 'announcements' ? 'Announcements' : 'Events'}
-            </Button>
-            <Menu anchorEl={anchorEl} open={open} onClose={handleSectionClose}>
-              <MenuItem onClick={() => handleSectionSelect('announcements')}>
-                Announcements
-              </MenuItem>
-              <MenuItem onClick={() => handleSectionSelect('events')}>
-                Events
-              </MenuItem>
-            </Menu>
+            
+              <h1 className="text-2xl font-semibold text-black mb-4">Announcements</h1>
+              
+            
+           
             {isAdmin && (
               <Button
                 variant="contained"
