@@ -29,6 +29,7 @@ export default function Navigation() {
           <div className="hidden md:flex md:items-center md:space-x-6">
             <Link href="/" className={linkClass('/')}>Home</Link>
             <Link href="/schedule" className={linkClass('/schedule')}>Schedule</Link>
+            <Link href="/curfew" className={linkClass('/curfew')}>Curfew</Link>
             <Link href="/resources" className={linkClass('/resources')}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
             {status === 'authenticated' ? (
