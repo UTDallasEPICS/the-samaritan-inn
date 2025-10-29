@@ -11,6 +11,8 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import SidebarCalendar from "@/components/SidebarCalendar";
+
 
 interface Announcement {
   id: string;
@@ -64,6 +66,18 @@ export default function Announcements() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<any>({});
   const [showModal, setShowModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+const filteredAnnouncements = selectedDate
+  ? announcements.filter(a => a.createdAt?.slice(0,10) === selectedDate)
+  : announcements;
+
+const filteredEvents = selectedDate
+  ? events.filter(e => e.startDate?.slice(0,10) === selectedDate || e.endDate?.slice(0,10) === selectedDate)
+  : events;
+
+const filteredItems = section === 'announcements' ? filteredAnnouncements : filteredEvents;
+
 
   // 3) Derived values
   const isAdmin = session?.user?.role === 'admin';
@@ -211,7 +225,10 @@ export default function Announcements() {
     <div className="min-h-screen flex flex-col">
       <Navigation />
       <div className="flex-grow flex flex-col items-start bg-gray-100 p-4">
-        <div className="w-full max-w-3xl p-6 bg-white shadow-md rounded-md">
+        <div className="w-full max-w-6xl p-6 bg-white shadow-md rounded-md">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             
@@ -234,7 +251,8 @@ export default function Announcements() {
               </Button>
             )}
           </div>
-
+            </div>
+            </div>
           {/* Modal */}
           {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -409,6 +427,20 @@ export default function Announcements() {
             })}
           </ul>
         </div>
+              {/* RIGHT: Sidebar Calendar */}
+    <aside className="lg:col-span-1">
+      <SidebarCalendar
+        className="w-full"
+        announcements={announcements.map(a => ({
+          id: a.id,
+          title: a.title,
+          content: a.content,
+          date: a.createdAt?.slice(0, 10), // <- what SidebarCalendar expects
+        }))}
+        onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
+      />
+    </aside>
+
       </div>
     </div>
   );
