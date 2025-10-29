@@ -225,8 +225,31 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
     <div className="min-h-screen flex flex-col">
       <Navigation />
       <div className="flex-grow flex flex-col items-start bg-gray-100 p-4">
-        <div className="w-full max-w-6xl p-6 bg-white shadow-md rounded-md">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="w-full max-w-3xl p-6 bg-white shadow-md rounded-md">
+          
+         
+
+<div className="absolute right-8 top-32 w-[400px]">
+ {/* RIGHT: Sidebar Calendar */}
+    <aside className="lg:col-span-1 lg:sticky lg:top-8 self-end">
+      <SidebarCalendar
+        className="w-full"
+        announcements={announcements.map(a => ({
+          id: a.id,
+          title: a.title,
+          content: a.content,
+          date: a.createdAt?.slice(0, 10), // <- what SidebarCalendar expects
+        }))}
+        onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
+      />
+    </aside>
+
+</div>
+
+
+
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
 
           {/* Header */}
@@ -427,19 +450,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
             })}
           </ul>
         </div>
-              {/* RIGHT: Sidebar Calendar */}
-    <aside className="lg:col-span-1">
-      <SidebarCalendar
-        className="w-full"
-        announcements={announcements.map(a => ({
-          id: a.id,
-          title: a.title,
-          content: a.content,
-          date: a.createdAt?.slice(0, 10), // <- what SidebarCalendar expects
-        }))}
-        onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
-      />
-    </aside>
+    
 
       </div>
     </div>
