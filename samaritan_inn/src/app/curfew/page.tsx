@@ -12,11 +12,11 @@ interface CurfewRequest {
 }
 
 export default function CurfewExtensionAdmin() {
-  // 1️⃣ Session and router
+  // Authentication and router
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // 2️⃣ State
+  // State keeping track of pending requests
   const [requests, setRequests] = useState<CurfewRequest[]>([
     { id: 1, name: 'Omar Akhter', timestamp: '11:39pm, 10/2' },
     { id: 2, name: 'Thomas Shepherd', timestamp: '3:47pm, 10/6' },
@@ -24,17 +24,17 @@ export default function CurfewExtensionAdmin() {
     { id: 4, name: 'Roger Watson', timestamp: '12:56pm, 10/10' },
   ]);
 
-  // 3️⃣ Derived role
+  // Derived user role
   const isAdmin = session?.user?.role === 'admin';
 
-  // 4️⃣ Redirect unauthenticated users
+  // Redirecting unauthorized users
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/unauthorized');
     }
   }, [status, router]);
 
-  // 5️⃣ Show loading while session is being fetched
+  // Show loading while session is loading
   if (status === 'loading') {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -43,7 +43,7 @@ export default function CurfewExtensionAdmin() {
     );
   }
 
-  // 6️⃣ Non-admin users see a restricted access message
+  // Message for non-admin users
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -62,13 +62,13 @@ export default function CurfewExtensionAdmin() {
     );
   }
 
-  // 7️⃣ Admin handler
-  const handleDecision = (id: number, accepted: boolean) => {
-    alert(`${accepted ? 'Accepted' : 'Denied'} request ${id}`);
+  // Handler for admin decision
+  const handleDecision = (id: number, name: string, accepted: boolean) => {
+    alert(`${accepted ? 'Accepted request from' : 'Denied request from'} ${name}`);
     setRequests((prev) => prev.filter((req) => req.id !== id));
   };
 
-  // 8️⃣ Admin-only UI
+  // Admin-only UI
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navigation />
@@ -85,23 +85,10 @@ export default function CurfewExtensionAdmin() {
               className="flex items-center justify-between mb-4 last:mb-0"
             >
               <button
-                onClick={() => alert(`Details for ${req.name}`)}
-                className="flex-1 text-left bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded px-4 py-2 text-gray-700 mr-4 transition"
+                onClick={() => window.open("/public/pdfs/Pass-and-Curfew-requests.pdf")}
+                className="flex-1 text-center bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded px-4 py-2 text-gray-700 mr-4 transition"
               >
                 {req.name} — {req.timestamp}
-              </button>
-
-              <button
-                onClick={() => handleDecision(req.id, true)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mr-2"
-              >
-                Accept
-              </button>
-              <button
-                onClick={() => handleDecision(req.id, false)}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-              >
-                Deny
               </button>
             </div>
           ))}
