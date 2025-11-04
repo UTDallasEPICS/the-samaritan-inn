@@ -13,9 +13,12 @@ interface Request {
 
 interface FormData {
   caseWorker: string;
-  datetime: string;
+  startDatetime: string;
+  endDatetime: string;
   reason: string;
   extraInfo: string;
+  choreCoverage: string;
+  signature: string;
   pdfFile: File | null;
 }
 
@@ -27,9 +30,12 @@ export default function CurfewExtensionPage() {
 
   const [formData, setFormData] = useState<FormData>({
     caseWorker: '',
-    datetime: '',
+    startDatetime: '',
+    endDatetime: '',
     reason: '',
     extraInfo: '',
+    choreCoverage: '',
+    signature: '',
     pdfFile: null
   });
 
@@ -63,14 +69,14 @@ export default function CurfewExtensionPage() {
       alert('Please select a case worker');
       return;
     }
-    if (!formData.datetime || !formData.reason) {
+    if (!formData.startDatetime || !formData.endDatetime || !formData.reason || !formData.signature) {
       alert('Please fill in all required fields');
       return;
     }
 
     const newRequest: Request = {
       id: requests.length + 1,
-      date: new Date(formData.datetime).toLocaleDateString('en-US'),
+      date: new Date(formData.startDatetime).toLocaleDateString('en-US'),
       status: 'pending',
       reason: formData.reason,
       caseWorker: formData.caseWorker
@@ -80,9 +86,12 @@ export default function CurfewExtensionPage() {
     
     setFormData({
       caseWorker: '',
-      datetime: '',
+      startDatetime: '',
+      endDatetime: '',
       reason: '',
       extraInfo: '',
+      choreCoverage: '',
+      signature: '',
       pdfFile: null
     });
 
@@ -199,19 +208,32 @@ export default function CurfewExtensionPage() {
                 </select>
               </div>
 
-              {/* Day/time */}
+              {/* Start Date/Time */}
               <div>
                 <label className="block text-base font-medium text-gray-900 mb-2">
-                  Extension Date & Time <span className="text-red-500">*</span>
+                  Start Date & Time <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="datetime-local"
-                  name="datetime"
-                  value={formData.datetime}
+                  name="startDatetime"
+                  value={formData.startDatetime}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                 />
-                <p className="mt-1 text-xs text-gray-500">When do you need the curfew extension?</p>
+              </div>
+
+              {/* End Date/Time */}
+              <div>
+                <label className="block text-base font-medium text-gray-900 mb-2">
+                  End Date & Time <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  name="endDatetime"
+                  value={formData.endDatetime}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                />
               </div>
 
               {/* Reason */}
@@ -219,13 +241,13 @@ export default function CurfewExtensionPage() {
                 <label className="block text-base font-medium text-gray-900 mb-2">
                   Reason for Extension <span className="text-red-500">*</span>
                 </label>
-                <textarea
+                <input
+                  type="text"
                   name="reason"
                   value={formData.reason}
                   onChange={handleInputChange}
-                  rows={4}
-                  placeholder="Please provide a detailed reason (e.g., medical appointment, job interview, family emergency)..."
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                  placeholder="e.g., Medical appointment, Job interview, Family emergency"
+                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                 />
               </div>
 
@@ -234,51 +256,44 @@ export default function CurfewExtensionPage() {
                 <label className="block text-base font-medium text-gray-900 mb-2">
                   Additional Information
                 </label>
-                <textarea
+                <input
+                  type="text"
                   name="extraInfo"
                   value={formData.extraInfo}
                   onChange={handleInputChange}
-                  rows={2}
-                  placeholder="Any additional context or details (optional)..."
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                  placeholder="Any additional context or details (optional)"
+                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
                 />
               </div>
 
-              {/* PDF Upload */}
+              {/* Chore Coverage */}
               <div>
                 <label className="block text-base font-medium text-gray-900 mb-2">
-                  Supporting Documentation
+                  Fellow Resident Covering Chores
                 </label>
-                <div className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center hover:border-cyan-500 hover:bg-cyan-50 transition-all cursor-pointer">
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="pdf-upload"
-                  />
-                  <label htmlFor="pdf-upload" className="cursor-pointer">
-                    <div className="flex flex-col items-center space-y-2">
-                      {formData.pdfFile ? (
-                        <>
-                          <FileText className="w-12 h-12 text-green-500" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{formData.pdfFile.name}</p>
-                            <p className="text-xs text-gray-500 mt-1">Click to change file</p>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-12 h-12 text-gray-400" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">Upload PDF Document</p>
-                            <p className="text-xs text-gray-500 mt-1">Optional: Appointment letters, schedules, etc.</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </label>
-                </div>
+                <input
+                  type="text"
+                  name="choreCoverage"
+                  value={formData.choreCoverage}
+                  onChange={handleInputChange}
+                  placeholder="Name of resident who will cover your chores (if applicable)"
+                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                />
+              </div>
+
+              {/* Signature */}
+              <div>
+                <label className="block text-base font-medium text-gray-900 mb-2">
+                  Signature (Type Full Name) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="signature"
+                  value={formData.signature}
+                  onChange={handleInputChange}
+                  placeholder="Type your full name as signature"
+                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                />
               </div>
 
               {/* Submit Button */}
@@ -297,63 +312,28 @@ export default function CurfewExtensionPage() {
 
         {/* My Requests Section */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">My Request History</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Request History</h2>
           <div className="bg-white border-2 border-cyan-400 rounded-lg overflow-hidden shadow-md">
             {requests.length === 0 ? (
               <div className="px-6 py-12 text-center">
                 <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600 font-medium">No requests yet</p>
-                <p className="text-sm text-gray-500 mt-2">Submit your first curfew extension request above</p>
               </div>
             ) : (
-              <div className="divide-y-2 divide-cyan-400">
+              <div className="divide-y-2 divide-gray-200">
                 {requests.map((request) => (
-                  <div key={request.id} className="px-6 py-5 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <span className="text-lg font-bold text-gray-900">{request.date}</span>
-                          {getStatusBadge(request.status)}
-                        </div>
-                        <p className="text-sm text-gray-700 mb-1">
-                          <span className="font-semibold">Reason:</span> {request.reason}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          <span className="font-semibold">Case Worker:</span> {request.caseWorker}
-                        </p>
+                  <div key={request.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <span className="text-sm font-semibold text-gray-900">{request.date}</span>
+                        <span className="text-sm text-gray-600">{request.reason}</span>
                       </div>
+                      {getStatusBadge(request.status)}
                     </div>
-                    {request.status === 'pending' && (
-                      <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded p-3">
-                        <p className="text-xs text-yellow-800">
-                          <span className="font-semibold">⏳ Under Review:</span> Your case worker will review this request within 24-48 hours. You'll be notified once a decision is made.
-                        </p>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Info Card */}
-        <div className="mt-6 bg-cyan-50 border-2 border-cyan-400 rounded-lg p-5">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-6 w-6 text-cyan-600" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-bold text-cyan-900">Important Information</h3>
-              <ul className="mt-2 text-sm text-cyan-800 space-y-1">
-                <li>• Submit requests at least 48 hours in advance when possible</li>
-                <li>• Your case worker will review and respond within 24-48 hours</li>
-                <li>• Include supporting documentation to strengthen your request</li>
-                <li>• Contact your case worker directly for urgent situations</li>
-              </ul>
-            </div>
           </div>
         </div>
       </div>
