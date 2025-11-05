@@ -82,11 +82,11 @@ export default function CurfewExtensionAdmin() {
           {requests.map((req) => (
             <div
               key={req.id}
-              className="flex items-center justify-between mb-4 last:mb-0"
+              className="flex items-center justify-center mb-4 last:mb-0"
             >
               <button
                 onClick={() => window.open("/public/pdfs/Pass-and-Curfew-requests.pdf")}
-                className="flex-1 text-center bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded px-4 py-2 text-gray-700 mr-4 transition"
+                className="flex-1 text-center bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded px-4 py-2 text-gray-700 transition"
               >
                 {req.name} — {req.timestamp}
               </button>
