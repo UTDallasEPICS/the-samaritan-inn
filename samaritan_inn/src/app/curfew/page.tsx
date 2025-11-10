@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, Upload, Check, X, Clock, Send } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface Request {
   id: number;
@@ -13,13 +13,14 @@ interface Request {
 
 interface FormData {
   caseWorker: string;
-  startDatetime: string;
-  endDatetime: string;
+  startDate: string;
+  startTime: string;
+  endDate: string;
+  endTime: string;
   reason: string;
   extraInfo: string;
   choreCoverage: string;
   signature: string;
-  pdfFile: File | null;
 }
 
 export default function CurfewExtensionPage() {
@@ -30,13 +31,14 @@ export default function CurfewExtensionPage() {
 
   const [formData, setFormData] = useState<FormData>({
     caseWorker: '',
-    startDatetime: '',
-    endDatetime: '',
+    startDate: '',
+    startTime: '',
+    endDate: '',
+    endTime: '',
     reason: '',
     extraInfo: '',
     choreCoverage: '',
-    signature: '',
-    pdfFile: null
+    signature: ''
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -50,18 +52,9 @@ export default function CurfewExtensionPage() {
     'Lisa Anderson'
   ];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setFormData(prev => ({ ...prev, pdfFile: file }));
-    } else {
-      alert('Please upload a PDF file');
-    }
   };
 
   const handleSubmit = () => {
@@ -69,267 +62,248 @@ export default function CurfewExtensionPage() {
       alert('Please select a case worker');
       return;
     }
-    if (!formData.startDatetime || !formData.endDatetime || !formData.reason || !formData.signature) {
+    if (!formData.startDate || !formData.startTime || !formData.endDate || !formData.endTime || !formData.reason || !formData.signature) {
       alert('Please fill in all required fields');
       return;
     }
 
     const newRequest: Request = {
       id: requests.length + 1,
-      date: new Date(formData.startDatetime).toLocaleDateString('en-US'),
+      date: new Date(formData.startDate).toLocaleDateString('en-US'),
       status: 'pending',
       reason: formData.reason,
       caseWorker: formData.caseWorker
     };
 
     setRequests([newRequest, ...requests]);
-    
     setFormData({
       caseWorker: '',
-      startDatetime: '',
-      endDatetime: '',
+      startDate: '',
+      startTime: '',
+      endDate: '',
+      endTime: '',
       reason: '',
       extraInfo: '',
       choreCoverage: '',
-      signature: '',
-      pdfFile: null
+      signature: ''
     });
 
     setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-    }, 2000);
+    setTimeout(() => setShowSuccess(false), 2000);
   };
 
   const getStatusBadge = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'approved':
-        return (
-          <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-green-200 text-green-800 flex items-center space-x-1">
-            <Check className="w-4 h-4" />
-            <span>Approved</span>
-          </span>
-        );
+        return <span className="px-3 py-1 rounded-md text-xs font-medium bg-green-100 text-green-700">Approved</span>;
       case 'denied':
-        return (
-          <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-red-200 text-red-800 flex items-center space-x-1">
-            <X className="w-4 h-4" />
-            <span>Denied</span>
-          </span>
-        );
+        return <span className="px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700">Denied</span>;
       case 'pending':
-        return (
-          <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-yellow-200 text-yellow-800 flex items-center space-x-1">
-            <Clock className="w-4 h-4" />
-            <span>Pending Review</span>
-          </span>
-        );
+        return <span className="px-3 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-700">Pending</span>;
       default:
         return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Navigation Bar */}
-      <nav className="bg-blue-900 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <a href="/" className="text-white text-xl font-bold">
+    <div className="min-h-screen bg-[#f6f8fc]">
+      {/* NAVIGATION BAR */}
+      <nav className="bg-gradient-to-r from-[#003399] to-[#001f66] shadow">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex justify-between items-center h-14">
+            <a href="/" className="text-white text-base font-semibold">
               The Samaritan Inn
             </a>
-            
-            <div className="flex space-x-2">
-              <a href="/homepage" className="px-4 py-2 text-white hover:bg-cyan-500 rounded transition-colors text-sm font-medium">
-                Home
-              </a>
-              <a href="/schedule" className="px-4 py-2 text-white hover:bg-cyan-500 rounded transition-colors text-sm font-medium">
-                Schedule
-              </a>
-              <a href="/Resources" className="px-4 py-2 text-white hover:bg-cyan-500 rounded transition-colors text-sm font-medium">
-                Resources
-              </a>
-              <a href="/announcements" className="px-4 py-2 text-white hover:bg-cyan-500 rounded transition-colors text-sm font-medium">
+
+            <div className="flex items-center space-x-0">
+              {[
+                { name: 'Home', href: '/homepage' },
+                { name: 'Schedule', href: '/schedule' },
+                { name: 'Curfew', href: '/curfew' },
+                { name: 'Resources', href: '/resources' },
+              ].map(link => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  className="px-4 py-2 text-white text-sm hover:bg-[#002b80] rounded-md transition-colors"
+                >
+                  {link.name}
+                </a>
+              ))}
+
+              {/* Active tab */}
+              <a
+                href="/announcements"
+                className="px-4 py-2 bg-[#00bcd4] text-[#002b80] text-sm font-medium rounded-md hover:bg-[#26c6da] transition-colors ml-1"
+              >
                 Announcements
               </a>
-              <a href="/curfew" className="px-4 py-2 bg-cyan-500 text-white rounded text-sm font-medium">
-                Curfew
-              </a>
-              <a href="/profile" className="px-4 py-2 text-white hover:bg-cyan-500 rounded transition-colors text-sm font-medium">
+
+              <a href="/profile" className="px-4 py-2 text-white text-sm hover:bg-[#002b80] rounded-md ml-1 transition-colors">
                 Profile
               </a>
-            </div>
 
-            <div className="flex items-center space-x-4">
-              <span className="text-white text-sm">Hi, Poojith Sureshkumar</span>
-              <button className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm font-medium">
+              <button className="px-4 py-2 bg-[#f44336] text-white text-sm font-medium rounded-md ml-2 hover:bg-[#d32f2f] transition-colors">
                 Sign Out
               </button>
+
+              <span className="text-white text-sm ml-3">Hi Root</span>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-blue-900">Curfew Extension Requests</h1>
-          <p className="text-gray-600 mt-2">Submit and track your curfew extension requests</p>
+      {/* MAIN CONTENT */}
+      <div className="max-w-5xl mx-auto px-8 py-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">Curfew Extension Request</h1>
         </div>
 
         {showSuccess && (
-          <div className="mb-6 bg-green-50 border-2 border-green-400 rounded-lg p-4 flex items-center space-x-3">
+          <div className="mb-6 bg-green-50 border border-green-300 rounded-md p-3 flex items-center space-x-2 shadow-sm">
             <Check className="w-5 h-5 text-green-600" />
-            <span className="text-sm font-medium text-green-800">Request submitted successfully! Your case worker will review it within 24-48 hours.</span>
+            <span className="text-sm text-green-700 font-medium">Request submitted successfully!</span>
           </div>
         )}
 
-        {/* New Extension Request Section */}
-        <div className="mb-10">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Submit New Request</h2>
-          <div className="bg-white border-2 border-cyan-400 rounded-lg shadow-md p-6">
-            <div className="space-y-5">
-              {/* Case Worker Dropdown */}
+        {/* FORM */}
+        <div className="mb-8">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Submit New Request</h2>
+            <div className="grid grid-cols-1 gap-5">
+              {/* Case Worker */}
               <div>
-                <label className="block text-base font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Case Worker <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="caseWorker"
                   value={formData.caseWorker}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00bcd4]"
                 >
                   {caseWorkers.map((worker, idx) => (
-                    <option key={idx} value={worker} disabled={idx === 0}>
-                      {worker}
-                    </option>
+                    <option key={idx} value={worker} disabled={idx === 0}>{worker}</option>
                   ))}
                 </select>
               </div>
 
-              {/* Start Date/Time */}
-              <div>
-                <label className="block text-base font-medium text-gray-900 mb-2">
-                  Start Date & Time <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  name="startDatetime"
-                  value={formData.startDatetime}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
-                />
+              {/* Start & End Date */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={formData.startDate}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00bcd4]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={formData.endDate}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00bcd4]"
+                  />
+                </div>
               </div>
 
-              {/* End Date/Time */}
-              <div>
-                <label className="block text-base font-medium text-gray-900 mb-2">
-                  End Date & Time <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  name="endDatetime"
-                  value={formData.endDatetime}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
-                />
+              {/* Times */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Time <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="startTime"
+                    placeholder="7:00 PM"
+                    value={formData.startTime}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00bcd4]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Time <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="endTime"
+                    placeholder="9:00 PM"
+                    value={formData.endTime}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00bcd4]"
+                  />
+                </div>
               </div>
 
               {/* Reason */}
               <div>
-                <label className="block text-base font-medium text-gray-900 mb-2">
-                  Reason for Extension <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Reason <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="reason"
+                  placeholder="e.g., Medical appointment, Job interview"
                   value={formData.reason}
                   onChange={handleInputChange}
-                  placeholder="e.g., Medical appointment, Job interview, Family emergency"
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
-                />
-              </div>
-
-              {/* Extra Info */}
-              <div>
-                <label className="block text-base font-medium text-gray-900 mb-2">
-                  Additional Information
-                </label>
-                <input
-                  type="text"
-                  name="extraInfo"
-                  value={formData.extraInfo}
-                  onChange={handleInputChange}
-                  placeholder="Any additional context or details (optional)"
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
-                />
-              </div>
-
-              {/* Chore Coverage */}
-              <div>
-                <label className="block text-base font-medium text-gray-900 mb-2">
-                  Fellow Resident Covering Chores
-                </label>
-                <input
-                  type="text"
-                  name="choreCoverage"
-                  value={formData.choreCoverage}
-                  onChange={handleInputChange}
-                  placeholder="Name of resident who will cover your chores (if applicable)"
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00bcd4]"
                 />
               </div>
 
               {/* Signature */}
               <div>
-                <label className="block text-base font-medium text-gray-900 mb-2">
-                  Signature (Type Full Name) <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Signature (Full Name) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="signature"
+                  placeholder="Type your full name"
                   value={formData.signature}
                   onChange={handleInputChange}
-                  placeholder="Type your full name as signature"
-                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00bcd4]"
                 />
               </div>
 
-              {/* Submit Button */}
-              <div className="flex justify-end pt-4 border-t-2 border-gray-200">
+              {/* Submit */}
+              <div className="flex justify-end">
                 <button
                   onClick={handleSubmit}
-                  className="px-10 py-3 bg-cyan-500 text-white rounded-lg text-sm font-bold hover:bg-cyan-600 transition-colors shadow-md flex items-center space-x-2"
+                  className="px-5 py-2 bg-[#00bcd4] text-[#002b80] font-medium text-sm rounded-md hover:bg-[#26c6da] transition-all"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Submit Request</span>
+                  Submit Request
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* My Requests Section */}
+        {/* REQUEST HISTORY */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Request History</h2>
-          <div className="bg-white border-2 border-cyan-400 rounded-lg overflow-hidden shadow-md">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Request History</h2>
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             {requests.length === 0 ? (
-              <div className="px-6 py-12 text-center">
-                <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 font-medium">No requests yet</p>
-              </div>
+              <div className="px-6 py-12 text-center text-gray-500">No requests yet</div>
             ) : (
-              <div className="divide-y-2 divide-gray-200">
-                {requests.map((request) => (
-                  <div key={request.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <span className="text-sm font-semibold text-gray-900">{request.date}</span>
-                        <span className="text-sm text-gray-600">{request.reason}</span>
-                      </div>
-                      {getStatusBadge(request.status)}
+              <div className="divide-y divide-gray-100">
+                {requests.map(req => (
+                  <div key={req.id} className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition-all">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{req.date}</p>
+                      <p className="text-sm text-gray-600">{req.reason}</p>
                     </div>
+                    {getStatusBadge(req.status)}
                   </div>
                 ))}
               </div>
