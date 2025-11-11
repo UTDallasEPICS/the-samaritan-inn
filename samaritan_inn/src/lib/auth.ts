@@ -1,42 +1,94 @@
-import { getServerSession } from "next-auth/next";
+import { NextAuthOptions, getServerSession } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
+import { compare } from "bcryptjs";
 
-/**
- * Gets the current session.
- */
+export const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials.password) return null;
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user) return null;
+
+        const isValid = await compare(credentials.password, user.password);
+        if (!isValid) return null;
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        };
+      },
+    }),
+  ],
+  callbacks: {
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as any).role;
+      }
+      return token;
+    },
+  },
+  pages: {
+    signIn: "/login",
+  },
+  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
 export async function getSession() {
   return await getServerSession(authOptions);
 }
 
-/**
- * Gets the current authenticated user.
- */
 export async function getCurrentUser() {
   const session = await getSession();
-  return session?.user;
+  return session?.user || null;
 }
 
-/**
- * Restricts access to authenticated residents or users.
- */
-export async function requireUser() {
+export async function requireAuth() {
   const user = await getCurrentUser();
 
-  if (!user || (user.role !== "user" && user.role !== "resident")) {
+  if (!user) {
+    redirect("/login");
+  }
+
+  return user;
+}
+
+export async function requireAdmin() {
+  const user = await getCurrentUser();
+
+  if (!user || user.role !== "admin") {
     redirect("/unauthorized");
   }
 
   return user;
 }
 
-/**
- * Restricts access to admin users only.
- */
-export async function requireAdmin() {
+export async function requireUser() {
   const user = await getCurrentUser();
 
-  if (!user || user.role !== "admin") {
+  if (!user || (user.role !== "resident" && user.role !== "user")) {
     redirect("/unauthorized");
   }
 
