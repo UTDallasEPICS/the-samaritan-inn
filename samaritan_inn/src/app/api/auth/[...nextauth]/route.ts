@@ -1,63 +1,44 @@
-import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/lib/prisma";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
+import { PrismaClient } from "@prisma/client";
+import { compare } from "bcryptjs";
 
-// Ensure required environment variables are present
-if (!process.env.NEXTAUTH_URL) {
-  console.warn("Warning: NEXTAUTH_URL not set");
-}
+const prisma = new PrismaClient();
 
-if (!process.env.NEXTAUTH_SECRET) {
-  console.warn("Warning: NEXTAUTH_SECRET not set - JWT tokens may not be secure");
-}
-
-const handler = NextAuth({
-  adapter: PrismaAdapter(prisma) as any, // Type assertion to fix compatibility issue
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password)
+          throw new Error("Please provide both email and password");
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+          where: { email: credentials.email },
         });
 
-        if (!user) {
-          return null;
-        }
+        if (!user) throw new Error("No user found with this email");
 
-        // Compare password with hashed password
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
+        const isValid = await compare(credentials.password, user.password);
+        if (!isValid) throw new Error("Invalid password");
 
-        if (!isPasswordValid) {
-          return null;
-        }
-
+        // ✅ Return role + id explicitly
         return {
           id: user.id,
-          email: user.email,
           name: user.name,
+          email: user.email,
           role: user.role,
         };
-      }
-    })
+      },
+    }),
   ],
-  session: {
-    strategy: "jwt",
-  },
+
   callbacks: {
+    // Store role and id in the JWT
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -65,17 +46,24 @@ const handler = NextAuth({
       }
       return token;
     },
+
+    // Expose role and id to session.user
     async session({ session, token }) {
-      if (session.user) {
+      if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
       }
       return session;
     },
   },
+
   pages: {
     signIn: "/login",
   },
-});
+
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
