@@ -1,182 +1,184 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import Navigation from '@/components/Navigation';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-export default function CurfewExtensionResident() {
+export default function CurfewExtensionClient() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Allowed roles for this page
-  const allowedRoles = ["resident", "user"];
+  // Allow resident or regular user
+  const allowed =
+    session?.user?.role === 'resident' || session?.user?.role === 'user';
 
-  // Show loading while session loads
-  if (status === "loading") {
+  if (status === 'loading') {
     return (
-      <div className="flex justify-center items-center h-screen text-gray-700">
-        Loading...
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading...</p>
       </div>
     );
   }
 
-  // Redirect if not logged in or role not allowed
-  if (!session || !allowedRoles.includes(session.user.role)) {
-    router.push("/unauthorized");
+  if (!allowed) {
+    router.push('/unauthorized');
     return null;
   }
 
-  // ------------------------------
-  // FORM STATE
-  // ------------------------------
-  const [formData, setFormData] = useState({
-    caseWorker: "",
-    startDate: "",
-    startTime: "",
-    endDate: "",
-    endTime: "",
-    reason: "",
-    extraInfo: "",
-    signature: "",
+  // Form fields
+  const [data, setData] = useState({
+    caseWorker: 'Sarah Johnson',
+    startDate: '',
+    endDate: '',
+    startTime: '',
+    endTime: '',
+    reason: '',
+    signature: '',
   });
 
-  const [popupSuccess, setPopupSuccess] = useState(false);
+  function update(e: any) {
+    setData({ ...data, [e.target.name]: e.target.value });
+  }
 
-  const handleChange = (e: any) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  async function handleSubmit(e: any) {
+    e.preventDefault();
 
-  // ------------------------------
-  // SUBMIT FORM → API ROUTE
-  // ------------------------------
-  const handleSubmit = async () => {
-    const res = await fetch("/api/curfew/submit", {
-      method: "POST",
-      body: JSON.stringify(formData),
+    const res = await fetch('/api/curfew/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     });
 
-    if (!res.ok) {
-      alert("Failed to submit request.");
-      return;
-    }
-
-    setPopupSuccess(true);
-
-    // Reset form
-    setFormData({
-      caseWorker: "",
-      startDate: "",
-      startTime: "",
-      endDate: "",
-      endTime: "",
-      reason: "",
-      extraInfo: "",
-      signature: "",
-    });
-
-    // Hide popup after 2 seconds
-    setTimeout(() => setPopupSuccess(false), 2000);
-  };
+    if (!res.ok) return alert('Error submitting request');
+    alert('Request submitted!');
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col p-8">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Curfew Extension Request
-      </h1>
+    <div className="min-h-screen bg-[#f4f4f4]">
+      <Navigation />
 
-      {/* SUCCESS POPUP */}
-      {popupSuccess && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <p className="text-lg font-semibold text-green-600">
-              Request Submitted Successfully!
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Page container */}
+      <div className="max-w-5xl mx-auto px-6 py-10">
 
-      {/* REQUEST FORM */}
-      <div className="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto w-full border">
-        <div className="grid gap-5">
+        {/* Title */}
+        <h1 className="text-3xl font-bold mb-8 text-[#00167c]">
+          Curfew Extension Request
+        </h1>
 
-          <input
-            name="caseWorker"
-            placeholder="Case Worker"
-            className="border p-2 rounded"
-            value={formData.caseWorker}
-            onChange={handleChange}
-          />
+        {/* White card EXACT like screenshot */}
+        <div className="bg-white shadow-md rounded-lg p-10 border">
 
-          {/* DATES */}
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="date"
-              name="startDate"
-              className="border p-2 rounded"
-              value={formData.startDate}
-              onChange={handleChange}
-            />
-            <input
-              type="date"
-              name="endDate"
-              className="border p-2 rounded"
-              value={formData.endDate}
-              onChange={handleChange}
-            />
-          </div>
+          {/* Section title */}
+          <h2 className="text-xl font-semibold mb-6">Submit New Request</h2>
 
-          {/* TIMES */}
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              name="startTime"
-              placeholder="Start Time"
-              className="border p-2 rounded"
-              value={formData.startTime}
-              onChange={handleChange}
-            />
-            <input
-              name="endTime"
-              placeholder="End Time"
-              className="border p-2 rounded"
-              value={formData.endTime}
-              onChange={handleChange}
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* REASON */}
-          <input
-            name="reason"
-            placeholder="Reason for Extension"
-            className="border p-2 rounded"
-            value={formData.reason}
-            onChange={handleChange}
-          />
+            {/* Caseworker */}
+            <div>
+              <label className="block font-medium mb-1">Case Worker *</label>
+              <select
+                name="caseWorker"
+                value={data.caseWorker}
+                onChange={update}
+                className="w-full border rounded px-4 py-3"
+              >
+                <option>Sarah Johnson</option>
+                <option>Michael Chen</option>
+                <option>Amanda Reed</option>
+              </select>
+            </div>
 
-          {/* EXTRA INFO */}
-          <input
-            name="extraInfo"
-            placeholder="Additional Information (optional)"
-            className="border p-2 rounded"
-            value={formData.extraInfo}
-            onChange={handleChange}
-          />
+            {/* Dates row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block font-medium mb-1">Start Date *</label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={data.startDate}
+                  onChange={update}
+                  className="w-full border rounded px-4 py-3"
+                />
+              </div>
 
-          {/* SIGNATURE */}
-          <input
-            name="signature"
-            placeholder="Signature (Full Name)"
-            className="border p-2 rounded"
-            value={formData.signature}
-            onChange={handleChange}
-          />
+              <div>
+                <label className="block font-medium mb-1">End Date *</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={data.endDate}
+                  onChange={update}
+                  className="w-full border rounded px-4 py-3"
+                />
+              </div>
+            </div>
 
-          {/* SUBMIT BUTTON */}
-          <button
-            onClick={handleSubmit}
-            className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
-          >
-            Submit Request
-          </button>
+            {/* Times row EXACT like screenshot */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block font-medium mb-1">Start Time *</label>
+                <input
+                  type="text"
+                  name="startTime"
+                  placeholder="7:00 PM"
+                  value={data.startTime}
+                  onChange={update}
+                  className="w-full border rounded px-4 py-3"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">End Time *</label>
+                <input
+                  type="text"
+                  name="endTime"
+                  placeholder="9:00 PM"
+                  value={data.endTime}
+                  onChange={update}
+                  className="w-full border rounded px-4 py-3"
+                />
+              </div>
+            </div>
+
+            {/* Reason */}
+            <div>
+              <label className="block font-medium mb-1">Reason *</label>
+              <input
+                type="text"
+                name="reason"
+                placeholder="e.g., Medical appointment, Job interview"
+                value={data.reason}
+                onChange={update}
+                className="w-full border rounded px-4 py-3"
+              />
+            </div>
+
+            {/* Signature */}
+            <div>
+              <label className="block font-medium mb-1">
+                Signature (Full Name) *
+              </label>
+              <input
+                type="text"
+                name="signature"
+                placeholder="Type your full name"
+                value={data.signature}
+                onChange={update}
+                className="w-full border rounded px-4 py-3"
+              />
+            </div>
+
+            {/* Submit button — RIGHT aligned EXACTLY like screenshot */}
+            <div className="flex justify-end pt-4">
+              <button
+                type="submit"
+                className="bg-[#00b5d8] hover:bg-[#009bbb] text-white px-6 py-3 rounded font-semibold"
+              >
+                Submit Request
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
