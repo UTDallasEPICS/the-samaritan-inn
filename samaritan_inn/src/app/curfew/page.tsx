@@ -24,6 +24,11 @@ export default function CurfewExtensionAdmin() {
     { id: 4, name: 'Roger Watson', timestamp: '12:56pm, 10/10' },
   ]);
 
+  // States for popup
+  const [selectedRequest, setSelectedRequest] = useState<CurfewRequest | null>(null);
+  const [showDenyReason, setShowDenyReason] = useState(false);
+  const [denyReason, setDenyReason] = useState('');
+
   // Derived user role
   const isAdmin = session?.user?.role === 'admin';
 
@@ -63,7 +68,7 @@ export default function CurfewExtensionAdmin() {
   }
 
   // Handler for admin decision
-  const handleDecision = (id: number, name: string, accepted: boolean) => {
+  const handleDecision = (id: number, name: string, accepted: boolean, reason?: string) => {
     alert(`${accepted ? 'Accepted request from' : 'Denied request from'} ${name}`);
     setRequests((prev) => prev.filter((req) => req.id !== id));
   };
@@ -85,9 +90,10 @@ export default function CurfewExtensionAdmin() {
               className="flex items-center justify-center mb-4 last:mb-0"
             >
               <button
-                onClick={() => window.open("/public/pdfs/Pass-and-Curfew-requests.pdf")}
-                className="flex-1 text-center bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded px-4 py-2 text-gray-700 transition"
-              >
+              key={req.id}
+              onClick={() => setSelectedRequest(req)}
+              className="flex-1 text-center bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded px-4 py-2 text-gray-700 transition"
+            >
                 {req.name} — {req.timestamp}
               </button>
             </div>
@@ -100,6 +106,69 @@ export default function CurfewExtensionAdmin() {
           )}
         </div>
       </main>
+
+      {selectedRequest && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-[20%] w-[60%] text-center relative">
+
+            {!showDenyReason ? (
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() =>
+                    handleDecision(selectedRequest.id, selectedRequest.name, true)
+                  }
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => setShowDenyReason(true)}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition"
+                >
+                  Deny
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <textarea
+                  value={denyReason}
+                  onChange={(e) => setDenyReason(e.target.value)}
+                  placeholder="Enter reason for denial..."
+                  className="w-full border border-gray-300 rounded p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-red-300 text-black"
+                  rows={3}
+                />
+                <div className="flex gap-3">
+                  <button
+                    onClick={() =>
+                      handleDecision(selectedRequest.id, selectedRequest.name, false, denyReason)
+                    }
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition"
+                  >
+                    Submit Denial
+                  </button>
+                  <button
+                    onClick={() => setShowDenyReason(false)}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                setSelectedRequest(null);
+                setShowDenyReason(false);
+                setDenyReason('');
+              }}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
