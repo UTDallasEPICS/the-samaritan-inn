@@ -10,15 +10,17 @@ export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  // Helper to apply active styling to nav links
   const linkClass = (path: string) =>
-    `px-3 py-2 rounded-md font-bold hover:bg-[#29abe2] ${pathname === path ? 'bg-[#29abe2]' : ''}`;
+    `px-3 py-2 rounded-md font-bold hover:bg-[#29abe2] ${
+      pathname === path ? 'bg-[#29abe2]' : ''
+    }`;
 
   return (
     <nav className="bg-[#00167c] text-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          {/* Brand title (static, no active highlight) */}
+
+          {/* Brand */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="text-xl font-bold px-3 py-2">
               The Samaritan Inn
@@ -31,6 +33,10 @@ export default function Navigation() {
             <Link href="/schedule" className={linkClass('/schedule')}>Schedule</Link>
             <Link href="/Resources" className={linkClass('/Resources')}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
+
+            {/* ✅ NEW CURFEW TAB */}
+            <Link href="/curfew" className={linkClass('/curfew')}>Curfew</Link>
+
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
@@ -62,15 +68,9 @@ export default function Navigation() {
           <div className="flex md:hidden items-center">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-[#29abe2] focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-[#29abe2]"
             >
-              <svg
-                className="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor">
                 {isMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -90,6 +90,10 @@ export default function Navigation() {
             <Link href="/schedule" className={linkClass('/schedule')} onClick={() => setIsMenuOpen(false)}>Schedule</Link>
             <Link href="/resources" className={linkClass('/resources')} onClick={() => setIsMenuOpen(false)}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
+
+            {/* ✅ NEW CURFEW TAB (MOBILE) */}
+            <Link href="/curfew" className={linkClass('/curfew')} onClick={() => setIsMenuOpen(false)}>Curfew</Link>
+
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile')} onClick={() => setIsMenuOpen(false)}>Profile</Link>
