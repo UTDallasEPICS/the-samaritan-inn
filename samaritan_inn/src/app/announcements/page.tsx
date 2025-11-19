@@ -20,6 +20,7 @@ interface Announcement {
   content: string;
   author: string;
   createdAt: string;
+  date: string;
 }
 
 interface EventItem {
@@ -53,7 +54,12 @@ export default function Announcements() {
   const [section, setSection] = useState<Section>('announcements');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
+  const [newAnnouncement, setNewAnnouncement] = useState({
+  title: '',
+  content: '',
+  date: '',
+});
+
   const [events, setEvents] = useState<EventItem[]>([]);
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -69,8 +75,11 @@ export default function Announcements() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
 const filteredAnnouncements = selectedDate
-  ? announcements.filter(a => a.createdAt?.slice(0,10) === selectedDate)
+  ? announcements.filter(
+      a => (a.date || a.createdAt?.slice(0, 10)) === selectedDate
+    )
   : announcements;
+
 
 const filteredEvents = selectedDate
   ? events.filter(e => e.startDate?.slice(0,10) === selectedDate || e.endDate?.slice(0,10) === selectedDate)
@@ -81,7 +90,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
 
   // 3) Derived values
   const isAdmin = session?.user?.role === 'admin';
-  const items = section === 'announcements' ? announcements : events;
+  const items = filteredItems;
 
   // 4) Redirect unauthenticated users
   useEffect(() => {
@@ -112,7 +121,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
     setShowModal(false);
     setEditingId(null);
     setEditingItem({});
-    setNewAnnouncement({ title: '', content: '' });
+    setNewAnnouncement({ title: '', content: '', date: '' });
     setNewEvent({
       title: '',
       content: '',
@@ -135,15 +144,19 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
   const handlePostItem = async () => {
     if (!isAdmin) return;
     if (section === 'announcements') {
-      const { title, content } = newAnnouncement;
-      if (!title.trim() || !content.trim()) {
-        return alert('Title and content required');
-      }
-      const res = await fetch('/api/announcements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newAnnouncement, author: 'Admin', isAdmin }),
-      });
+  const { title, content, date } = newAnnouncement;
+  if (!title.trim() || !content.trim() || !date) {
+    return alert('Title, content, and date are required');
+  }
+  const res = await fetch('/api/announcements', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...newAnnouncement,
+      author: 'Admin',
+      isAdmin,
+    }),
+  });
       if (!res.ok) return console.error('Post failed');
       const data = await res.json();
       setAnnouncements(prev => [data, ...prev]);
@@ -220,6 +233,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
     setShowModal(true);
   };
 
+
   // 8) Render
   return (
     <div className="min-h-screen flex flex-col">
@@ -238,15 +252,14 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
           id: a.id,
           title: a.title,
           content: a.content,
-          date: a.createdAt?.slice(0, 10), // <- what SidebarCalendar expects
+               date: a.date || a.createdAt?.slice(0, 10),
+// <- what SidebarCalendar expects
         }))}
         onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
       />
     </aside>
 
 </div>
-
-
 
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -262,7 +275,15 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
             {isAdmin && (
               <Button
                 variant="contained"
-                onClick={() => setShowModal(true)}
+                onClick={() => {
+  if (section === 'announcements') {
+    setNewAnnouncement(prev => ({
+      ...prev,
+      date: selectedDate || new Date().toISOString().slice(0, 10),
+    }));
+  }
+  setShowModal(true);
+}}
                 sx={{
                   backgroundColor: '#29abe2',
                   '&:hover': {
@@ -334,7 +355,24 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
                   }}
                   className="w-full border border-gray-300 rounded px-3 py-2 h-24 mb-4 text-black placeholder-gray-400"
                 />
-
+                {section === 'announcements' && (
+  <>
+    <label className="block mb-1 text-black">Date</label>
+    <input
+      type="date"
+      value={editingId ? editingItem.date : newAnnouncement.date}
+      onChange={e => {
+        if (editingId) {
+          setEditingItem({ ...editingItem, date: e.target.value });
+        } else {
+          setNewAnnouncement({ ...newAnnouncement, date: e.target.value });
+        }
+      }}
+      className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+    />
+  </>
+)}
+{/* ⬆️ END OF NEW DATE FIELD */}
                 {/* Event-only fields */}
                 {section === 'events' && (
                   <>
