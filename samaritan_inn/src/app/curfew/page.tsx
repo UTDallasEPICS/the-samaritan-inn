@@ -2,8 +2,24 @@
 
 import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function CurfewRequestPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // ✅ Block admins & redirect
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session?.user) {
+      router.push("/login");
+    } else if (session.user.role !== "resident") {
+      router.push("/unauthorized");
+    }
+  }, [session, status, router]);
+
   const [caseWorkers, setCaseWorkers] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -46,6 +62,15 @@ export default function CurfewRequestPage() {
     }
   };
 
+  // While session is loading, avoid flashing the form
+  if (status === "loading") {
+    return (
+      <div className="bg-[#f5f7fa] min-h-screen flex justify-center items-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#f5f7fa] min-h-screen">
       <Navigation />
@@ -56,7 +81,6 @@ export default function CurfewRequestPage() {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-
           {/* Case Worker */}
           <div>
             <label className="font-medium text-gray-700">Case Worker *</label>
