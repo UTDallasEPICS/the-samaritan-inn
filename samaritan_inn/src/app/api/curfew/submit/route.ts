@@ -1,22 +1,28 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth/options";
 
 export async function POST(req: Request) {
+  console.log("=== Curfew Submit API Hit ===");
+
+  // FIX: use our own copied NextAuth options
+  const session = await getServerSession(authOptions);
+
+  console.log("SESSION VALUE:", session);
+
+  if (!session?.user?.id) {
+    console.log("AUTH ERROR ➜ session.user.id missing");
+    return NextResponse.json(
+      { error: "Not authenticated" },
+      { status: 401 }
+    );
+  }
+
+  const userId = session.user.id;
+
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
-    }
-
-    const userId = session.user.id;
     const body = await req.json();
-
     const {
       caseWorker,
       startDate,
@@ -24,7 +30,7 @@ export async function POST(req: Request) {
       startTime,
       endTime,
       reason,
-      signature,
+      signature
     } = body;
 
     const saved = await prisma.curfewExtension.create({
@@ -36,8 +42,8 @@ export async function POST(req: Request) {
         startTime,
         endTime,
         reason,
-        signature,
-      },
+        signature
+      }
     });
 
     return NextResponse.json({ success: true, saved });

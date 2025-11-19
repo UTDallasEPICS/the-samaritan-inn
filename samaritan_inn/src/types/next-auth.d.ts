@@ -1,5 +1,5 @@
-import NextAuth, { DefaultSession } from "next-auth";
-import { AdapterUser } from "@auth/core/adapters";
+import "next-auth";
+import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
@@ -9,9 +9,7 @@ declare module "next-auth" {
     } & DefaultSession["user"];
   }
 
-  // Must extend AdapterUser so PrismaAdapter stops complaining
-  interface User extends AdapterUser {
-    id: string;
+  interface User {
     role: string;
   }
 }
