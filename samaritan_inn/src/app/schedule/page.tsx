@@ -1,27 +1,30 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Navigation from '@/components/Navigation';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Button from '@mui/material/Button';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
-type FormType = 'caseworker' | 'curfew';
+// Allow TypeScript to know about window.Calendly
+declare global {
+  interface Window {
+    Calendly?: {
+      initInlineWidget: (options: {
+        url: string;
+        parentElement: HTMLElement | null;
+        prefill?: Record<string, unknown>;
+        utm?: Record<string, unknown>;
+      }) => void;
+    };
+  }
+}
 
-const calendlyLinks: Record<FormType, string> = {
-  caseworker: 'https://calendly.com/anbusiness04/caseworker',
-  curfew: 'https://calendly.com/anbusiness04/curfew',
-};
+// 👉 Put your Calendly event link here
+const CALENDLY_URL = 'https://calendly.com/navi82singh00/new-meeting';
 
 export default function SchedulePage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
-  const [formType, setFormType] = useState<FormType>('caseworker');
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
 
   // Redirect if unauthenticated
   useEffect(() => {
@@ -30,17 +33,49 @@ export default function SchedulePage() {
     }
   }, [status, router]);
 
-  // Load Calendly script whenever formType changes
+  // Load Calendly script and initialize inline widget
   useEffect(() => {
+    if (status !== 'authenticated') return;
+
+    const initCalendly = () => {
+      const container = document.getElementById('calendly-inline-widget');
+      if (window.Calendly && container) {
+        window.Calendly.initInlineWidget({
+          url: CALENDLY_URL,
+          parentElement: container,
+          prefill: {},
+          utm: {},
+        });
+      }
+    };
+
+    // Reuse script if it's already on the page
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://assets.calendly.com/assets/external/widget.js"]'
+    );
+
+    if (existingScript) {
+      if (window.Calendly) {
+        initCalendly();
+      } else {
+        existingScript.addEventListener('load', initCalendly);
+      }
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = 'https://assets.calendly.com/assets/external/widget.js';
     script.async = true;
+    script.onload = initCalendly;
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      const container = document.getElementById('calendly-inline-widget');
+      if (container) {
+        container.innerHTML = '';
+      }
     };
-  }, [formType]);
+  }, [status]);
 
   if (status === 'loading') return null;
 
@@ -51,40 +86,9 @@ export default function SchedulePage() {
       <div className="flex-grow flex flex-col items-center bg-gray-100 p-4">
         <div
           className="w-full max-w-5xl p-8 bg-white shadow-md rounded-md overflow-hidden"
-          style={{ height: '760px' }} // adjust as needed
+          style={{ height: '760px' }}
         >
-          {/* Form selector */}
-          <div className="flex justify-between items-center mb-6">
-            <Button
-              onClick={e => setAnchorEl(e.currentTarget)}
-              endIcon={<ExpandMoreIcon />}
-              sx={{ fontSize: '1.25rem' }}
-            >
-              {formType === 'caseworker' ? 'Caseworker' : 'Curfew'}
-            </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={() => setAnchorEl(null)}
-            >
-              <MenuItem
-                onClick={() => {
-                  setFormType('caseworker');
-                  setAnchorEl(null);
-                }}
-              >
-                Caseworker
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  setFormType('curfew');
-                  setAnchorEl(null);
-                }}
-              >
-                Curfew
-              </MenuItem>
-            </Menu>
-          </div>
+          <h1 className="text-2xl font-semibold mb-6 text-black">Events</h1>
 
           {/* Calendly Embed */}
           <div className="w-full h-full relative">
@@ -97,9 +101,7 @@ export default function SchedulePage() {
               }}
             >
               <div
-                key={formType}
-                className="calendly-inline-widget"
-                data-url={calendlyLinks[formType]}
+                id="calendly-inline-widget"
                 style={{
                   minWidth: '320px',
                   height: '700px',
