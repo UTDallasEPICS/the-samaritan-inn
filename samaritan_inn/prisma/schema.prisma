@@ -124,3 +124,11 @@ model Event {
   endTime   DateTime
   createdAt DateTime @default(now())
 }
+
+model CurfewRequest {
+  id        Int      @id @default(autoincrement())
+  name      String
+  timestamp DateTime
+  status    String   @default("pending")
+  reason    String?
+}

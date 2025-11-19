@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { close } from 'node:fs';
 
 interface CurfewRequest {
   id: number;
@@ -68,10 +69,25 @@ export default function CurfewExtensionAdmin() {
   }
 
   // Handler for admin decision
-  const handleDecision = (id: number, name: string, accepted: boolean, reason?: string) => {
-    alert(`${accepted ? 'Accepted request from' : 'Denied request from'} ${name}`);
-    setRequests((prev) => prev.filter((req) => req.id !== id));
-  };
+  const handleDecision = async (id: number, name: string, accepted: boolean, reason?: string) => {
+  await fetch('/api/curfew', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id,
+      accepted,
+      reason: reason || null
+    }),
+  });
+
+  setRequests((prev) => prev.filter((req) => req.id !== id));
+  setSelectedRequest(null);
+  setShowDenyReason(false);
+  setDenyReason('');
+
+  alert(`${accepted ? 'Accepted' : 'Denied'} request from ${name}`);
+};
+
 
   // Admin-only UI
   return (
@@ -114,9 +130,12 @@ export default function CurfewExtensionAdmin() {
             {!showDenyReason ? (
               <div className="flex justify-center gap-4">
                 <button
-                  onClick={() =>
-                    handleDecision(selectedRequest.id, selectedRequest.name, true)
-                  }
+                  onClick={() => {
+                    handleDecision(selectedRequest.id, selectedRequest.name, true);
+                    setSelectedRequest(null);        // close popup
+                    setShowDenyReason(false);
+                    setDenyReason('');
+                  }}
                   className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition"
                 >
                   Approve
@@ -139,9 +158,12 @@ export default function CurfewExtensionAdmin() {
                 />
                 <div className="flex gap-3">
                   <button
-                    onClick={() =>
-                      handleDecision(selectedRequest.id, selectedRequest.name, false, denyReason)
-                    }
+                    onClick={() => {
+                      handleDecision(selectedRequest.id, selectedRequest.name, false, denyReason);
+                      setSelectedRequest(null);
+                      setShowDenyReason(false);
+                      setDenyReason('');
+                    }}
                     className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition"
                   >
                     Submit Denial
