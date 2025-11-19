@@ -1,24 +1,55 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Navigation from "@/components/Navigation";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Navigation from "@/components/Navigation";
 
 export default function CurfewRequestPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // ✅ Block admins & redirect
-  useEffect(() => {
-    if (status === "loading") return;
+  // Restrict to residents only
+  const isResident = session?.user?.role === "resident";
 
-    if (!session?.user) {
-      router.push("/login");
-    } else if (session.user.role !== "resident") {
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (status === "unauthenticated") {
       router.push("/unauthorized");
     }
-  }, [session, status, router]);
+  }, [status, router]);
+
+  // Show Loading Screen
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Block admins/staff from using the form
+  if (!isResident) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-100">
+        <Navigation />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="bg-white shadow-md p-8 rounded-md text-center">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Access Restricted
+            </h2>
+            <p className="text-gray-600">
+              Only residents may submit curfew extension requests.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // =============== ORIGINAL USER FORM CODE =====================
+  // ============================================================
 
   const [caseWorkers, setCaseWorkers] = useState([]);
 
@@ -62,15 +93,6 @@ export default function CurfewRequestPage() {
     }
   };
 
-  // While session is loading, avoid flashing the form
-  if (status === "loading") {
-    return (
-      <div className="bg-[#f5f7fa] min-h-screen flex justify-center items-center">
-        <p className="text-gray-600">Loading...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-[#f5f7fa] min-h-screen">
       <Navigation />
@@ -103,7 +125,7 @@ export default function CurfewRequestPage() {
             </select>
           </div>
 
-          {/* Start & End Dates */}
+          {/* Dates */}
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="font-medium text-gray-700">Start Date *</label>
@@ -130,7 +152,7 @@ export default function CurfewRequestPage() {
             </div>
           </div>
 
-          {/* Start & End Time */}
+          {/* Time */}
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="font-medium text-gray-700">Start Time *</label>
