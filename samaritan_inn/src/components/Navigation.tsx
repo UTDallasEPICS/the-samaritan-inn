@@ -10,6 +10,7 @@ export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
+  // Apply active styling
   const linkClass = (path: string) =>
     `px-3 py-2 rounded-md font-bold hover:bg-[#29abe2] ${
       pathname === path ? 'bg-[#29abe2]' : ''
@@ -27,27 +28,36 @@ export default function Navigation() {
             </Link>
           </div>
 
-          {/* Desktop navigation */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-6">
             <Link href="/" className={linkClass('/')}>Home</Link>
             <Link href="/schedule" className={linkClass('/schedule')}>Schedule</Link>
+
+            {/* ⭐ Curfew tab — Always visible */}
+            <Link href="/curfew" className={linkClass('/curfew')}>Curfew</Link>
+
             <Link href="/Resources" className={linkClass('/Resources')}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
-
-            {/* ✅ NEW CURFEW TAB */}
-            <Link href="/curfew" className={linkClass('/curfew')}>Curfew</Link>
 
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
+
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}
-                  className={`px-3 py-2 rounded-md font-bold ${pathname === '/login' ? 'bg-red-600' : 'bg-red-500 hover:bg-red-600'}`}
+                  className={`px-3 py-2 rounded-md font-bold ${
+                    pathname === '/login'
+                      ? 'bg-red-600'
+                      : 'bg-red-500 hover:bg-red-600'
+                  }`}
                 >
                   Sign Out
                 </button>
+
                 <div className="px-3 py-2">
-                  <span className="text-sm font-bold">Hi, {session.user.name}</span>
+                  <span className="text-sm font-bold">
+                    Hi, {session?.user?.name}
+                  </span>
                 </div>
               </>
             ) : (
@@ -56,7 +66,11 @@ export default function Navigation() {
                 <Link href="/login" className={linkClass('/login')}>Login</Link>
                 <Link
                   href="/signup"
-                  className={`px-3 py-2 rounded-md font-bold ${pathname === '/signup' ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'}`}
+                  className={`px-3 py-2 rounded-md font-bold ${
+                    pathname === '/signup'
+                      ? 'bg-green-600'
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
                 >
                   Sign Up
                 </Link>
@@ -64,7 +78,7 @@ export default function Navigation() {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -72,9 +86,19 @@ export default function Navigation() {
             >
               <svg className="h-6 w-6" fill="none" stroke="currentColor">
                 {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 )}
               </svg>
             </button>
@@ -82,21 +106,23 @@ export default function Navigation() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-2 sm:px-3">
             <Link href="/" className={linkClass('/')} onClick={() => setIsMenuOpen(false)}>Home</Link>
             <Link href="/schedule" className={linkClass('/schedule')} onClick={() => setIsMenuOpen(false)}>Schedule</Link>
-            <Link href="/resources" className={linkClass('/resources')} onClick={() => setIsMenuOpen(false)}>Resources</Link>
-            <Link href="/announcements" className={linkClass('/announcements')} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
 
-            {/* ✅ NEW CURFEW TAB (MOBILE) */}
+            {/* ⭐ Curfew on mobile too */}
             <Link href="/curfew" className={linkClass('/curfew')} onClick={() => setIsMenuOpen(false)}>Curfew</Link>
+
+            <Link href="/Resources" className={linkClass('/Resources')} onClick={() => setIsMenuOpen(false)}>Resources</Link>
+            <Link href="/announcements" className={linkClass('/announcements')} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
 
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile')} onClick={() => setIsMenuOpen(false)}>Profile</Link>
+
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);
@@ -106,8 +132,11 @@ export default function Navigation() {
                 >
                   Sign Out
                 </button>
+
                 <div className="px-3 py-2 border-t border-blue-700 mt-2 pt-2">
-                  <span className="text-sm font-bold">Logged in as: {session.user.name}</span>
+                  <span className="text-sm font-bold">
+                    Logged in as: {session?.user?.name}
+                  </span>
                 </div>
               </>
             ) : (
