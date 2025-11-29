@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// This is your Prisma schema file
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -10,8 +10,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Post{ 
-  id String @id @default(cuid())
+model Post { 
+  id   String @id @default(cuid())
   name String
 }
 
@@ -50,19 +50,20 @@ model VerificationToken {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String              @id @default(cuid())
+  email         String              @unique
   password      String
   name          String
-  role          String    @default("resident") // e.g., "resident", "staff", "admin"
+  role          String              @default("resident") // "resident", "staff", or "admin"
   emailVerified DateTime?
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
   accounts      Account[]
   sessions      Session[]
   appointments  Appointment[]
   classSignups  ClassSignup[]
+  curfewRequests CurfewExtension[]  // 👈 Added relation for curfew requests
 }
 
 model Appointment {
@@ -123,4 +124,26 @@ model Event {
   startTime DateTime
   endTime   DateTime
   createdAt DateTime @default(now())
+}
+
+//
+// 🆕 NEW MODEL: CurfewExtension
+// Stores all resident curfew extension requests
+//
+model CurfewExtension {
+  id             String   @id @default(cuid())
+  userId         String
+  caseWorker     String
+  startDate      DateTime
+  startTime      String
+  endDate        DateTime
+  endTime        String
+  reason         String
+  extraInfo      String?
+  choreCoverage  String?
+  signature      String
+  status         String   @default("pending")
+  createdAt      DateTime @default(now())
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -31,6 +31,7 @@ export default function Navigation() {
             <Link href="/schedule" className={linkClass('/schedule')}>Schedule</Link>
             <Link href="/Resources" className={linkClass('/Resources')}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
+            <Link href="/curfew" className={linkClass('/curfew')}>Curfew</Link>
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
@@ -90,6 +91,7 @@ export default function Navigation() {
             <Link href="/schedule" className={linkClass('/schedule')} onClick={() => setIsMenuOpen(false)}>Schedule</Link>
             <Link href="/resources" className={linkClass('/resources')} onClick={() => setIsMenuOpen(false)}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
+            <Link href="/curfew" className={linkClass('/curfew')} onClick={() => setIsMenuOpen(false)}>Curfew</Link>
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile')} onClick={() => setIsMenuOpen(false)}>Profile</Link>
