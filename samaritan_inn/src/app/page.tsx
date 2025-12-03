@@ -68,13 +68,13 @@ const HomePage = () => {
                   <circle cx="200" cy="200" r="100" stroke="white" strokeWidth="40" fill="none" />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-[#00167c] mb-2">Schedule</h2>
-              <p className="text-[#231f20] mb-4">Schedule/Update your curfew or connect with your assigned case worker</p>
+              <h2 className="text-xl font-bold text-[#00167c] mb-2">Classes</h2>
+              <p className="text-[#231f20] mb-4">Browse Classes, view details, and schedule sessions! </p>
               <Link
                 href="/schedule"
                 className="inline-block bg-[#0caebb] text-white py-2 px-6 rounded-md hover:bg-[#29abe2] transition duration-300"
               >
-                Schedule
+                Classes
               </Link>
             </div>
 

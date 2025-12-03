@@ -18,7 +18,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { title, content, author, isAdmin } = body;
+    const { title, content, author, isAdmin, date } = body;
 
     // Check if the user is an admin
     if (!isAdmin) {
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
     // Create a new announcement
     const announcement = await prisma.announcement.create({
-      data: { title, content, author },
+      data: { title, content, author, date },
     });
 
     return NextResponse.json(announcement);

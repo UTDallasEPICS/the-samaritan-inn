@@ -11,6 +11,8 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import SidebarCalendar from "@/components/SidebarCalendar";
+
 
 interface Announcement {
   id: string;
@@ -18,6 +20,7 @@ interface Announcement {
   content: string;
   author: string;
   createdAt: string;
+  date: string;
 }
 
 interface EventItem {
@@ -51,7 +54,12 @@ export default function Announcements() {
   const [section, setSection] = useState<Section>('announcements');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
+  const [newAnnouncement, setNewAnnouncement] = useState({
+  title: '',
+  content: '',
+  date: '',
+});
+
   const [events, setEvents] = useState<EventItem[]>([]);
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -64,10 +72,25 @@ export default function Announcements() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<any>({});
   const [showModal, setShowModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+const filteredAnnouncements = selectedDate
+  ? announcements.filter(
+      a => (a.date || a.createdAt?.slice(0, 10)) === selectedDate
+    )
+  : announcements;
+
+
+const filteredEvents = selectedDate
+  ? events.filter(e => e.startDate?.slice(0,10) === selectedDate || e.endDate?.slice(0,10) === selectedDate)
+  : events;
+
+const filteredItems = section === 'announcements' ? filteredAnnouncements : filteredEvents;
+
 
   // 3) Derived values
   const isAdmin = session?.user?.role === 'admin';
-  const items = section === 'announcements' ? announcements : events;
+  const items = filteredItems;
 
   // 4) Redirect unauthenticated users
   useEffect(() => {
@@ -98,7 +121,7 @@ export default function Announcements() {
     setShowModal(false);
     setEditingId(null);
     setEditingItem({});
-    setNewAnnouncement({ title: '', content: '' });
+    setNewAnnouncement({ title: '', content: '', date: '' });
     setNewEvent({
       title: '',
       content: '',
@@ -121,15 +144,19 @@ export default function Announcements() {
   const handlePostItem = async () => {
     if (!isAdmin) return;
     if (section === 'announcements') {
-      const { title, content } = newAnnouncement;
-      if (!title.trim() || !content.trim()) {
-        return alert('Title and content required');
-      }
-      const res = await fetch('/api/announcements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newAnnouncement, author: 'Admin', isAdmin }),
-      });
+  const { title, content, date } = newAnnouncement;
+  if (!title.trim() || !content.trim() || !date) {
+    return alert('Title, content, and date are required');
+  }
+  const res = await fetch('/api/announcements', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...newAnnouncement,
+      author: 'Admin',
+      isAdmin,
+    }),
+  });
       if (!res.ok) return console.error('Post failed');
       const data = await res.json();
       setAnnouncements(prev => [data, ...prev]);
@@ -206,12 +233,38 @@ export default function Announcements() {
     setShowModal(true);
   };
 
+
   // 8) Render
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
       <div className="flex-grow flex flex-col items-start bg-gray-100 p-4">
         <div className="w-full max-w-3xl p-6 bg-white shadow-md rounded-md">
+          
+         
+
+<div className="absolute right-8 top-32 w-[400px]">
+ {/* RIGHT: Sidebar Calendar */}
+    <aside className="lg:col-span-1 lg:sticky lg:top-8 self-end">
+      <SidebarCalendar
+        className="w-full"
+        announcements={announcements.map(a => ({
+          id: a.id,
+          title: a.title,
+          content: a.content,
+               date: a.date || a.createdAt?.slice(0, 10),
+// <- what SidebarCalendar expects
+        }))}
+        onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
+      />
+    </aside>
+
+</div>
+
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             
@@ -222,7 +275,15 @@ export default function Announcements() {
             {isAdmin && (
               <Button
                 variant="contained"
-                onClick={() => setShowModal(true)}
+                onClick={() => {
+  if (section === 'announcements') {
+    setNewAnnouncement(prev => ({
+      ...prev,
+      date: selectedDate || new Date().toISOString().slice(0, 10),
+    }));
+  }
+  setShowModal(true);
+}}
                 sx={{
                   backgroundColor: '#29abe2',
                   '&:hover': {
@@ -234,7 +295,8 @@ export default function Announcements() {
               </Button>
             )}
           </div>
-
+            </div>
+            </div>
           {/* Modal */}
           {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -293,7 +355,24 @@ export default function Announcements() {
                   }}
                   className="w-full border border-gray-300 rounded px-3 py-2 h-24 mb-4 text-black placeholder-gray-400"
                 />
-
+                {section === 'announcements' && (
+  <>
+    <label className="block mb-1 text-black">Date</label>
+    <input
+      type="date"
+      value={editingId ? editingItem.date : newAnnouncement.date}
+      onChange={e => {
+        if (editingId) {
+          setEditingItem({ ...editingItem, date: e.target.value });
+        } else {
+          setNewAnnouncement({ ...newAnnouncement, date: e.target.value });
+        }
+      }}
+      className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+    />
+  </>
+)}
+{/* ⬆️ END OF NEW DATE FIELD */}
                 {/* Event-only fields */}
                 {section === 'events' && (
                   <>
@@ -409,6 +488,8 @@ export default function Announcements() {
             })}
           </ul>
         </div>
+    
+
       </div>
     </div>
   );
