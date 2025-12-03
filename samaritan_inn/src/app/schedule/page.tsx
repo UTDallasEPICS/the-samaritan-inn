@@ -88,7 +88,7 @@ export default function SchedulePage() {
           className="w-full max-w-5xl p-8 bg-white shadow-md rounded-md overflow-hidden"
           style={{ height: '760px' }}
         >
-          <h1 className="text-2xl font-semibold mb-6 text-black">Events</h1>
+          <h1 className="text-2xl font-semibold mb-6 text-black">Classes</h1>
 
           {/* Calendly Embed */}
           <div className="w-full h-full relative">
