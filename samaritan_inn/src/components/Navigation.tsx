@@ -134,7 +134,7 @@ export default function Navigation() {
             <div className="flex flex-col h-full">
               {/* Navigation header */}
               <div className="px-6 py-4 border-b border-[#29abe2]/30">
-                <h2 className="text-xl font-bold text-white">Navigation</h2>
+                <h2 className="text-xl font-bold text-white">The Samaritan Inn</h2>
               </div>
 
               {/* Scrollable navigation content */}
@@ -169,8 +169,8 @@ export default function Navigation() {
                     Announcements
                   </Link>
                   
-                  {/* Divider */}
-                  <div className="border-t border-[#29abe2]/30 my-4" />
+                  {/* Divider
+                  <div className="border-t border-[#29abe2]/30 my-4" /> */}
                   
                   {status === 'authenticated' ? (
                     <>
