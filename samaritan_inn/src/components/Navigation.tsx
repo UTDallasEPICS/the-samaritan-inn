@@ -31,7 +31,7 @@ export default function Navigation() {
             <Link href="/schedule" className={linkClass('/schedule')}>Classes</Link>
             <Link href="/Resources" className={linkClass('/Resources')}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
-            <Link href="/pass" className={linkClass('/pass')}>Pass</Link>
+            <Link href="/pass-form" className={linkClass('/pass-form')}>Pass</Link>
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
