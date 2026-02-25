@@ -22,7 +22,7 @@ export default function PassFormPage() {
         <h1 className="text-4xl font-bold text-[#00167c] text-center">Pass Home Page</h1>
         <p className="text-2xl text-[#00167c] text-center mt-2">Hi, {userName}</p>
 
-        {/* Form cards */}
+        {/* Form cards */}  
         <div className="flex flex-wrap justify-center gap-8 mt-10">
           <button
             onClick={() => setActiveForm('work-schedule')}
