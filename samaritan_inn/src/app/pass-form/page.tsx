@@ -19,9 +19,9 @@ export default function PassFormPage() {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-4xl font-bold text-[#00167c] text-center">Pass Home Page</h1>
+        {/* <h1 className="text-4xl font-bold text-[#00167c] text-center">Pass Home Page</h1>
         <p className="text-2xl text-[#00167c] text-center mt-2">Hi, {userName}</p>
-
+ */}
         {/* Form cards */}  
         <div className="flex flex-wrap justify-center gap-8 mt-10">
           <button

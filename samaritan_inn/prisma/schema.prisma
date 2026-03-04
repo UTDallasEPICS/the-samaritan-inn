@@ -63,6 +63,9 @@ model User {
   sessions      Session[]
   appointments  Appointment[]
   classSignups  ClassSignup[]
+  extendedCurfewRequests ExtendedCurfewRequest[]
+  passRequests           PassRequest[]
+  workSchedules          WorkSchedule[]
 }
 
 model Appointment {
@@ -125,4 +128,125 @@ model Event {
   startTime DateTime
   endTime   DateTime
   createdAt DateTime @default(now())
+}
+
+// ─── Enums for pass form models ─────────────────────────────────────────────
+
+enum FormStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
+enum EmploymentStatus {
+  EMPLOYED
+  UNEMPLOYED
+}
+
+enum Transportation {
+  WALK
+  BIKE
+  OWN_CAR
+  RIDE
+}
+
+// ─── Extended Curfew Request ─────────────────────────────────────────────────
+
+model ExtendedCurfewRequest {
+  id                     String     @id @default(cuid())
+
+  // Resident-filled
+  todayDate              DateTime
+  residentName           String
+  datesNeeded            String
+  expectedReturnTime     String
+  isOngoing              Boolean    @default(false)
+  reason                 String
+  choreCoveredBy         String?
+  choreCoverageSignature String?
+  residentSignature      String
+
+  // Admin-only (caseworker/staff = admin role)
+  adminName              String?
+  status                 FormStatus @default(PENDING)
+  adminSignature         String?
+  decisionDate           DateTime?
+  commentsNotes          String?
+  receivedDate           DateTime?
+  adminInitials          String?
+
+  // Metadata
+  userId                 String
+  user                   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submittedAt            DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+}
+
+// ─── Resident Pass Request ───────────────────────────────────────────────────
+
+model PassRequest {
+  id                     String     @id @default(cuid())
+
+  // Resident-filled
+  residentName           String
+  todayDate              DateTime
+  datesRequested         String
+  reason                 String
+  choreCoveredBy         String?
+  choreCoverageSignature String?
+  residentSignature      String
+  signatureDate          DateTime
+
+  // Admin-only (caseworker/staff = admin role)
+  adminName              String?
+  status                 FormStatus @default(PENDING)
+  adminSignature         String?
+  decisionDate           DateTime?
+
+  // Metadata
+  userId                 String
+  user                   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submittedAt            DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+}
+
+// ─── Work Schedule ───────────────────────────────────────────────────────────
+
+model WorkSchedule {
+  id                  String           @id @default(cuid())
+
+  // Resident-filled
+  residentName        String
+  room                String
+  employmentStatus    EmploymentStatus
+  employerName        String?
+  employerLocation    String?
+  weekOf              DateTime
+  monthOf             String
+  transportation      Transportation
+  estimatedTravelTime String
+  residentSignature   String
+  signatureDate       DateTime
+  days                WorkScheduleDay[]
+
+  // Admin-only
+  enteredByInitials   String?
+
+  // Metadata
+  userId              String
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submittedAt         DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+}
+
+model WorkScheduleDay {
+  id         String       @id @default(cuid())
+  scheduleId String
+  schedule   WorkSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  dayOfWeek  String       // "Monday" | "Tuesday" | ... | "Sunday"
+  date       DateTime?
+  startTime  String?      // e.g. "09:00 AM"
+  endTime    String?      // e.g. "05:00 PM"
+
+  @@unique([scheduleId, dayOfWeek])
 }
