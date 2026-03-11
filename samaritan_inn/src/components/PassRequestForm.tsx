@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import CaseworkerSelect from './CaseworkerSelect';
 import ResidentSearch from './ResidentSearch';
 console.log("PASS REQUEST ROUTE HIT");
 
@@ -20,7 +21,6 @@ interface FormData {
   signatureDate: string;
   
 }
-
 
 const inputClass =
   'w-full border border-gray-300 rounded px-3 py-2 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#29abe2]';
@@ -115,6 +115,15 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
           onChange={e => update('todayDate', e.target.value)}
           className={inputClass}
           required
+        />
+      </div>
+      
+      {/* Caseworker */}
+      <div className="mb-4">
+        <label className={labelClass}>Your Caseworker</label>
+        <CaseworkerSelect
+          value={form.assignedCaseworkerId}
+          onChange={id => update('assignedCaseworkerId', id)}
         />
       </div>
       
