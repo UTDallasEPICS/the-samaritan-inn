@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import ResidentSearch from './ResidentSearch';
+console.log("PASS REQUEST ROUTE HIT");
 
 interface PassRequestFormProps {
   onClose: () => void;
@@ -8,7 +10,6 @@ interface PassRequestFormProps {
 }
 
 interface FormData {
-  
   residentName: string;
   todayDate: string;
   datesRequested: string;
@@ -67,14 +68,17 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
   
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/pass/extended-curfew', {
+      console.log('Submitting pass request to /api/pass/pass-request', { form, userId: session?.user?.id });
+      const res = await fetch('/api/pass/pass-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, userId: session?.user?.id }),
       });
+      console.log('Pass request response status:', res.status);
       if (!res.ok) throw new Error('Failed to submit');
       onClose();
     } catch {
+      console.log("ERROR SUBMITTING PASS REQUEST")
       setError('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -143,14 +147,11 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
       {/* Chore coverage name */}
       <div className="mb-4">
         <label className={labelClass}>
-          Chore Coverage (if needed) — Please print name
+          Chore Coverage (if needed) — Search resident name
         </label>
-        <input
-          type="text"
-          placeholder="Name of person covering chores"
-          value={form.choreCoveredBy}
-          onChange={e => update('choreCoveredBy', e.target.value)}
-          className={inputClass}
+        <ResidentSearch
+          value={form.choreCoveredById}
+          onChange={id => update('choreCoveredById', id)}
         />
       </div>
 
