@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import CaseworkerSelect from './CaseworkerSelect';
+import ResidentSearch from './ResidentSearch';
 
 interface ExtendedCurfewFormProps {
   onClose: () => void;
@@ -17,7 +18,7 @@ interface FormData {
   expectedReturnTime: string;
   isOngoing: boolean | null;
   reason: string;
-  choreCoveredBy: string;
+  choreCoveredById: string;
   choreCoverageSignature: string;
   residentSignature: string;
 }
@@ -37,7 +38,7 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
     expectedReturnTime: '',
     isOngoing: null,
     reason: '',
-    choreCoveredBy: '',
+    choreCoveredById: '',
     choreCoverageSignature: '',
     residentSignature: '',
   });
@@ -217,19 +218,16 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
       {/* Chore coverage name */}
       <div className="mb-4">
         <label className={labelClass}>
-          Chore Coverage (if needed) — Please print name
+          Chore Coverage (if needed) — Search resident name
         </label>
-        <input
-          type="text"
-          placeholder="Name of person covering chores"
-          value={form.choreCoveredBy}
-          onChange={e => update('choreCoveredBy', e.target.value)}
-          className={inputClass}
+        <ResidentSearch
+          value={form.choreCoveredById}
+          onChange={id => update('choreCoveredById', id)}
         />
       </div>
 
       {/* Coverage signature */}
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <label className={labelClass}>Signature of Person Providing Coverage</label>
         <input
           type="text"
@@ -238,7 +236,7 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
           onChange={e => update('choreCoverageSignature', e.target.value)}
           className={inputClass}
         />
-      </div>
+      </div> */}
 
       {/* Resident signature */}
       <div className="mb-4">

@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       expectedReturnTime,
       isOngoing,
       reason,
-      choreCoveredBy,
+      choreCoveredById,
       choreCoverageSignature,
       residentSignature,
     } = body;
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         expectedReturnTime,
         isOngoing,
         reason,
-        choreCoveredBy: choreCoveredBy || null,
+        choreCoveredById: choreCoveredById || null,
         choreCoverageSignature: choreCoverageSignature || null,
         residentSignature,
         assignedCaseworkerId: assignedCaseworkerId || null,
