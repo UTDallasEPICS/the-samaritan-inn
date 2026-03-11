@@ -8,6 +8,7 @@ export async function POST(req: Request) {
       userId,
       todayDate,
       residentName,
+      assignedCaseworkerId,
       datesNeeded,
       expectedReturnTime,
       isOngoing,
@@ -18,7 +19,18 @@ export async function POST(req: Request) {
     } = body;
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 400 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (
+      !datesNeeded?.trim() ||
+      !expectedReturnTime?.trim() ||
+      isOngoing === null ||
+      isOngoing === undefined ||
+      !reason?.trim() ||
+      !residentSignature?.trim()
+    ) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const request = await prisma.extendedCurfewRequest.create({
@@ -33,6 +45,7 @@ export async function POST(req: Request) {
         choreCoveredBy: choreCoveredBy || null,
         choreCoverageSignature: choreCoverageSignature || null,
         residentSignature,
+        assignedCaseworkerId: assignedCaseworkerId || null,
       },
     });
 

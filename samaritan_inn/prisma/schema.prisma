@@ -175,6 +175,9 @@ model ExtendedCurfewRequest {
   receivedDate           DateTime?
   adminInitials          String?
 
+  // Assignment
+  assignedCaseworkerId   String?
+
   // Metadata
   userId                 String
   user                   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
