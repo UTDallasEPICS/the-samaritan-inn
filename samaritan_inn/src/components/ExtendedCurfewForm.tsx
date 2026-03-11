@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import CaseworkerSelect from './CaseworkerSelect';
+import ResidentSearch from './ResidentSearch';
 
 interface ExtendedCurfewFormProps {
   onClose: () => void;
@@ -11,17 +13,18 @@ interface ExtendedCurfewFormProps {
 interface FormData {
   todayDate: string;
   residentName: string;
+  assignedCaseworkerId: string;
   datesNeeded: string;
   expectedReturnTime: string;
   isOngoing: boolean | null;
   reason: string;
-  choreCoveredBy: string;
+  choreCoveredById: string;
   choreCoverageSignature: string;
   residentSignature: string;
 }
 
 const inputClass =
-  'w-full border border-gray-300 rounded px-3 py-2 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#29abe2]';
+  'w-full border border-gray-300 rounded px-3 py-2 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary';
 
 const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
 
@@ -30,16 +33,18 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
   const [form, setForm] = useState<FormData>({
     todayDate: new Date().toISOString().slice(0, 10),
     residentName: residentName ?? '',
+    assignedCaseworkerId: '',
     datesNeeded: '',
     expectedReturnTime: '',
     isOngoing: null,
     reason: '',
-    choreCoveredBy: '',
+    choreCoveredById: '',
     choreCoverageSignature: '',
     residentSignature: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const update = (field: keyof FormData, value: string | boolean | null) =>
     setForm(prev => ({ ...prev, [field]: value }));
@@ -77,7 +82,7 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
         body: JSON.stringify({ ...form, userId: session?.user?.id }),
       });
       if (!res.ok) throw new Error('Failed to submit');
-      onClose();
+      setSubmitted(true);
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
@@ -85,10 +90,28 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
     }
   };
 
+  if (submitted) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="text-5xl mb-4">✓</div>
+        <h2 className="text-xl font-bold text-primary mb-2">Request Submitted!</h2>
+        <p className="text-gray-600 mb-6">
+          Your Extended Curfew Request has been received and is pending caseworker review.
+        </p>
+        <button
+          onClick={onClose}
+          className="bg-secondary text-white px-6 py-2 rounded hover:bg-secondary/80 text-sm font-semibold"
+        >
+          Close
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} noValidate>
       {/* Title */}
-      <h2 className="text-xl font-bold text-center text-[#00167c] mb-1 uppercase tracking-wide">
+      <h2 className="text-xl font-bold text-center text-primary mb-1 uppercase tracking-wide">
         Extended Curfew Request
       </h2>
       <p className="text-center text-xs text-gray-500 mb-5">
@@ -115,6 +138,15 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
           value={form.residentName}
           readOnly
           className={inputClass + ' bg-gray-50 cursor-default'}
+        />
+      </div>
+
+      {/* Caseworker */}
+      <div className="mb-4">
+        <label className={labelClass}>Your Caseworker</label>
+        <CaseworkerSelect
+          value={form.assignedCaseworkerId}
+          onChange={id => update('assignedCaseworkerId', id)}
         />
       </div>
 
@@ -152,7 +184,7 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
                 name="isOngoing"
                 checked={form.isOngoing === true}
                 onChange={() => update('isOngoing', true)}
-                className="accent-[#29abe2]"
+                className="accent-secondary"
               />
               YES
             </label>
@@ -162,7 +194,7 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
                 name="isOngoing"
                 checked={form.isOngoing === false}
                 onChange={() => update('isOngoing', false)}
-                className="accent-[#29abe2]"
+                className="accent-secondary"
               />
               NO
             </label>
@@ -186,19 +218,16 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
       {/* Chore coverage name */}
       <div className="mb-4">
         <label className={labelClass}>
-          Chore Coverage (if needed) — Please print name
+          Chore Coverage (if needed) — Search resident name
         </label>
-        <input
-          type="text"
-          placeholder="Name of person covering chores"
-          value={form.choreCoveredBy}
-          onChange={e => update('choreCoveredBy', e.target.value)}
-          className={inputClass}
+        <ResidentSearch
+          value={form.choreCoveredById}
+          onChange={id => update('choreCoveredById', id)}
         />
       </div>
 
       {/* Coverage signature */}
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <label className={labelClass}>Signature of Person Providing Coverage</label>
         <input
           type="text"
@@ -207,7 +236,7 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
           onChange={e => update('choreCoverageSignature', e.target.value)}
           className={inputClass}
         />
-      </div>
+      </div> */}
 
       {/* Resident signature */}
       <div className="mb-4">
@@ -241,7 +270,7 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
         <button
           type="submit"
           disabled={isSubmitting}
-          className="bg-[#29abe2] text-white px-6 py-2 rounded hover:bg-[#64bee3] disabled:bg-[#64bee3] text-sm font-semibold"
+          className="bg-secondary text-white px-6 py-2 rounded hover:bg-secondary/80 disabled:bg-secondary/60 text-sm font-semibold"
         >
           {isSubmitting ? 'Submitting...' : 'Submit Request'}
         </button>
