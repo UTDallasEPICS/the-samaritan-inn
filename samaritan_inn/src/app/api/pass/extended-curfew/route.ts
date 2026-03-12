@@ -55,8 +55,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to submit request', detail: String(error) }, { status: 500 });
   }
 }
-
-export async function GET() {
-  const data = await prisma.extendedCurfewRequest.findMany();
-  return Response.json(data);
-}
