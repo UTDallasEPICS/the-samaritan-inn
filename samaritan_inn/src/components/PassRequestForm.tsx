@@ -13,9 +13,10 @@ interface PassRequestFormProps {
 interface FormData {
   residentName: string;
   todayDate: string;
+  assignedCaseworkerId: string;
   datesRequested: string;
   reason: string;
-  choreCoveredBy: string;
+  choreCoveredById: string;
   choreCoverageSignature: string;
   residentSignature: string;
   signatureDate: string;
@@ -34,10 +35,11 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
   const { data: session } = useSession();
     const [form, setForm] = useState<FormData>({
       residentName: residentName ?? '',
+      assignedCaseworkerId: '',
       todayDate: new Date().toISOString().slice(0, 10),
       datesRequested: '',
       reason: '',
-      choreCoveredBy: '',
+      choreCoveredById: '',
       choreCoverageSignature: '',
       residentSignature: '',
       signatureDate: '',
@@ -45,6 +47,7 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
     
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [submitted, setSubmitted] = useState(false);
     
     const update = (field: keyof FormData, value: string | boolean | null) =>
     setForm(prev => ({ ...prev, [field]: value }));
@@ -84,6 +87,24 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
       setIsSubmitting(false);
     }
   };
+  
+    if (submitted) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="text-5xl mb-4">✓</div>
+        <h2 className="text-xl font-bold text-primary mb-2">Request Submitted!</h2>
+        <p className="text-gray-600 mb-6">
+          Your Pass Request has been received and is pending caseworker review.
+        </p>
+        <button
+          onClick={onClose}
+          className="bg-secondary text-white px-6 py-2 rounded hover:bg-secondary/80 text-sm font-semibold"
+        >
+          Close
+        </button>
+      </div>
+    );
+  }
   
   return (
     <form onSubmit={handleSubmit} noValidate>

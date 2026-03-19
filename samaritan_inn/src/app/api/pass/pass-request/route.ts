@@ -6,33 +6,42 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('API /api/pass/pass-request received body:', body);
     const {
-  
       userId,
       residentName,
+      assignedCaseworkerId,
       todayDate,
       datesRequested,
       reason,
-      choreCoveredBy,
+      choreCoveredById,
       choreCoverageSignature,
       signatureDate,
       residentSignature,
     } = body;
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 400 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (
+      !datesRequested?.trim() ||
+      !reason?.trim() ||
+      !residentSignature?.trim()
+    ) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const request = await prisma.passRequest.create({
       data: {
         userId,
-        residentName,
         todayDate: new Date(todayDate),
+        residentName,
         datesRequested,
         reason,
-        choreCoveredBy: choreCoveredBy || null,
+        choreCoveredById: choreCoveredById || null,
         choreCoverageSignature: choreCoverageSignature || null,
-        signatureDate: new Date(signatureDate),
+        signatureDate: new Date(todayDate),
         residentSignature,
+        assignedCaseworkerId: assignedCaseworkerId || null,
       },
     });
 
@@ -42,3 +51,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to submit request', detail: String(error) }, { status: 500 });
   }
 }
+
