@@ -42,7 +42,7 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
       choreCoveredById: '',
       choreCoverageSignature: '',
       residentSignature: '',
-      signatureDate: '',
+      signatureDate: new Date().toISOString().slice(0, 10),
     });
     
     const [isSubmitting, setIsSubmitting] = useState(false);
