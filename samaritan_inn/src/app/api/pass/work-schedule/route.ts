@@ -1,3 +1,4 @@
+import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 // TODO: Implement POST handler for WorkSchedule
@@ -7,17 +8,17 @@ export async function POST() {
 
 export async function GET() {
   try {
-    const requests = await prisma.extendedCurfewRequest.findMany({
+    const schedules = await prisma.workSchedule.findMany({
       orderBy: {
         submittedAt: 'desc',
       },
     });
 
-    return NextResponse.json(requests);
+    return NextResponse.json(schedules);
   } catch (error) {
-    console.error('Error fetching extended curfew requests:', error);
+    console.error('Error fetching work schedules:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch requests' },
+      { error: 'Failed to fetch work schedules' },
       { status: 500 }
     );
   }
