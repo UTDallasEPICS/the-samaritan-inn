@@ -195,7 +195,7 @@ model PassRequest {
   todayDate              DateTime
   datesRequested         String
   reason                 String
-  choreCoveredBy         String?
+  choreCoveredById       String?
   choreCoverageSignature String?
   residentSignature      String
   signatureDate          DateTime
@@ -205,6 +205,9 @@ model PassRequest {
   status                 FormStatus @default(PENDING)
   adminSignature         String?
   decisionDate           DateTime?
+  
+  // Assignment
+  assignedCaseworkerId   String?
 
   // Metadata
   userId                 String
