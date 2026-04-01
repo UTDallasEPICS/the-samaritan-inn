@@ -24,6 +24,18 @@ export default function PassFormPage() {
 
   const userName = session?.user?.name || 'Resident';
 
+  const getRowColor = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case 'APPROVED':
+        return 'bg-green-100 text-green-900';
+      case 'DENIED':
+        return 'bg-red-100 text-red-900';
+      case 'PENDING':
+      default:
+        return 'bg-yellow-100 text-yellow-900';
+    }
+  };
+
   // Fetch all forms and combine them
   /*
   useEffect(() => {
@@ -179,7 +191,7 @@ export default function PassFormPage() {
 
               <tbody className="divide-y divide-gray-200">
                 {activityFeed.map((row, index) => (
-                  <tr key={index}>
+                  <tr key={index} className={getRowColor(row.decision)}>
                     <td className="px-6 py-4">{row.formType}</td>
                     <td className="px-6 py-4">
                       {new Date(row.submittedAt).toLocaleDateString()}

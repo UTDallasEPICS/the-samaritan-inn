@@ -79,14 +79,13 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
       });
       console.log('Pass request response status:', res.status);
       if (!res.ok) throw new Error('Failed to submit');
-      onClose();
-    } catch {
-      console.log("ERROR SUBMITTING PASS REQUEST")
-      setError('Something went wrong. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      setSubmitted(true);
+      } catch {
+        setError('Something went wrong. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
   
     if (submitted) {
     return (
@@ -105,6 +104,7 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
       </div>
     );
   }
+
   
   return (
     <form onSubmit={handleSubmit} noValidate>
@@ -228,9 +228,9 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
       {error && (
         <p className="mt-4 text-sm text-red-600 font-medium">{error}</p>
       )}
-
+    
       {/* Action buttons */}
-      <div className="flex justify-end gap-3 mt-6">
+      /<div className="flex justify-end gap-3 mt-6">
         <button
           type="button"
           onClick={onClose}
@@ -248,5 +248,5 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
         </button>
       </div>
     </form>
-  );
+  ); 
 }
