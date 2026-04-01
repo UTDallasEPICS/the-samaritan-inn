@@ -3,12 +3,17 @@
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 
+const CALENDARS = [
+  { label: 'Case Worker 1', ownerId: process.env.NEXT_PUBLIC_SF_OWNER_1! },
+  { label: 'Case Worker 2', ownerId: process.env.NEXT_PUBLIC_SF_OWNER_2! },
+  { label: 'Case Worker 3', ownerId: process.env.NEXT_PUBLIC_SF_OWNER_3! },
+];
+
 const CalendarFormPage = () => {
   const [form, setForm] = useState({
     title: '',
-    description: '',
-    location: '',
   });
+  const [selectedCalendar, setSelectedCalendar] = useState(CALENDARS[0]);
   const [date, setDate] = useState('');
   const [slots, setSlots] = useState<{ start: string; end: string; label: string }[]>([]);
   const [selectedStart, setSelectedStart] = useState<{ start: string; end: string; label: string } | null>(null);
@@ -23,18 +28,27 @@ const CalendarFormPage = () => {
     setSuccess(false);
   };
 
-  const handleDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value;
-    setDate(selectedDate);
+  const fetchSlots = async (dateStr: string, ownerId: string) => {
     setSelectedStart(null);
     setSelectedDuration(null);
     setSlots([]);
     setLoadingSlots(true);
-
-    const res = await fetch(`/api/get-available-slots?date=${selectedDate}`);
+    const res = await fetch(`/api/get-available-slots?date=${dateStr}&ownerId=${ownerId}`);
     const data = await res.json();
     setSlots(data);
     setLoadingSlots(false);
+  };
+
+  const handleCalendarChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cal = CALENDARS.find(c => c.ownerId === e.target.value) ?? CALENDARS[0];
+    setSelectedCalendar(cal);
+    if (date) fetchSlots(date, cal.ownerId);
+  };
+
+  const handleDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    setDate(selectedDate);
+    fetchSlots(selectedDate, selectedCalendar.ownerId);
   };
 
   const handleStartClick = (slot: { start: string; end: string; label: string }) => {
@@ -112,14 +126,13 @@ const CalendarFormPage = () => {
         title: form.title,
         startDate: selectedStart.start,
         endDate: getEndISO(),
-        description: form.description,
-        location: form.location,
+        ownerId: selectedCalendar.ownerId,
       }),
     });
 
     if (res.ok) {
       setSuccess(true);
-      setForm({ title: '', description: '', location: '' });
+      setForm({ title: '' });
       setDate('');
       setSlots([]);
       setSelectedStart(null);
@@ -140,37 +153,31 @@ const CalendarFormPage = () => {
             Fill in the details below and select an available time slot.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              id="title"
-              label="Event Title"
-              type="text"
-              placeholder="e.g. Client Meeting"
-              value={form.title}
-              onChange={handleChange}
-              color="blue"
-              required
-            />
-            <FormField
-              id="location"
-              label="Location (optional)"
-              type="text"
-              placeholder="e.g. Conference Room B"
-              value={form.location}
-              onChange={handleChange}
-              color="green"
-            />
-            <div className="md:col-span-2">
-              <FormField
-                id="description"
-                label="Description (optional)"
-                type="textarea"
-                placeholder="Add any notes or details about this event..."
-                value={form.description}
-                onChange={handleChange}
-                color="yellow"
-              />
-            </div>
+          <FormField
+            id="title"
+            label="Event Title"
+            type="text"
+            placeholder="e.g. Client Meeting"
+            value={form.title}
+            onChange={handleChange}
+            color="blue"
+            required
+          />
+
+          {/* Calendar Selector */}
+          <div className="mt-6 p-4 bg-white rounded-lg shadow-md border-2 border-primary">
+            <label className="block text-sm font-semibold mb-2 text-primary">
+              Select a Calendar <span className="text-red-400">*</span>
+            </label>
+            <select
+              value={selectedCalendar.ownerId}
+              onChange={handleCalendarChange}
+              className="w-full text-sm text-gray-800 bg-transparent outline-none"
+            >
+              {CALENDARS.map(cal => (
+                <option key={cal.ownerId} value={cal.ownerId}>{cal.label}</option>
+              ))}
+            </select>
           </div>
 
           {/* Date Picker */}

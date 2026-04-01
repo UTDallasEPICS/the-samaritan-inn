@@ -19,14 +19,15 @@ async function getSalesforceToken() {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const date = searchParams.get('date');
+  const ownerId = searchParams.get('ownerId') ?? process.env.SF_OWNER_ID;
 
   const token = await getSalesforceToken();
 
   // Pull ALL events that overlap with this day in any way
-  const query = `SELECT StartDateTime, EndDateTime FROM Event 
-    WHERE StartDateTime <= ${date}T23:59:59Z 
+  const query = `SELECT StartDateTime, EndDateTime FROM Event
+    WHERE StartDateTime <= ${date}T23:59:59Z
     AND EndDateTime >= ${date}T00:00:00Z
-    AND OwnerId = '${process.env.SF_OWNER_ID}'`;
+    AND OwnerId = '${ownerId}'`;
 
   const res = await fetch(
     `${process.env.SF_INSTANCE_URL}/services/data/v59.0/query?q=${encodeURIComponent(query)}`,
