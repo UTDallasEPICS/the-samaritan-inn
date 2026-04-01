@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,25 +7,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Post{ 
-  id String @id @default(cuid())
+model Post {
+  id   String @id @default(cuid())
   name String
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -50,39 +47,39 @@ model VerificationToken {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  name          String
-  role          String    @default("resident") // e.g., "resident", "staff", "admin"
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-  appointments  Appointment[]
-  classSignups  ClassSignup[]
+  id                     String                  @id @default(cuid())
+  email                  String                  @unique
+  password               String
+  name                   String
+  role                   String                  @default("resident")
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  emailVerified          DateTime?
+  image                  String?
+  accounts               Account[]
+  appointments           Appointment[]
+  classSignups           ClassSignup[]
   extendedCurfewRequests ExtendedCurfewRequest[]
   passRequests           PassRequest[]
+  sessions               Session[]
   workSchedules          WorkSchedule[]
 }
 
 model Appointment {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   title       String
   description String?
   startTime   DateTime
   endTime     DateTime
   location    String?
   userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Class {
-  id          String    @id @default(cuid())
+  id          String        @id @default(cuid())
   title       String
   description String?
   instructor  String
@@ -90,18 +87,18 @@ model Class {
   endTime     DateTime
   location    String?
   capacity    Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   signups     ClassSignup[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
 }
 
 model ClassSignup {
   id        String   @id @default(cuid())
   classId   String
-  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@unique([classId, userId])
 }
@@ -112,11 +109,10 @@ model Announcement {
   content   String
   author    String
   important Boolean  @default(false)
-  date      String?  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  date      String?
 }
-
 
 model Event {
   id        String   @id @default(cuid())
@@ -130,129 +126,80 @@ model Event {
   createdAt DateTime @default(now())
 }
 
-// ─── Enums for pass form models ─────────────────────────────────────────────
-
-enum FormStatus {
-  PENDING
-  APPROVED
-  DENIED
-}
-
-enum EmploymentStatus {
-  EMPLOYED
-  UNEMPLOYED
-}
-
-enum Transportation {
-  WALK
-  BIKE
-  OWN_CAR
-  RIDE
-}
-
-// ─── Extended Curfew Request ─────────────────────────────────────────────────
-
 model ExtendedCurfewRequest {
-  id                     String     @id @default(cuid())
-
-  // Resident-filled
+  id                     String    @id @default(cuid())
   todayDate              DateTime
   residentName           String
   datesNeeded            String
   expectedReturnTime     String
-  isOngoing              Boolean    @default(false)
+  isOngoing              Boolean   @default(false)
   reason                 String
-  choreCoveredById       String?
+  choreCoveredBy         String?
   choreCoverageSignature String?
   residentSignature      String
-
-  // Admin-only (caseworker/staff = admin role)
   adminName              String?
-  status                 FormStatus @default(PENDING)
+  status                 String    @default("PENDING")
   adminSignature         String?
   decisionDate           DateTime?
   commentsNotes          String?
   receivedDate           DateTime?
   adminInitials          String?
-
-  // Assignment
-  assignedCaseworkerId   String?
-
-  // Metadata
   userId                 String
-  user                   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  submittedAt            DateTime   @default(now())
-  updatedAt              DateTime   @updatedAt
+  submittedAt            DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  assignedCaseworkerId   String?
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ─── Resident Pass Request ───────────────────────────────────────────────────
-
 model PassRequest {
-  id                     String     @id @default(cuid())
-
-  // Resident-filled
+  id                     String    @id @default(cuid())
   residentName           String
   todayDate              DateTime
   datesRequested         String
   reason                 String
-  choreCoveredById       String?
+  choreCoveredBy         String?
   choreCoverageSignature String?
   residentSignature      String
   signatureDate          DateTime
-
-  // Admin-only (caseworker/staff = admin role)
   adminName              String?
-  status                 FormStatus @default(PENDING)
+  status                 String    @default("PENDING")
   adminSignature         String?
   decisionDate           DateTime?
-  
-  // Assignment
-  assignedCaseworkerId   String?
-
-  // Metadata
   userId                 String
-  user                   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  submittedAt            DateTime   @default(now())
-  updatedAt              DateTime   @updatedAt
+  submittedAt            DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ─── Work Schedule ───────────────────────────────────────────────────────────
-
 model WorkSchedule {
-  id                  String           @id @default(cuid())
-
-  // Resident-filled
+  id                  String            @id @default(cuid())
   residentName        String
   room                String
-  employmentStatus    EmploymentStatus
+  employmentStatus    String
   employerName        String?
   employerLocation    String?
   weekOf              DateTime
   monthOf             String
-  transportation      Transportation
+  transportation      String
   estimatedTravelTime String
   residentSignature   String
   signatureDate       DateTime
-  days                WorkScheduleDay[]
-
-  // Admin-only
   enteredByInitials   String?
-
-  // Metadata
   userId              String
-  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  submittedAt         DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
+  submittedAt         DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  days                WorkScheduleDay[]
 }
 
 model WorkScheduleDay {
   id         String       @id @default(cuid())
   scheduleId String
-  schedule   WorkSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  dayOfWeek  String       // "Monday" | "Tuesday" | ... | "Sunday"
+  dayOfWeek  String
   date       DateTime?
-  startTime  String?      // e.g. "09:00 AM"
-  endTime    String?      // e.g. "05:00 PM"
+  startTime  String?
+  endTime    String?
+  schedule   WorkSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
   @@unique([scheduleId, dayOfWeek])
 }
