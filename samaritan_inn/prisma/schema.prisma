@@ -165,6 +165,8 @@ model PassRequest {
   status                 String    @default("PENDING")
   adminSignature         String?
   decisionDate           DateTime?
+  commentsNotes          String?
+  assignedCaseworkerId   String?
   userId                 String
   submittedAt            DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
@@ -185,6 +187,10 @@ model WorkSchedule {
   residentSignature   String
   signatureDate       DateTime
   enteredByInitials   String?
+  adminName           String?
+  status              String            @default("PENDING")
+  decisionDate        DateTime?
+  commentsNotes       String?
   userId              String
   submittedAt         DateTime          @default(now())
   updatedAt           DateTime          @updatedAt

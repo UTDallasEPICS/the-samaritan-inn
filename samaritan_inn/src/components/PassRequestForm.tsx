@@ -150,14 +150,33 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
       {/* Date(s) requested */}
       <div className="mb-4">
         <label className={labelClass}>Date(s) Requested for Pass</label>
-        <input
-          type="text"
-          placeholder="e.g. March 5–7, 2026"
-          value={form.datesRequested}
-          onChange={e => update('datesRequested', e.target.value)}
-          className={inputClass}
-          required
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={form.datesRequested.includes('–') ? form.datesRequested.split('–')[0].trim() : form.datesRequested}
+            onChange={e => {
+              const start = e.target.value;
+              const parts = form.datesRequested.split('–');
+              const end = parts.length === 2 ? parts[1].trim() : '';
+              update('datesRequested', end ? `${start} – ${end}` : start);
+            }}
+            className={inputClass}
+            required
+          />
+          <span className="text-gray-500 text-sm">to</span>
+          <input
+            type="date"
+            value={form.datesRequested.includes('–') ? form.datesRequested.split('–')[1].trim() : ''}
+            onChange={e => {
+              const parts = form.datesRequested.split('–');
+              const start = parts[0].trim();
+              const end = e.target.value;
+              update('datesRequested', end ? `${start} – ${end}` : start);
+            }}
+            className={inputClass}
+          />
+        </div>
+        <p className="text-xs text-gray-400 mt-1">Select a single date or a date range</p>
       </div>
       
       {/* Reason for request */}
