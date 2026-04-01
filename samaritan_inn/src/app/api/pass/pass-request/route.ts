@@ -51,3 +51,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to submit request', detail: String(error) }, { status: 500 });
   }
 }
+
+export async function GET() {
+  try {
+    const requests = await prisma.passRequest.findMany({
+      orderBy: { submittedAt: 'desc' },
+    });
+    return NextResponse.json(requests);
+  } catch (error) {
+    console.error('Error fetching pass requests:', error);
+    return NextResponse.json({ error: 'Failed to fetch requests' }, { status: 500 });
+  }
+}

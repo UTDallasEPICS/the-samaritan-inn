@@ -134,7 +134,7 @@ model ExtendedCurfewRequest {
   expectedReturnTime     String
   isOngoing              Boolean   @default(false)
   reason                 String
-  choreCoveredBy         String?
+  choreCoveredById       String?
   choreCoverageSignature String?
   residentSignature      String
   adminName              String?
@@ -157,7 +157,7 @@ model PassRequest {
   todayDate              DateTime
   datesRequested         String
   reason                 String
-  choreCoveredBy         String?
+  choreCoveredById       String?
   choreCoverageSignature String?
   residentSignature      String
   signatureDate          DateTime

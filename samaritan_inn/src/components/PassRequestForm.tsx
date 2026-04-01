@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import CaseworkerSelect from './CaseworkerSelect';
 import ResidentSearch from './ResidentSearch';
-console.log("PASS REQUEST ROUTE HIT");
 
 interface PassRequestFormProps {
   onClose: () => void;
@@ -230,7 +229,7 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
       )}
     
       {/* Action buttons */}
-      /<div className="flex justify-end gap-3 mt-6">
+      <div className="flex justify-end gap-3 mt-6">
         <button
           type="button"
           onClick={onClose}

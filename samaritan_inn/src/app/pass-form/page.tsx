@@ -36,12 +36,9 @@ export default function PassFormPage() {
     }
   };
 
-  // Fetch all forms and combine them
-  /*
   useEffect(() => {
     async function fetchForms() {
       try {
-      
         const [curfewRes, passRes, workRes] = await Promise.all([
           fetch('/api/pass/extended-curfew'),
           fetch('/api/pass/pass-request'),
@@ -51,14 +48,13 @@ export default function PassFormPage() {
         const curfews = await curfewRes.json();
         const passes = await passRes.json();
         const works = await workRes.json();
-        
 
         const curfewRows: ActivityRow[] = curfews.map((r: any) => ({
           formType: 'Extended Curfew',
           submittedAt: r.submittedAt,
           requestedDates: r.datesNeeded,
-          caseworker: r.adminName ?? r.assignedCaseworkerId ?? '—',
-          decision: r.status ?? 'Pending'
+          caseworker: r.adminName ?? '—',
+          decision: r.status ?? 'PENDING'
         }));
 
         const passRows: ActivityRow[] = passes.map((r: any) => ({
@@ -66,16 +62,15 @@ export default function PassFormPage() {
           submittedAt: r.submittedAt,
           requestedDates: r.datesRequested,
           caseworker: r.adminName ?? '—',
-          decision: r.status ?? 'Pending'
+          decision: r.status ?? 'PENDING'
         }));
 
-        
         const workRows: ActivityRow[] = works.map((r: any) => ({
           formType: 'Work Schedule',
           submittedAt: r.submittedAt,
           requestedDates: new Date(r.weekOf).toLocaleDateString(),
           caseworker: r.enteredByInitials ?? '—',
-          decision: 'Pending'
+          decision: 'PENDING'
         }));
 
         const combined = [...curfewRows, ...passRows, ...workRows].sort(
@@ -83,40 +78,8 @@ export default function PassFormPage() {
             new Date(b.submittedAt).getTime() -
             new Date(a.submittedAt).getTime()
         );
-        
 
         setActivityFeed(combined);
-      } catch (err) {
-        console.error('Failed to fetch activity feed:', err);
-      }
-    }
-
-    fetchForms();
-  }, []);
-
-  */
-
-  useEffect(() => {
-    async function fetchForms() {
-      try {
-        const res = await fetch('/api/pass/extended-curfew');
-        const curfews = await res.json();
-
-        const curfewRows = curfews.map((r: any) => ({
-          formType: 'Extended Curfew',
-          submittedAt: r.submittedAt,
-          requestedDates: r.datesNeeded,
-          caseworker: r.adminName ?? r.assignedCaseworkerId ?? '—',
-          decision: r.status ?? 'Pending'
-        }));
-
-        const sorted = curfewRows.sort(
-          (a: any, b: any) =>
-            new Date(b.submittedAt).getTime() -
-            new Date(a.submittedAt).getTime()
-        );
-
-        setActivityFeed(sorted);
       } catch (err) {
         console.error('Failed to fetch activity feed:', err);
       }
