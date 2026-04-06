@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import WorkScheduleForm from '@/components/WorkScheduleForm';
 import ExtendedCurfewForm from '@/components/ExtendedCurfewForm';
 import PassRequestForm from '@/components/PassRequestForm';
+import { red } from '@mui/material/colors';
 
 type FormType = 'work-schedule' | 'extended-curfew' | 'pass-request' | null;
 
@@ -23,6 +25,11 @@ export default function PassFormPage() {
   const [activityFeed, setActivityFeed] = useState<ActivityRow[]>([]);
 
   const userName = session?.user?.name || 'Resident';
+  const role = session?.user?.role;
+  
+  if (role == "admin") {
+    redirect('/admin-forms');  
+  }
 
   const getRowColor = (status: string) => {
     switch (status?.toUpperCase()) {
