@@ -15,6 +15,8 @@ async function getSalesforceToken() {
   return data.access_token;
 }
 
+
+
 export async function POST(request: Request) {
   const body = await request.json();
   const { title, startDate, endDate, description, location } = body;
@@ -36,7 +38,8 @@ export async function POST(request: Request) {
         EndDateTime: endDate,
         Description: description,
         Location: location,
-        OwnerId: process.env.SF_OWNER_ID,
+        OwnerId: "005gK00002Vwt4T",
+        WhatId: "001gK00000hBCOaQAO",
       }),
     }
   );
