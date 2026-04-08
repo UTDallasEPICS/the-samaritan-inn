@@ -19,7 +19,7 @@ async function getSalesforceToken() {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { title, startDate, endDate, description, location } = body;
+  const { title, startDate, endDate, description, location, ownerId } = body;
 
   const token = await getSalesforceToken();
   console.log('Token received:', token);
@@ -38,8 +38,7 @@ export async function POST(request: Request) {
         EndDateTime: endDate,
         Description: description,
         Location: location,
-        OwnerId: "005gK00002Vwt4T",
-        WhatId: "001gK00000hBCOaQAO",
+        OwnerId: ownerId ?? "005gK00002Vwt4T",
       }),
     }
   );
