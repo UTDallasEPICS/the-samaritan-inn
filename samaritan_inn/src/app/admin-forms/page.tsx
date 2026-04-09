@@ -144,7 +144,7 @@ export default function AdminPassFormPage() {
               ) : (
                 <table className="w-full text-sm border-collapse bg-white rounded-md overflow-hidden mt-2">
                   <thead>
-                    <tr className="text-left border-b border-gray-200 text-gray-700">
+                    <tr className="text-center border-b border-gray-200 text-gray-700">
                       <th className="py-3 px-4">Name</th>
                       <th className="py-3 px-4">Form Type</th>
                       <th className="py-3 px-4">Submitted</th>
@@ -171,7 +171,23 @@ export default function AdminPassFormPage() {
                 </table>
               )
             ) : null}
-
+            
+            {/* Pending Forms Button */}
+            <button
+              onClick={() => {}}
+              className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mt-10 mb-2 text-center font-semibold text-lg text-[#00167c]"
+            >
+              Pending Forms
+            </button>
+            
+            {/* Pending Forms Button */}
+            <button
+              onClick={() => {}}
+              className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mb-2 text-center font-semibold text-lg text-[#00167c]"
+            >
+              Past Forms
+            </button>
+            
           </div>
         </div>
       </div>
