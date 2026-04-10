@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
@@ -173,20 +174,18 @@ export default function AdminPassFormPage() {
             ) : null}
             
             {/* Pending Forms Button */}
-            <button
-              onClick={() => {}}
-              className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mt-10 mb-2 text-center font-semibold text-lg text-[#00167c]"
-            >
+            <Link href="/admin-forms/pending" 
+              className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mt-10 mb-2 text-center font-semibold text-lg text-[#00167c]">
+              
               Pending Forms
-            </button>
+            </Link>
             
             {/* Pending Forms Button */}
-            <button
-              onClick={() => {}}
-              className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mb-2 text-center font-semibold text-lg text-[#00167c]"
-            >
+            <Link href="/admin-forms/past"
+              className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mb-2 text-center font-semibold text-lg text-[#00167c]">
+
               Past Forms
-            </button>
+            </Link>
             
           </div>
         </div>
