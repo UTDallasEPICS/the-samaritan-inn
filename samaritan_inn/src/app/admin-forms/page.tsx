@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
+import Badge from '@mui/material/Badge';
 
 interface PassForm {
   formType: string;
@@ -22,8 +23,11 @@ export default function AdminPassFormPage() {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-
+  const [showFilters, setShowFilters] = useState(false); 
+  
+  
+ const pendingCount = forms.filter(f => f.status.toLowerCase() === 'pending').length;
+ 
   useEffect(() => {
     async function fetchForms() {
       try {
@@ -52,6 +56,7 @@ export default function AdminPassFormPage() {
         setForms(mapped.sort(
           (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
         ));
+        console.log('sample status:', mapped[0]?.status)
       } catch (err) {
         console.error('Failed to fetch forms:', err);
       } finally {
@@ -59,7 +64,13 @@ export default function AdminPassFormPage() {
       }
     }
     fetchForms();
+    
+    console.log('forms statuses:', forms.map(f => f.status));
+    
   }, []);
+  
+
+  
 
   const filtered = forms
     .filter(f => f.name.toLowerCase().includes(query.toLowerCase()))
@@ -174,13 +185,24 @@ export default function AdminPassFormPage() {
             ) : null}
             
             {/* Pending Forms Button */}
-            <Link href="/admin-forms/pending" 
-              className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mt-10 mb-2 text-center font-semibold text-lg text-[#00167c]">
+             <div className="w-full mt-10 mb-2">
+              <Badge
+                badgeContent={pendingCount}
+                color="primary"
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                sx={{ width: '100%', display: 'block', '& .MuiBadge-badge': { top: 8, right: 8 } }}
+              >
+                <Link href="/admin-forms/pending" 
+                  className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mt-10 mb-2 text-center font-semibold text-lg text-[#00167c]"
+                  style={{ width: '100%', display: 'block' }}
+                >
+                  Pending Forms
+                </Link>
+              </Badge>
+            </div>
               
-              Pending Forms
-            </Link>
             
-            {/* Pending Forms Button */}
+            {/* Past Forms Button */}
             <Link href="/admin-forms/past"
               className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mb-2 text-center font-semibold text-lg text-[#00167c]">
 

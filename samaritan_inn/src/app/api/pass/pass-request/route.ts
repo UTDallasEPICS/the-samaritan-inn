@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    const requests = await prisma.extendedCurfewRequest.findMany({
+    const requests = await prisma.passRequest.findMany({
       orderBy: {
         submittedAt: 'desc',
       },
@@ -63,7 +63,7 @@ export async function GET() {
 
     return NextResponse.json(requests);
   } catch (error) {
-    console.error('Error fetching extended curfew requests:', error);
+    console.error('Error fetching pass requests:', error);
     return NextResponse.json(
       { error: 'Failed to fetch requests' },
       { status: 500 }
