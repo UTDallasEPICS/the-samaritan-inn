@@ -50,19 +50,30 @@ model VerificationToken {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  name          String
-  role          String    @default("resident") // e.g., "resident", "staff", "admin"
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-  appointments  Appointment[]
-  classSignups  ClassSignup[]
+  id              String           @id @default(cuid())
+  email           String           @unique
+  password        String
+  name            String
+  role            String           @default("resident") // e.g., "resident", "staff", "admin"
+  emailVerified   DateTime?
+  image           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  accounts        Account[]
+  sessions        Session[]
+  appointments    Appointment[]
+  classSignups    ClassSignup[]
+}
+
+model ScheduledEvent {
+  id           String   @id @default(cuid())
+  title        String
+  startTime    DateTime
+  endTime      DateTime
+  caseWorker   String
+  salesforceId String?
+  userId       String
+  createdAt    DateTime @default(now())
 }
 
 model Appointment {
