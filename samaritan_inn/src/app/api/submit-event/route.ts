@@ -39,6 +39,7 @@ export async function POST(request: Request) {
         Description: description,
         Location: location,
         OwnerId: ownerId ?? "005gK00002Vwt4T",
+        WhatId: "001gK00000hBCOaQAO"
       }),
     }
   );

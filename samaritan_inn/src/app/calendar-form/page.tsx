@@ -8,6 +8,7 @@ const CALENDARS = [
   { label: 'Case Worker 2', ownerId: process.env.NEXT_PUBLIC_SF_OWNER_2! },
   { label: 'Case Worker 3', ownerId: process.env.NEXT_PUBLIC_SF_OWNER_3! },
 ];
+const BOOKABLE_DURATIONS = [30, 60];
 
 const CalendarFormPage = () => {
   const [form, setForm] = useState({
@@ -33,8 +34,17 @@ const CalendarFormPage = () => {
     setSelectedDuration(null);
     setSlots([]);
     setLoadingSlots(true);
+    setError('');
+
     const res = await fetch(`/api/get-available-slots?date=${dateStr}&ownerId=${ownerId}`);
     const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error ?? 'Unable to load available slots.');
+      setLoadingSlots(false);
+      return;
+    }
+
     setSlots(data);
     setLoadingSlots(false);
   };
@@ -76,7 +86,7 @@ const CalendarFormPage = () => {
       return slotStart >= startTime && slotStart < endTime;
     });
 
-    const expectedCount = minutes / 15;
+    const expectedCount = minutes / 30;
     if (neededSlots.length < expectedCount) {
       setError(`Not enough consecutive available slots for ${minutes} minutes. Please pick a different start time.`);
       return;
@@ -110,7 +120,7 @@ const CalendarFormPage = () => {
       const slotStart = new Date(slot.start);
       return slotStart >= startTime && slotStart < endTime;
     });
-    return neededSlots.length === minutes / 15;
+    return neededSlots.length === minutes / 30;
   };
 
   const handleSubmit = async () => {
@@ -130,6 +140,8 @@ const CalendarFormPage = () => {
       }),
     });
 
+    const data = await res.json();
+
     if (res.ok) {
       setSuccess(true);
       setForm({ title: '' });
@@ -138,7 +150,7 @@ const CalendarFormPage = () => {
       setSelectedStart(null);
       setSelectedDuration(null);
     } else {
-      setError('Something went wrong. Please try again.');
+      setError(data.error ?? 'Something went wrong. Please try again.');
     }
   };
 
@@ -226,7 +238,7 @@ const CalendarFormPage = () => {
               <h2 className="text-lg font-semibold text-black mb-1">Step 2 — Select a Duration</h2>
               <p className="text-sm text-gray-500 mb-3">Starting at {selectedStart.label}</p>
               <div className="grid grid-cols-4 gap-2">
-                {[15, 30, 45, 60].map((minutes) => (
+                {BOOKABLE_DURATIONS.map((minutes) => (
                   <button
                     key={minutes}
                     onClick={() => handleDurationClick(minutes)}
@@ -253,7 +265,7 @@ const CalendarFormPage = () => {
             </div>
           )}
 
-          {slots.length === 0 && date && !loadingSlots && (
+          {slots.length === 0 && date && !loadingSlots && !error && (
             <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-700 text-sm">
               No available slots for this date. Please try another day.
             </div>

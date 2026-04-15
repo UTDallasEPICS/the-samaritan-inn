@@ -74,8 +74,17 @@ model Appointment {
   location    String?
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  salesforceEventId String? @unique
+  ownerId      String?
+  bookingDate  String?
+  activeBookingOrdinal Int?
+  activeBookingDateKey String?
+  canceledAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([userId, bookingDate])
+  @@unique([userId, activeBookingOrdinal])
 }
 
 model Class {
