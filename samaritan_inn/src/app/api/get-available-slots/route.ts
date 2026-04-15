@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       const appointmentSummary = await getActiveAppointmentSummary(user.id, date);
 
       if (
-        appointmentSummary.totalActiveAppointments >= 3 ||
+        appointmentSummary.totalActiveAppointments >= 7 ||
         appointmentSummary.hasActiveAppointmentOnDate
       ) {
         return NextResponse.json([]);

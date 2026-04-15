@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export const BOOKING_TIME_ZONE = "America/Chicago";
 export const BOOKABLE_DURATIONS = [30, 60] as const;
-export const MAX_ACTIVE_APPOINTMENTS_PER_DAY = 3;
+export const MAX_ACTIVE_APPOINTMENTS_PER_USER = 7;
 
 const BUSINESS_DAY_START_HOUR = 9;
 const BUSINESS_DAY_END_HOUR = 17;
@@ -51,7 +51,7 @@ export class TotalActiveAppointmentLimitError extends ApiError {
   constructor() {
     super(
       429,
-      "You can only have 3 active appointments at a time. Cancel one before booking another."
+      "You already have 7 active appointments. Delete one before booking another."
     );
   }
 }
@@ -60,7 +60,7 @@ export class SameDayActiveAppointmentError extends ApiError {
   constructor() {
     super(
       409,
-      "You already have an active appointment on this day. Cancel it before booking another on the same day."
+      "You already have an appointment for that day. Delete it before booking another."
     );
   }
 }
@@ -338,7 +338,7 @@ export function buildAvailableSlots(dateKey: string, booked: Interval[], now = n
 }
 
 function getNextBookingOrdinal(usedOrdinals: Array<number | null>) {
-  for (let ordinal = 1; ordinal <= MAX_ACTIVE_APPOINTMENTS_PER_DAY; ordinal += 1) {
+  for (let ordinal = 1; ordinal <= MAX_ACTIVE_APPOINTMENTS_PER_USER; ordinal += 1) {
     if (!usedOrdinals.includes(ordinal)) {
       return ordinal;
     }
@@ -353,14 +353,35 @@ function isUniqueConstraintError(error: unknown) {
   );
 }
 
+export async function retirePastActiveAppointments(
+  userId: string,
+  now = new Date()
+) {
+  await prisma.appointment.updateMany({
+    where: {
+      userId,
+      activeBookingOrdinal: { not: null },
+      endTime: { lt: now },
+    },
+    data: {
+      activeBookingOrdinal: null,
+      activeBookingDateKey: null,
+    },
+  });
+}
+
 export async function getActiveAppointmentSummary(
   userId: string,
-  bookingDate?: string
+  bookingDate?: string,
+  now = new Date()
 ) {
+  await retirePastActiveAppointments(userId, now);
+
   const activeAppointments = await prisma.appointment.findMany({
     where: {
       userId,
       activeBookingOrdinal: { not: null },
+      endTime: { gte: now },
     },
     select: {
       id: true,
@@ -383,13 +404,26 @@ export async function getActiveAppointmentSummary(
 }
 
 export async function reserveAppointment(input: ReserveAppointmentInput) {
-  for (let attempt = 0; attempt < MAX_ACTIVE_APPOINTMENTS_PER_DAY; attempt += 1) {
+  for (let attempt = 0; attempt < MAX_ACTIVE_APPOINTMENTS_PER_USER; attempt += 1) {
     try {
       return await prisma.$transaction(async (tx) => {
+        await tx.appointment.updateMany({
+          where: {
+            userId: input.userId,
+            activeBookingOrdinal: { not: null },
+            endTime: { lt: new Date() },
+          },
+          data: {
+            activeBookingOrdinal: null,
+            activeBookingDateKey: null,
+          },
+        });
+
         const activeAppointments = await tx.appointment.findMany({
           where: {
             userId: input.userId,
             activeBookingOrdinal: { not: null },
+            endTime: { gte: new Date() },
           },
           select: {
             activeBookingOrdinal: true,
@@ -398,7 +432,7 @@ export async function reserveAppointment(input: ReserveAppointmentInput) {
           orderBy: { activeBookingOrdinal: "asc" },
         });
 
-        if (activeAppointments.length >= MAX_ACTIVE_APPOINTMENTS_PER_DAY) {
+        if (activeAppointments.length >= MAX_ACTIVE_APPOINTMENTS_PER_USER) {
           throw new TotalActiveAppointmentLimitError();
         }
 
@@ -441,7 +475,7 @@ export async function reserveAppointment(input: ReserveAppointmentInput) {
         throw error;
       }
 
-      if (isUniqueConstraintError(error) && attempt < MAX_ACTIVE_APPOINTMENTS_PER_DAY - 1) {
+      if (isUniqueConstraintError(error) && attempt < MAX_ACTIVE_APPOINTMENTS_PER_USER - 1) {
         continue;
       }
 
