@@ -4,6 +4,9 @@ import {
   ApiError,
   buildAvailableSlots,
   getActiveAppointmentSummary,
+  isDateWithinBookingWindow,
+  SameDayActiveAppointmentError,
+  TotalActiveAppointmentLimitError,
 } from "@/lib/booking";
 import {
   fetchSalesforceEventsForOwnerOnDate,
@@ -30,14 +33,19 @@ export async function GET(request: Request) {
       throw new ApiError(400, "A valid calendar ownerId is required.");
     }
 
+    if (!isDateWithinBookingWindow(date)) {
+      throw new ApiError(400, "Your booking is more than one month out.");
+    }
+
     if (user?.id) {
       const appointmentSummary = await getActiveAppointmentSummary(user.id, date);
 
-      if (
-        appointmentSummary.totalActiveAppointments >= 7 ||
-        appointmentSummary.hasActiveAppointmentOnDate
-      ) {
-        return NextResponse.json([]);
+      if (appointmentSummary.totalActiveAppointments >= 7) {
+        throw new TotalActiveAppointmentLimitError();
+      }
+
+      if (appointmentSummary.hasActiveAppointmentOnDate) {
+        throw new SameDayActiveAppointmentError();
       }
     }
 
