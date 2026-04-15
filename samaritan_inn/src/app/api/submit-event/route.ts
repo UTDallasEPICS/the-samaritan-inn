@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerUserId } from "@/lib/getServerUserId";
 import {
   ApiError,
   finalizeAppointmentReservation,
@@ -21,11 +21,11 @@ function errorResponse(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const userId = await getServerUserId(request);
 
-    if (!user?.id) {
+    if (!userId) {
       return errorResponse("You must be signed in to book an appointment.", 401);
     }
 
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       description,
       location,
       ownerId,
-      userId: user.id,
+      userId,
       startTime: interval.start,
       endTime: interval.end,
       bookingDate,
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
         endTime: interval.end,
         ownerId,
         salesforceId: salesforceEventId,
-        userId: user.id,
+        userId,
       });
     } catch (error) {
       const cleanupTasks = [releaseAppointmentReservation(reservation.id)];

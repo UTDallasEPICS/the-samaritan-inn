@@ -1,25 +1,23 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getServerUserId } from "@/lib/getServerUserId";
 import { deleteSalesforceEvent, SalesforceError } from "@/lib/salesforce";
 import { deleteScheduledEventMirror } from "@/lib/scheduled-events";
 
 export async function DELETE(
-  _request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await getCurrentUser();
+  const userId = await getServerUserId(request);
 
-  if (!user?.id) {
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const appointment = await prisma.appointment.findUnique({
-    where: { id },
-  });
+  const appointment = await prisma.appointment.findUnique({ where: { id } });
 
-  if (!appointment || appointment.userId !== user.id) {
+  if (!appointment || appointment.userId !== userId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
@@ -40,9 +38,7 @@ export async function DELETE(
     salesforceId: appointment.salesforceEventId,
   });
 
-  await prisma.appointment.delete({
-    where: { id: appointment.id },
-  });
+  await prisma.appointment.delete({ where: { id: appointment.id } });
 
   return NextResponse.json({ success: true });
 }

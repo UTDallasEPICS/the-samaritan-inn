@@ -1,44 +1,44 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getServerUserId } from "@/lib/getServerUserId";
 import { getCaseWorkerLabel, syncScheduledEvent } from "@/lib/scheduled-events";
 
-export async function GET() {
-  const user = await getCurrentUser();
+export async function GET(request: NextRequest) {
+  const userId = await getServerUserId(request);
 
-  if (!user?.id) {
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const appointments = await prisma.appointment.findMany({
-    where: { userId: user.id },
+    where: { userId },
     orderBy: { startTime: "asc" },
   });
 
   await Promise.all(
     appointments
-      .filter((appointment) => appointment.salesforceEventId)
-      .map((appointment) =>
+      .filter((a) => a.salesforceEventId)
+      .map((a) =>
         syncScheduledEvent({
-          appointmentId: appointment.id,
-          title: appointment.title,
-          startTime: appointment.startTime,
-          endTime: appointment.endTime,
-          ownerId: appointment.ownerId,
-          salesforceId: appointment.salesforceEventId,
-          userId: appointment.userId,
+          appointmentId: a.id,
+          title: a.title,
+          startTime: a.startTime,
+          endTime: a.endTime,
+          ownerId: a.ownerId,
+          salesforceId: a.salesforceEventId,
+          userId: a.userId,
         })
       )
   );
 
-  const events = appointments.map((appointment) => ({
-    id: appointment.id,
-    title: appointment.title,
-    startTime: appointment.startTime,
-    endTime: appointment.endTime,
-    caseWorker: getCaseWorkerLabel(appointment.ownerId),
-    salesforceId: appointment.salesforceEventId,
-    createdAt: appointment.createdAt,
+  const events = appointments.map((a) => ({
+    id: a.id,
+    title: a.title,
+    startTime: a.startTime,
+    endTime: a.endTime,
+    caseWorker: getCaseWorkerLabel(a.ownerId),
+    salesforceId: a.salesforceEventId,
+    createdAt: a.createdAt,
   }));
 
   return NextResponse.json(events);
