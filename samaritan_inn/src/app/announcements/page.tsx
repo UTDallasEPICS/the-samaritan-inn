@@ -238,65 +238,33 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
-      <div className="flex-grow flex flex-col items-start bg-gray-100 p-4">
-        <div className="w-full max-w-3xl p-6 bg-white shadow-md rounded-md">
-          
-         
+      <div className="flex-grow bg-gray-100 p-4">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6">
 
-<div className="absolute right-8 top-32 w-[400px]">
- {/* RIGHT: Sidebar Calendar */}
-    <aside className="lg:col-span-1 lg:sticky lg:top-8 self-end">
-      <SidebarCalendar
-        className="w-full"
-        announcements={announcements.map(a => ({
-          id: a.id,
-          title: a.title,
-          content: a.content,
-               date: a.date || a.createdAt?.slice(0, 10),
-// <- what SidebarCalendar expects
-        }))}
-        onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
-      />
-    </aside>
-
-</div>
-
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+          {/* LEFT: Announcements list */}
+          <div className="w-full lg:flex-1 p-6 bg-white shadow-md rounded-md">
 
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            
-              <h1 className="text-2xl font-semibold text-black mb-4">Announcements</h1>
-              
-            
-           
+            <h1 className="text-2xl font-semibold text-black">Announcements</h1>
             {isAdmin && (
               <Button
                 variant="contained"
                 onClick={() => {
-  if (section === 'announcements') {
-    setNewAnnouncement(prev => ({
-      ...prev,
-      date: selectedDate || new Date().toISOString().slice(0, 10),
-    }));
-  }
-  setShowModal(true);
-}}
-                sx={{
-                  backgroundColor: '#29abe2',
-                  '&:hover': {
-                    backgroundColor: '#1f8fbf',
-                  },
+                  if (section === 'announcements') {
+                    setNewAnnouncement(prev => ({
+                      ...prev,
+                      date: selectedDate || new Date().toISOString().slice(0, 10),
+                    }));
+                  }
+                  setShowModal(true);
                 }}
+                sx={{ backgroundColor: '#29abe2', '&:hover': { backgroundColor: '#1f8fbf' } }}
               >
                 New {section === 'announcements' ? 'Announcement' : 'Event'}
               </Button>
             )}
           </div>
-            </div>
-            </div>
           {/* Modal */}
           {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -448,48 +416,49 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
             {items.map(item => {
               const isEvent = section === 'events';
               return (
-                <li
-                  key={item.id}
-                  className="border border-gray-300 p-4 rounded-md bg-gray-50"
-                >
+                <li key={item.id} className="border border-gray-300 p-4 rounded-md bg-gray-50">
                   <div className="flex justify-between items-start">
-                    <h2 className="text-lg font-semibold text-black">
-                      {item.title}
-                    </h2>
+                    <h2 className="text-lg font-semibold text-black">{item.title}</h2>
                     {isAdmin && (
                       <div className="flex space-x-1">
                         <IconButton size="small" onClick={() => initEdit(item)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDeleteItem(item.id)}
-                        >
+                        <IconButton size="small" onClick={() => handleDeleteItem(item.id)}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </div>
                     )}
                   </div>
-
                   <p className="text-black mt-2">{item.content}</p>
-
                   {isEvent && (
                     <small className="text-gray-500 block mt-2">
                       {formatDateTime((item as EventItem).startTime)} – {formatDateTime((item as EventItem).endTime)}
                     </small>
                   )}
-
                   <small className="text-gray-500 block mt-2">
-                    Posted by {item.author} on{' '}
-                    {new Date(item.createdAt).toLocaleString()}
+                    Posted by {item.author} on {new Date(item.createdAt).toLocaleString()}
                   </small>
                 </li>
               );
             })}
           </ul>
-        </div>
-    
+          </div>{/* end left panel */}
 
+          {/* RIGHT: Sidebar Calendar */}
+          <aside className="w-full lg:w-80 lg:sticky lg:top-4 self-start">
+            <SidebarCalendar
+              announcements={announcements.map(a => ({
+                id: a.id,
+                title: a.title,
+                content: a.content,
+                date: a.date || a.createdAt?.slice(0, 10),
+              }))}
+              onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
+            />
+          </aside>
+
+        </div>{/* end flex row */}
       </div>
     </div>
   );
