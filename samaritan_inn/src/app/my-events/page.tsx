@@ -32,6 +32,7 @@ const formatTime = (iso: string) =>
 export default function MyEventsPage() {
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/my-events')
@@ -46,6 +47,24 @@ export default function MyEventsPage() {
   const now = new Date();
   const upcoming = events.filter((e) => new Date(e.startTime) >= now);
   const past = events.filter((e) => new Date(e.startTime) < now);
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+
+    try {
+      const response = await fetch(`/api/my-events/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      setEvents((current) => current.filter((event) => event.id !== id));
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -82,7 +101,13 @@ export default function MyEventsPage() {
               <h2 className="text-xl font-semibold text-gray-800 mb-3">Upcoming</h2>
               <div className="space-y-3">
                 {upcoming.map((event) => (
-                  <EventCard key={event.id} event={event} past={false} />
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    past={false}
+                    deleting={deletingId === event.id}
+                    onDelete={handleDelete}
+                  />
                 ))}
               </div>
             </section>
@@ -94,7 +119,13 @@ export default function MyEventsPage() {
               <h2 className="text-xl font-semibold text-gray-400 mb-3">Past Events</h2>
               <div className="space-y-3">
                 {[...past].reverse().map((event) => (
-                  <EventCard key={event.id} event={event} past={true} />
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    past={true}
+                    deleting={deletingId === event.id}
+                    onDelete={handleDelete}
+                  />
                 ))}
               </div>
             </section>
@@ -105,7 +136,17 @@ export default function MyEventsPage() {
   );
 }
 
-function EventCard({ event, past }: { event: ScheduledEvent; past: boolean }) {
+function EventCard({
+  event,
+  past,
+  deleting,
+  onDelete,
+}: {
+  event: ScheduledEvent;
+  past: boolean;
+  deleting: boolean;
+  onDelete: (id: string) => Promise<void>;
+}) {
   return (
     <div
       className={`p-4 bg-white rounded-lg shadow border-l-4 transition ${
@@ -129,16 +170,29 @@ function EventCard({ event, past }: { event: ScheduledEvent; past: boolean }) {
             With: {event.caseWorker}
           </p>
         </div>
-        {past && (
-          <span className="shrink-0 text-xs font-medium bg-gray-100 text-gray-400 px-2 py-1 rounded">
-            Past
-          </span>
-        )}
-        {!past && (
-          <span className="shrink-0 text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded">
-            Upcoming
-          </span>
-        )}
+        <div className="shrink-0 flex items-center gap-2">
+          <button
+            onClick={() => onDelete(event.id)}
+            disabled={deleting}
+            className={`text-xs font-medium px-3 py-1 rounded transition ${
+              past
+                ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                : 'bg-red-50 text-red-700 hover:bg-red-100'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {deleting ? 'Deleting...' : 'Delete'}
+          </button>
+          {past && (
+            <span className="text-xs font-medium bg-gray-100 text-gray-400 px-2 py-1 rounded">
+              Past
+            </span>
+          )}
+          {!past && (
+            <span className="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded">
+              Upcoming
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

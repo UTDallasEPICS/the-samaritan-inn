@@ -67,13 +67,16 @@ model User {
 
 model ScheduledEvent {
   id           String   @id @default(cuid())
+  appointmentId String  @unique
   title        String
   startTime    DateTime
   endTime      DateTime
   caseWorker   String
-  salesforceId String?
+  salesforceId String?  @unique
   userId       String
   createdAt    DateTime @default(now())
+
+  @@index([userId, startTime])
 }
 
 model Appointment {

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
+import Link from 'next/link';
 
 const CALENDARS = [
   { label: 'Case Worker 1', ownerId: process.env.NEXT_PUBLIC_SF_OWNER_1! },
@@ -299,6 +300,15 @@ const CalendarFormPage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </button>
+          </div>
+
+          <div className="mt-4">
+            <Link
+              href="/my-events"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition duration-300"
+            >
+              View My Scheduled Events
+            </Link>
           </div>
 
           <p className="mt-4 text-sm text-gray-500">

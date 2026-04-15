@@ -1,25 +1,45 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getServerUserId } from '@/lib/getServerUserId';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import { getCaseWorkerLabel, syncScheduledEvent } from "@/lib/scheduled-events";
 
-export async function GET(request: NextRequest) {
-  const userId = await getServerUserId(request);
+export async function GET() {
+  const user = await getCurrentUser();
 
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Delete events older than 30 days
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 30);
-  await prisma.scheduledEvent.deleteMany({
-    where: { endTime: { lt: cutoff } },
+  const appointments = await prisma.appointment.findMany({
+    where: { userId: user.id },
+    orderBy: { startTime: "asc" },
   });
 
-  const events = await prisma.scheduledEvent.findMany({
-    where: { userId },
-    orderBy: { startTime: 'asc' },
-  });
+  await Promise.all(
+    appointments
+      .filter((appointment) => appointment.salesforceEventId)
+      .map((appointment) =>
+        syncScheduledEvent({
+          appointmentId: appointment.id,
+          title: appointment.title,
+          startTime: appointment.startTime,
+          endTime: appointment.endTime,
+          ownerId: appointment.ownerId,
+          salesforceId: appointment.salesforceEventId,
+          userId: appointment.userId,
+        })
+      )
+  );
+
+  const events = appointments.map((appointment) => ({
+    id: appointment.id,
+    title: appointment.title,
+    startTime: appointment.startTime,
+    endTime: appointment.endTime,
+    caseWorker: getCaseWorkerLabel(appointment.ownerId),
+    salesforceId: appointment.salesforceEventId,
+    createdAt: appointment.createdAt,
+  }));
 
   return NextResponse.json(events);
 }

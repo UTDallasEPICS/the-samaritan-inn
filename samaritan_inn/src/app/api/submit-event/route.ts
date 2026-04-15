@@ -15,6 +15,7 @@ import {
   resolveSalesforceOwnerId,
   SalesforceError,
 } from "@/lib/salesforce";
+import { deleteScheduledEventMirror, syncScheduledEvent } from "@/lib/scheduled-events";
 
 function errorResponse(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -89,8 +90,21 @@ export async function POST(request: Request) {
       });
 
       await finalizeAppointmentReservation(reservation.id, salesforceEventId);
+      await syncScheduledEvent({
+        appointmentId: reservation.id,
+        title,
+        startTime: interval.start,
+        endTime: interval.end,
+        ownerId,
+        salesforceId: salesforceEventId,
+        userId: user.id,
+      });
     } catch (error) {
       const cleanupTasks = [releaseAppointmentReservation(reservation.id)];
+
+      cleanupTasks.push(
+        deleteScheduledEventMirror({ appointmentId: reservation.id })
+      );
 
       if (salesforceEventId) {
         cleanupTasks.push(deleteSalesforceEvent(salesforceEventId));
