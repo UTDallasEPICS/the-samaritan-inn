@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import CaseworkerSelect from './CaseworkerSelect';
 import ResidentSearch from './ResidentSearch';
-import { EmploymentStatus, Transportation } from '@prisma/client';
 
 interface WorkScheduleFormProps {
   onClose: () => void;
@@ -14,11 +13,11 @@ interface WorkScheduleFormProps {
 interface FormData {
   residentName: string;
   room: string;
-  employmentStatus: EmploymentStatus;
+  employmentStatus: string;
   employerName: string;
   employerLocation: string;
   weekOf: string;
-  transportation: Transportation;
+  transportation: string;
   estimatedTravelTime: string;
   residentSignature: string;
   signatureDate: string;
@@ -77,7 +76,7 @@ export default function WorkScheduleForm({ onClose, residentName }: WorkSchedule
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/pass/extended-curfew', {
+      const res = await fetch('/api/pass/work-schedule', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, userId: session?.user?.id }),

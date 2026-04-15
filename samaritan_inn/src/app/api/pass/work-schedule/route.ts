@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma';
-import { EmploymentStatus, Transportation } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -35,17 +34,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const weekOfDate = new Date(weekOf);
+    const monthOf = weekOfDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
     const request = await prisma.workSchedule.create({
       data: {
         userId,
         residentName,
-        room: room || null,
-        employmentStatus: employmentStatus as EmploymentStatus,
+        room: room || '',
+        employmentStatus,
         employerName,
         employerLocation: employerLocation || null,
-        weekOf: new Date(weekOf),
-        transportation: transportation as Transportation,
-        estimatedTravelTime: estimatedTravelTime || null,
+        weekOf: weekOfDate,
+        monthOf,
+        transportation,
+        estimatedTravelTime: estimatedTravelTime || '',
         residentSignature,
         signatureDate: new Date(signatureDate)
       },
