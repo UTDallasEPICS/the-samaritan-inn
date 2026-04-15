@@ -154,6 +154,7 @@ type CreateSalesforceEventInput = {
   description?: string;
   location?: string;
   ownerId: string;
+  whatId?: string;
 };
 
 export async function createSalesforceEvent(
@@ -173,6 +174,7 @@ export async function createSalesforceEvent(
         Description: input.description,
         Location: input.location,
         OwnerId: input.ownerId,
+        WhatId: input.whatId,
       }),
     }
   );
