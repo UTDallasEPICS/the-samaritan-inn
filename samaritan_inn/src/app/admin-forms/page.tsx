@@ -173,12 +173,13 @@ export default function AdminPassFormPage() {
                         <td className="py-3 px-4 text-gray-700">{new Date(f.submittedAt).toLocaleDateString()}</td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium
-                            ${f.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                              f.status === 'Denied' ? 'bg-red-100 text-red-700' :
+                            ${f.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                              f.status === 'DENIED' ? 'bg-red-100 text-red-700' :
+                              f.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
                               'bg-yellow-100 text-yellow-700'}`}>
                             {f.status}
                           </span>
-                        </td>
+                        </td>\
                       </tr>
                     ))}
                   </tbody>
