@@ -195,7 +195,7 @@ export default function AdminPassFormPage() {
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
                 sx={{ width: '100%', display: 'block', '& .MuiBadge-badge': { top: 8, right: 8 } }}
               >
-                <Link href="/admin-forms/pending" 
+                <Link href="/admin-forms/sorted-forms/pending-forms" 
                   className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mt-10 mb-2 text-center font-semibold text-lg text-[#00167c]"
                   style={{ width: '100%', display: 'block' }}
                 >
@@ -206,7 +206,7 @@ export default function AdminPassFormPage() {
               
             
             {/* Past Forms Button */}
-            <Link href="/admin-forms/past"
+            <Link href="/admin-forms/sorted-forms/past-forms"
               className="relative flex items-center justify-center border-2 border-blue-500 rounded-md bg-gray-100 px-4 py-2 w-full mb-2 text-center font-semibold text-lg text-[#00167c]">
 
               Past Forms
