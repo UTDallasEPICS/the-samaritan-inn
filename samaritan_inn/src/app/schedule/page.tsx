@@ -84,31 +84,14 @@ export default function SchedulePage() {
       <Navigation />
 
       <div className="flex-grow flex flex-col items-center bg-gray-100 p-4">
-        <div
-          className="w-full max-w-5xl p-8 bg-white shadow-md rounded-md overflow-hidden"
-          style={{ height: '760px' }}
-        >
-          <h1 className="text-2xl font-semibold mb-6 text-black">Classes</h1>
-
-          {/* Calendly Embed */}
-          <div className="w-full h-full relative">
-            <div
-              className="absolute top-0 left-0"
-              style={{
-                transform: 'scale(0.85)',
-                transformOrigin: 'top left',
-                width: `${100 / 0.85}%`,
-              }}
-            >
-              <div
-                id="calendly-inline-widget"
-                style={{
-                  minWidth: '320px',
-                  height: '700px',
-                }}
-              />
-            </div>
+        <div className="w-full max-w-5xl bg-white shadow-md rounded-md overflow-hidden">
+          <div className="p-4 sm:p-8">
+            <h1 className="text-2xl font-semibold mb-4 text-black">Classes</h1>
           </div>
+          <div
+            id="calendly-inline-widget"
+            style={{ minWidth: '320px', height: '700px' }}
+          />
         </div>
       </div>
     </div>

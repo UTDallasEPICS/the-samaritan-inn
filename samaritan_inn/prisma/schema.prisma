@@ -47,22 +47,33 @@ model VerificationToken {
 }
 
 model User {
-  id                     String                  @id @default(cuid())
-  email                  String                  @unique
-  password               String
-  name                   String
-  role                   String                  @default("resident")
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
-  emailVerified          DateTime?
-  image                  String?
-  accounts               Account[]
-  appointments           Appointment[]
-  classSignups           ClassSignup[]
-  extendedCurfewRequests ExtendedCurfewRequest[]
-  passRequests           PassRequest[]
-  sessions               Session[]
-  workSchedules          WorkSchedule[]
+  id              String           @id @default(cuid())
+  email           String           @unique
+  password        String
+  name            String
+  role            String           @default("resident") // e.g., "resident", "staff", "admin"
+  emailVerified   DateTime?
+  image           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  accounts        Account[]
+  sessions        Session[]
+  appointments    Appointment[]
+  classSignups    ClassSignup[]
+}
+
+model ScheduledEvent {
+  id           String   @id @default(cuid())
+  appointmentId String  @unique
+  title        String
+  startTime    DateTime
+  endTime      DateTime
+  caseWorker   String
+  salesforceId String?  @unique
+  userId       String
+  createdAt    DateTime @default(now())
+
+  @@index([userId, startTime])
 }
 
 model Appointment {
@@ -73,9 +84,18 @@ model Appointment {
   endTime     DateTime
   location    String?
   userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  salesforceEventId String? @unique
+  ownerId      String?
+  bookingDate  String?
+  activeBookingOrdinal Int?
+  activeBookingDateKey String?
+  canceledAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, bookingDate])
+  @@unique([userId, activeBookingOrdinal])
 }
 
 model Class {
