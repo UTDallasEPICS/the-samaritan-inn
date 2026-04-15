@@ -173,6 +173,14 @@ const CalendarFormPage = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this event from both your schedule and Salesforce?')) return;
+    const res = await fetch(`/api/my-events/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setEvents(prev => prev.filter(e => e.id !== id));
+    }
+  };
+
   const now = new Date();
   const upcoming = events.filter(e => new Date(e.startTime) >= now);
   const past = events.filter(e => new Date(e.startTime) < now);
@@ -341,7 +349,7 @@ const CalendarFormPage = () => {
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-2">Upcoming</h3>
                 <div className="space-y-3">
                   {upcoming.map(event => (
-                    <EventCard key={event.id} event={event} past={false} />
+                    <EventCard key={event.id} event={event} past={false} onDelete={handleDelete} />
                   ))}
                 </div>
               </div>
@@ -353,7 +361,7 @@ const CalendarFormPage = () => {
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-400 mb-2">Past</h3>
                 <div className="space-y-3">
                   {[...past].reverse().map(event => (
-                    <EventCard key={event.id} event={event} past={true} />
+                    <EventCard key={event.id} event={event} past={true} onDelete={handleDelete} />
                   ))}
                 </div>
               </div>
@@ -366,11 +374,11 @@ const CalendarFormPage = () => {
   );
 };
 
-function EventCard({ event, past }: { event: ScheduledEvent; past: boolean }) {
+function EventCard({ event, past, onDelete }: { event: ScheduledEvent; past: boolean; onDelete: (id: string) => void }) {
   return (
     <div className={`p-4 bg-white rounded-lg shadow border-l-4 ${past ? 'border-gray-300 opacity-50' : 'border-blue-500'}`}>
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="flex-1 min-w-0">
           <p className={`font-semibold ${past ? 'text-gray-400' : 'text-gray-900'}`}>{event.title}</p>
           <p className={`text-sm mt-0.5 ${past ? 'text-gray-400' : 'text-gray-600'}`}>{formatDate(event.startTime)}</p>
           <p className={`text-sm ${past ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -378,9 +386,17 @@ function EventCard({ event, past }: { event: ScheduledEvent; past: boolean }) {
           </p>
           <p className={`text-sm mt-0.5 ${past ? 'text-gray-400' : 'text-gray-500'}`}>With: {event.caseWorker}</p>
         </div>
-        <span className={`shrink-0 text-xs font-medium px-2 py-1 rounded ${past ? 'bg-gray-100 text-gray-400' : 'bg-blue-50 text-blue-600'}`}>
-          {past ? 'Past' : 'Upcoming'}
-        </span>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <span className={`text-xs font-medium px-2 py-1 rounded ${past ? 'bg-gray-100 text-gray-400' : 'bg-blue-50 text-blue-600'}`}>
+            {past ? 'Past' : 'Upcoming'}
+          </span>
+          <button
+            onClick={() => onDelete(event.id)}
+            className="text-xs px-2 py-1 rounded bg-red-50 text-red-500 hover:bg-red-100 transition"
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   );
