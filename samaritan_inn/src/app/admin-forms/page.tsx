@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
+import Fetchforms from '@/components/Fetchforms';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
 import Badge from '@mui/material/Badge';
@@ -74,13 +75,14 @@ export default function AdminPassFormPage() {
 
   const filtered = forms
     .filter(f => f.name.toLowerCase().includes(query.toLowerCase()))
-    .filter(f => statusFilter ? f.status === statusFilter : true)
+    .filter(f => statusFilter ? f.status.toLowerCase() === statusFilter.toLowerCase() : true)
     .filter(f => dateFilter ? f.submittedAt.startsWith(dateFilter) : true);
 
   // if (status === 'loading') return null;
 
   return (
     <div className="min-h-screen flex flex-col">
+      <Fetchforms setForms={setForms} setLoading={setLoading} />
       <Navigation />
 
       <div className="flex-grow bg-gray-100 p-4 flex flex-col items-center">
