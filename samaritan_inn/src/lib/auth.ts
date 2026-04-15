@@ -2,6 +2,8 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { NextAuthOptions } from "next-auth";
 import type { Adapter } from "next-auth/adapters";
 import { getServerSession } from "next-auth/next";
+import { getToken } from "next-auth/jwt";
+import { cookies } from "next/headers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
@@ -83,9 +85,31 @@ export async function getSession() {
   return await getServerSession(authOptions);
 }
 
+async function getUserByEmail(email: string) {
+  return prisma.user.findUnique({
+    where: { email },
+    select: { id: true, email: true, name: true, role: true },
+  });
+}
+
 export async function getCurrentUser() {
+  // Primary: cookies() + getToken — works in App Router route handlers
+  try {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore.getAll().map(c => `${c.name}=${c.value}`).join("; ");
+    const fakeReq = new Request("http://localhost", { headers: { cookie: cookieHeader } });
+    const token = await getToken({ req: fakeReq as any, secret: process.env.NEXTAUTH_SECRET });
+    if (token?.email) {
+      return getUserByEmail(token.email as string);
+    }
+  } catch {
+    // fall through
+  }
+
+  // Fallback: getServerSession — works in Server Components
   const session = await getSession();
-  return session?.user;
+  if (!session?.user?.email) return null;
+  return getUserByEmail(session.user.email);
 }
 
 export async function requireAuth() {
