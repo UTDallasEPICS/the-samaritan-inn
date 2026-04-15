@@ -52,6 +52,7 @@ export default function MyEventsPage() {
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState('');
 
   // ── Fetch events ──
   const fetchEvents = useCallback(async () => {
@@ -173,10 +174,16 @@ export default function MyEventsPage() {
   // ── Delete handler ──
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this event from both your schedule and Salesforce?')) return;
+    setDeleteError('');
     setDeletingId(id);
     try {
       const res = await fetch(`/api/my-events/${id}`, { method: 'DELETE' });
-      if (res.ok) setEvents(prev => prev.filter(e => e.id !== id));
+      const data = await res.json();
+      if (res.ok) {
+        setEvents(prev => prev.filter(e => e.id !== id));
+      } else {
+        setDeleteError(data.error ?? 'Unable to delete this appointment.');
+      }
     } finally {
       setDeletingId(null);
     }
@@ -333,6 +340,12 @@ export default function MyEventsPage() {
             <h2 className="text-3xl font-bold mb-4 text-black">My Events</h2>
 
             {loadingEvents && <p className="text-sm text-gray-500">Loading your events...</p>}
+
+            {deleteError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+                {deleteError}
+              </div>
+            )}
 
             {!loadingEvents && events.length === 0 && (
               <div className="p-6 bg-white rounded-lg shadow text-center text-gray-500 text-sm">

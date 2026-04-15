@@ -4,6 +4,8 @@ import { getServerUserId } from "@/lib/getServerUserId";
 import { deleteSalesforceEvent, SalesforceError } from "@/lib/salesforce";
 import { deleteScheduledEventMirror } from "@/lib/scheduled-events";
 
+const DELETE_CUTOFF_MS = 24 * 60 * 60 * 1000;
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -19,6 +21,18 @@ export async function DELETE(
 
   if (!appointment || appointment.userId !== userId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const deleteCutoffTime = appointment.startTime.getTime() - DELETE_CUTOFF_MS;
+
+  if (Date.now() >= deleteCutoffTime) {
+    return NextResponse.json(
+      {
+        error:
+          "There is less than 24 hours until your appointment. Please email your case worker with a reason to adjust your appointment.",
+      },
+      { status: 409 }
+    );
   }
 
   if (appointment.salesforceEventId) {
