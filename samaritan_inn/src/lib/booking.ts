@@ -51,7 +51,7 @@ export class TotalActiveAppointmentLimitError extends ApiError {
   constructor() {
     super(
       429,
-      "You already have 7 active appointments. Delete one before booking another."
+      "You have 7 active appointments already."
     );
   }
 }
@@ -60,7 +60,7 @@ export class SameDayActiveAppointmentError extends ApiError {
   constructor() {
     super(
       409,
-      "You already have an appointment for that day. Delete it before booking another."
+      "You have an appointment active for that day already."
     );
   }
 }
@@ -259,7 +259,7 @@ export function validateBookingRequest(interval: Interval, now = new Date()) {
   if (!isDateWithinBookingWindow(bookingDate, now)) {
     throw new ApiError(
       400,
-      "Appointments can only be booked from today through the same calendar date next month."
+      "Your booking is more than one month out."
     );
   }
 
