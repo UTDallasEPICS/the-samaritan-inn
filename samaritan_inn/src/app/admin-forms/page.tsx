@@ -29,49 +29,6 @@ export default function AdminPassFormPage() {
   
  const pendingCount = forms.filter(f => f.status.toLowerCase() === 'pending').length;
  
-  useEffect(() => {
-    async function fetchForms() {
-      try {
-        const [curfewRes, passRes] = await Promise.all([
-          fetch('/api/pass/extended-curfew'),
-          fetch('/api/pass/pass-request'),
-        ]);
-        const curfews = await curfewRes.json();
-        const passes = await passRes.json();
-
-        const mapped: PassForm[] = [
-          ...curfews.map((r: any) => ({
-            formType: 'Extended Curfew',
-            name: r.residentName ?? '—',
-            submittedAt: r.submittedAt,
-            status: r.status ?? 'Pending',
-          })),
-          ...passes.map((r: any) => ({
-            formType: 'Pass Request',
-            name: r.residentName ?? '—',
-            submittedAt: r.submittedAt,
-            status: r.status ?? 'Pending',
-          })),
-        ];
-
-        setForms(mapped.sort(
-          (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
-        ));
-        console.log('sample status:', mapped[0]?.status)
-      } catch (err) {
-        console.error('Failed to fetch forms:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchForms();
-    
-    console.log('forms statuses:', forms.map(f => f.status));
-    
-  }, []);
-  
-
-  
 
   const filtered = forms
     .filter(f => f.name.toLowerCase().includes(query.toLowerCase()))
@@ -79,6 +36,11 @@ export default function AdminPassFormPage() {
     .filter(f => dateFilter ? f.submittedAt.startsWith(dateFilter) : true);
 
   // if (status === 'loading') return null;
+  const statusStyles: Record<string, string> = {
+    APPROVED: 'bg-green-100 text-green-700',
+    DENIED:  'bg-red-100 text-red-700',
+    PENDING: 'bg-yellow-100 text-yellow-700'
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -172,10 +134,7 @@ export default function AdminPassFormPage() {
                         <td className="py-3 px-4 text-gray-700">{f.formType}</td>
                         <td className="py-3 px-4 text-gray-700">{new Date(f.submittedAt).toLocaleDateString()}</td>
                         <td className="py-3 px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium
-                            ${f.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                              f.status === 'Denied' ? 'bg-red-100 text-red-700' :
-                              'bg-yellow-100 text-yellow-700'}`}>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusStyles[f.status]}`}>
                             {f.status}
                           </span>
                         </td>
