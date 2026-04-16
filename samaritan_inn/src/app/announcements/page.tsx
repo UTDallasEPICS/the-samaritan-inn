@@ -240,26 +240,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
       <Navigation />
       <div className="flex-grow flex flex-col items-start bg-gray-100 p-4">
         <div className="w-full max-w-3xl p-6 bg-white shadow-md rounded-md">
-          
-         
-
-<div className="absolute right-8 top-32 w-[400px]">
- {/* RIGHT: Sidebar Calendar */}
-    <aside className="lg:col-span-1 lg:sticky lg:top-8 self-end">
-      <SidebarCalendar
-        className="w-full"
-        announcements={announcements.map(a => ({
-          id: a.id,
-          title: a.title,
-          content: a.content,
-               date: a.date || a.createdAt?.slice(0, 10),
-// <- what SidebarCalendar expects
-        }))}
-        onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
-      />
-    </aside>
-
-</div>
+        
 
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -273,17 +254,17 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
             
            
             {isAdmin && (
-              <Button
-                variant="contained"
-                onClick={() => {
-  if (section === 'announcements') {
-    setNewAnnouncement(prev => ({
-      ...prev,
-      date: selectedDate || new Date().toISOString().slice(0, 10),
-    }));
-  }
-  setShowModal(true);
-}}
+                          <Button
+                            variant="contained"
+                            onClick={() => {
+              if (section === 'announcements') {
+                setNewAnnouncement(prev => ({
+                  ...prev,
+                  date: selectedDate || new Date().toISOString().slice(0, 10),
+                }));
+              }
+              setShowModal(true);
+            }}
                 sx={{
                   backgroundColor: '#29abe2',
                   '&:hover': {
@@ -490,7 +471,37 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
         </div>
     
 
+
+      {/* Calendar Sidebar mobile*/}
+        <div className="block lg:hidden w-full max-w-3xl px-6 mt-6">
+          <SidebarCalendar
+            className="w-full"
+            announcements={announcements.map(a => ({
+              id: a.id,
+              title: a.title,
+              content: a.content,
+              date: a.date || a.createdAt?.slice(0, 10),
+            }))}
+            onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
+          />
+        </div>
+        
+        {/* Calendar Sidebar desktop*/}
+        <div className="hidden lg:block lg:absolute lg:right-8 lg:top-32 lg:w-[400px]">
+          <SidebarCalendar
+            className="w-full"
+            announcements={announcements.map(a => ({
+              id: a.id,
+              title: a.title,
+              content: a.content,
+              date: a.date || a.createdAt?.slice(0, 10),
+            }))}
+            onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
+          />
+        </div>
+            
       </div>
+        
     </div>
   );
 }
