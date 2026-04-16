@@ -17,8 +17,8 @@ interface FormTableProps {
 
 function ViewTable({ forms, isLoading, filterBy }: FormTableProps) {
   const filtered = filterBy === 'pending' 
-    ? forms.filter(f => f.status === 'Pending')
-    : forms.filter(f => f.status === 'Approved' || f.status === 'Denied');
+    ? forms.filter(f => f.status === 'PENDING')
+    : forms.filter(f => f.status === 'APPROVED' || f.status === 'DENIED');
 
   if (isLoading) {
     return <p className="text-sm text-gray-400 py-2">Loading forms…</p>;
@@ -44,13 +44,13 @@ function ViewTable({ forms, isLoading, filterBy }: FormTableProps) {
     <tbody>
     {filtered.map((f, i) => (
         <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
-        <td className="py-3 px-4 text-gray-700">{f.name}</td>
-        <td className="py-3 px-4 text-gray-700">{f.formType}</td>
-        <td className="py-3 px-4 text-gray-700">{new Date(f.submittedAt).toLocaleDateString()}</td>
-        <td className="py-3 px-4">
+        <td className="py-3 px-4 text-gray-700 text-center">{f.name}</td>
+        <td className="py-3 px-4 text-gray-700 text-center">{f.formType}</td>
+        <td className="py-3 px-4 text-gray-700 text-center">{new Date(f.submittedAt).toLocaleDateString()}</td>
+        <td className="py-3 px-4 text-center">
             <span className={`px-2 py-1 rounded-full text-xs font-medium
-            ${f.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                f.status === 'Denied' ? 'bg-red-100 text-red-700' :
+            ${f.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                f.status === 'DENIED' ? 'bg-red-100 text-red-700' :
                 'bg-yellow-100 text-yellow-700'}`}>
             {f.status}
             </span>

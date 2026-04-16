@@ -23,7 +23,8 @@ export default function AdminPassFormPage() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [showFilters, setShowFilters] = useState(false); 
   
   
@@ -33,7 +34,14 @@ export default function AdminPassFormPage() {
   const filtered = forms
     .filter(f => f.name.toLowerCase().includes(query.toLowerCase()))
     .filter(f => statusFilter ? f.status.toLowerCase() === statusFilter.toLowerCase() : true)
-    .filter(f => dateFilter ? f.submittedAt.startsWith(dateFilter) : true);
+    .filter(f => {
+      const submitted = new Date(f.submittedAt).getTime();
+      const from = dateFrom ? new Date(dateFrom).getTime() : null;
+      const to = dateTo ? new Date(dateTo + 'T23:59:59').getTime() : null;
+      if (from && submitted < from) return false;
+      if (to && submitted > to) return false;
+      return true;
+  });
 
   // if (status === 'loading') return null;
   const statusStyles: Record<string, string> = {
@@ -97,13 +105,19 @@ export default function AdminPassFormPage() {
                   <label className="text-sm text-gray-700">Submitted Date</label>
                   <input
                     type="date"
-                    value={dateFilter}
-                    onChange={e => setDateFilter(e.target.value)}
+                    value={dateFrom}
+                    onChange={e => setDateFrom(e.target.value)}
                     className="border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700"
+                  />
+                  <input
+                      type="date"
+                      value={dateTo}
+                      onChange={e => setDateTo(e.target.value)}
+                      className="border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700"
                   />
                 </div>
                 <button
-                  onClick={() => { setStatusFilter(''); setDateFilter(''); }}
+                  onClick={() => { setStatusFilter(''); setDateFrom(''); setDateTo(''); }}
                   className="self-end text-sm text-blue-500 hover:underline"
                 >
                   Clear filters
@@ -112,7 +126,7 @@ export default function AdminPassFormPage() {
             )}
 
             {/* Results Table */}
-            {query || statusFilter || dateFilter ? (
+            {query || statusFilter || dateFrom || dateTo ? (
               loading ? (
                 <p className="text-sm text-gray-400 py-2">Loading forms…</p>
               ) : filtered.length === 0 ? (
