@@ -18,25 +18,33 @@ export default function Fetchforms({ setForms, setLoading }: FetchFormsProps) {
   useEffect(() => {
     async function fetchForms() {
       try {
-        const [curfewRes, passRes] = await Promise.all([
+        const [curfewRes, passRes, workScheduleRes] = await Promise.all([
           fetch('/api/pass/extended-curfew'),
           fetch('/api/pass/pass-request'),
+          fetch('/api/pass/work-schedule'),
         ]);
         const curfews = await curfewRes.json();
         const passes = await passRes.json();
+        const workSchedule = await workScheduleRes.json();
 
         const mapped: PassForm[] = [
           ...curfews.map((r: any) => ({
             formType: 'Extended Curfew',
             name: r.residentName ?? '—',
             submittedAt: r.submittedAt,
-            status: r.status ?? 'Pending',
+            status: (r.status ?? 'PENDING').toUpperCase(),
           })),
           ...passes.map((r: any) => ({
             formType: 'Pass Request',
             name: r.residentName ?? '—',
             submittedAt: r.submittedAt,
-            status: r.status ?? 'Pending',
+            status: (r.status ?? 'PENDING').toUpperCase(),
+          })),
+          ...workSchedule.map((r: any) => ({
+            formType: 'Work Schedule',
+            name: r.residentName ?? '—',
+            submittedAt: r.submittedAt,
+            status: (r.status ?? 'PENDING').toUpperCase(),
           })),
         ];
 
@@ -58,3 +66,4 @@ export default function Fetchforms({ setForms, setLoading }: FetchFormsProps) {
 
   return null;
 }
+
