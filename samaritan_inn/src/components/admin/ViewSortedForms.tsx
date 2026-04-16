@@ -1,3 +1,6 @@
+'use client';
+import { useState } from 'react';
+import Fetchforms from '@/components/Fetchforms';
 
 interface PassForm {
   formType: string;
@@ -29,34 +32,46 @@ function ViewTable({ forms, isLoading, filterBy }: FormTableProps) {
   }
 
   return (
-    <table className="w-full text-sm border-collapse bg-white rounded-md overflow-hidden mt-2">
-      <thead>
-        <tr className="text-center border-b border-gray-200 text-gray-700">
-          <th className="py-3 px-4">Name</th>
-          <th className="py-3 px-4">Form Type</th>
-          <th className="py-3 px-4">Submitted</th>
-          <th className="py-3 px-4">Status</th>
+  <table className="w-full text-sm border-collapse bg-white rounded-md overflow-hidden mt-2">
+    <thead>
+    <tr className="text-center border-b border-gray-200 text-gray-700">
+        <th className="py-3 px-4">Name</th>
+        <th className="py-3 px-4">Form Type</th>
+        <th className="py-3 px-4">Submitted</th>
+        <th className="py-3 px-4">Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    {filtered.map((f, i) => (
+        <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+        <td className="py-3 px-4 text-gray-700">{f.name}</td>
+        <td className="py-3 px-4 text-gray-700">{f.formType}</td>
+        <td className="py-3 px-4 text-gray-700">{new Date(f.submittedAt).toLocaleDateString()}</td>
+        <td className="py-3 px-4">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium
+            ${f.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                f.status === 'Denied' ? 'bg-red-100 text-red-700' :
+                'bg-yellow-100 text-yellow-700'}`}>
+            {f.status}
+            </span>
+        </td>
         </tr>
-      </thead>
-      <tbody>
-        {filtered.map((f, i) => (
-          <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
-            <td className="py-3 px-4 text-gray-700">{f.name}</td>
-            <td className="py-3 px-4 text-gray-700">{f.formType}</td>
-            <td className="py-3 px-4 text-gray-700">{new Date(f.submittedAt).toLocaleDateString()}</td>
-            <td className="py-3 px-4">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium
-                ${f.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                  f.status === 'Denied' ? 'bg-red-100 text-red-700' :
-                  'bg-yellow-100 text-yellow-700'}`}>
-                {f.status}
-              </span>
-            </td>
-          </tr>
-        ))}
-      </tbody>
+    ))}
+    </tbody>
     </table>
+    )
+}
+
+function ViewSortedFormsPage({ filterBy }: { filterBy: 'pending' | 'evaluated' }) {
+  const [forms, setForms] = useState<PassForm[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  return (
+    <>
+      <Fetchforms setForms={setForms} setLoading={setLoading} />
+      <ViewTable forms={forms} isLoading={loading} filterBy={filterBy} />
+    </>
   );
 }
 
-export default ViewTable;
+export { ViewTable, ViewSortedFormsPage };
