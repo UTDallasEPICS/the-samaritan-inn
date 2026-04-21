@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { getServerUserId } from '@/lib/getServerUserId';
+import type { NextRequest } from 'next/server';
 
 export async function POST(req: Request) {
   try {
@@ -56,9 +58,18 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const userId = await getServerUserId(request);
+
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  
   try {
     const requests = await prisma.extendedCurfewRequest.findMany({
+      where: {
+        userId,
+      },
       orderBy: {
         submittedAt: 'desc',
       },
