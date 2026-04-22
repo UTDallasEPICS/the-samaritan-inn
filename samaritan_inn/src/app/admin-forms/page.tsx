@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import Fetchforms, { type PassForm } from '@/components/Fetchforms';
 import StatusBadge from '@/components/StatusBadge';
@@ -143,46 +144,70 @@ export default function AdminPassFormPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-md overflow-hidden shadow">
-            {loading ? (
-              <p className="text-sm text-gray-400 py-6 text-center">Loading forms…</p>
-            ) : filtered.length === 0 ? (
-              <p className="text-sm text-gray-400 py-6 text-center">No forms found.</p>
-            ) : (
-              <table className="w-full text-sm border-collapse">
-                <thead className="bg-gray-100">
-                  <tr className="text-left border-b border-gray-200 text-gray-700">
-                    <th className="py-3 px-4">Resident Name</th>
-                    <th className="py-3 px-4">Form Type</th>
-                    <th className="py-3 px-4">Submitted</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map(f => (
-                    <tr key={`${f.formKey}-${f.id}`} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 text-gray-700">{f.name}</td>
-                      <td className="py-3 px-4 text-gray-700">{f.formType}</td>
-                      <td className="py-3 px-4 text-gray-700">
-                        {new Date(f.submittedAt).toLocaleDateString()}
-                      </td>
-                      <td className="py-3 px-4">
-                        <StatusBadge status={f.status} />
-                      </td>
-                      <td className="py-3 px-4">
-                        <button
-                          onClick={() => setActiveDetail({ formKey: f.formKey, id: f.id })}
-                          className="text-sm text-secondary font-semibold hover:underline"
-                        >
-                          View Details
-                        </button>
-                      </td>
+          {(query || statusFilter || dateFrom || dateTo) && (
+            <div className="bg-white rounded-md overflow-hidden shadow mb-6">
+              {loading ? (
+                <p className="text-sm text-gray-400 py-6 text-center">Loading forms…</p>
+              ) : filtered.length === 0 ? (
+                <p className="text-sm text-gray-400 py-6 text-center">No forms found.</p>
+              ) : (
+                <table className="w-full text-sm border-collapse">
+                  <thead className="bg-gray-100">
+                    <tr className="text-left border-b border-gray-200 text-gray-700">
+                      <th className="py-3 px-4">Resident Name</th>
+                      <th className="py-3 px-4">Form Type</th>
+                      <th className="py-3 px-4">Submitted</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                  </thead>
+                  <tbody>
+                    {filtered.map(f => (
+                      <tr key={`${f.formKey}-${f.id}`} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-4 text-gray-700">{f.name}</td>
+                        <td className="py-3 px-4 text-gray-700">{f.formType}</td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {new Date(f.submittedAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 px-4">
+                          <StatusBadge status={f.status} />
+                        </td>
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => setActiveDetail({ formKey: f.formKey, id: f.id })}
+                            className="text-sm text-secondary font-semibold hover:underline"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3 mt-6">
+            <Badge
+              badgeContent={pendingCount}
+              color="primary"
+              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+              sx={{ width: '100%', display: 'block', '& .MuiBadge-badge': { top: 12, right: 12 } }}
+            >
+              <Link
+                href="/admin-forms/sorted-forms/pending-forms"
+                className="block w-full border-2 border-secondary rounded-md bg-white px-4 py-3 text-center font-semibold text-lg text-primary hover:bg-gray-50"
+              >
+                Pending Forms
+              </Link>
+            </Badge>
+            <Link
+              href="/admin-forms/sorted-forms/past-forms"
+              className="block w-full border-2 border-secondary rounded-md bg-white px-4 py-3 text-center font-semibold text-lg text-primary hover:bg-gray-50"
+            >
+              Past Forms
+            </Link>
           </div>
         </div>
       </div>
