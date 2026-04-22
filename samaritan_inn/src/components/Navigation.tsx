@@ -40,7 +40,7 @@ export default function Navigation() {
                   onClick={() => signOut({ callbackUrl: '/login' })}
                   className={`px-3 py-2 rounded-md font-bold ${pathname === '/login' ? 'bg-red-600' : 'bg-red-500 hover:bg-red-600'}`}
                 >
-                  Sign Out
+                  Logout
                 </button>
                 <div className="px-3 py-2">
                   <span className="text-sm font-bold">Hi, {session.user.name}</span>
