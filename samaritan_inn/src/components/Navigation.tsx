@@ -43,7 +43,7 @@ export default function Navigation() {
                   Logout
                 </button>
                 <div className="px-3 py-2">
-                  <span className="text-sm font-bold">Hi, {session.user.name}</span>
+                  <span className="text-sm font-bold whitespace-nowrap">Hi, {session.user.name}</span>
                 </div>
               </>
             ) : (
