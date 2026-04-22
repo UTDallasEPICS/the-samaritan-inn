@@ -15,6 +15,7 @@ export interface PassForm {
 interface FetchFormsProps {
   setForms: (forms: PassForm[]) => void;
   setLoading: (loading: boolean) => void;
+  setError?: (msg: string | null) => void;
   refreshKey?: number;
 }
 
@@ -25,10 +26,21 @@ interface RawForm {
   status?: string | null;
 }
 
-export default function Fetchforms({ setForms, setLoading, refreshKey = 0 }: FetchFormsProps) {
+export default function Fetchforms({ setForms, setLoading, setError, refreshKey = 0 }: FetchFormsProps) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError?.(null);
+
+    async function checkOk(res: Response, label: string): Promise<RawForm[]> {
+      if (!res.ok) {
+        const body = await res.text();
+        const msg = `${label} ${res.status}: ${body.slice(0, 200)}`;
+        console.error('Fetchforms', msg);
+        throw new Error(msg);
+      }
+      return res.json();
+    }
 
     async function fetchForms() {
       try {
@@ -37,9 +49,14 @@ export default function Fetchforms({ setForms, setLoading, refreshKey = 0 }: Fet
           fetch('/api/pass/pass-request'),
           fetch('/api/pass/work-schedule'),
         ]);
-        const curfews: RawForm[] = await curfewRes.json();
-        const passes: RawForm[] = await passRes.json();
-        const workSchedule: RawForm[] = await workScheduleRes.json();
+        const [curfews, passes, workSchedule] = await Promise.all([
+          checkOk(curfewRes, '/api/pass/extended-curfew'),
+          checkOk(passRes, '/api/pass/pass-request'),
+          checkOk(workScheduleRes, '/api/pass/work-schedule'),
+        ]);
+        console.log(
+          `Fetchforms loaded: curfews=${curfews.length} passes=${passes.length} workSchedules=${workSchedule.length}`
+        );
 
         const mapped: PassForm[] = [
           ...curfews.map(r => ({
@@ -77,6 +94,10 @@ export default function Fetchforms({ setForms, setLoading, refreshKey = 0 }: Fet
         );
       } catch (err) {
         console.error('Failed to fetch forms:', err);
+        if (!cancelled) {
+          setForms([]);
+          setError?.(err instanceof Error ? err.message : String(err));
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

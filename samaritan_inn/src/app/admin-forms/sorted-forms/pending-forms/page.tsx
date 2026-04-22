@@ -22,6 +22,7 @@ export default function PendingFormsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeDetail, setActiveDetail] = useState<DetailTarget>(null);
+  const [error, setError] = useState<string | null>(null);
 
   if (status === 'loading') return null;
   if (status === 'unauthenticated') {
@@ -37,7 +38,7 @@ export default function PendingFormsPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Fetchforms setForms={setForms} setLoading={setLoading} refreshKey={refreshKey} />
+      <Fetchforms setForms={setForms} setLoading={setLoading} setError={setError} refreshKey={refreshKey} />
       <Navigation />
 
       <div className="flex-grow bg-gray-100 p-4 flex flex-col items-center">
@@ -49,6 +50,12 @@ export default function PendingFormsPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-primary mt-2 mb-6 text-center">
             Pending Forms
           </h1>
+
+          {error && (
+            <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
+              Couldn&apos;t load forms: {error}. Try signing out and back in.
+            </div>
+          )}
 
           <div className="bg-white rounded-md overflow-hidden shadow">
             {loading ? (

@@ -24,6 +24,7 @@ export default function AdminPassFormPage() {
   const [forms, setForms] = useState<PassForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -62,7 +63,7 @@ export default function AdminPassFormPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Fetchforms setForms={setForms} setLoading={setLoading} refreshKey={refreshKey} />
+      <Fetchforms setForms={setForms} setLoading={setLoading} setError={setError} refreshKey={refreshKey} />
       <Navigation />
 
       <div className="flex-grow bg-gray-100 p-4 flex flex-col items-center">
@@ -80,6 +81,12 @@ export default function AdminPassFormPage() {
               </span>
             </Badge>
           </div>
+
+          {error && (
+            <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
+              Couldn&apos;t load forms: {error}. Try signing out and back in.
+            </div>
+          )}
 
           <div className="relative flex items-center border-2 border-secondary rounded-md bg-white px-4 py-2 w-full mb-2">
             <input
