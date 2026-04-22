@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { getServerUserId } from '@/lib/getServerUserId';
+import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
 import type { NextRequest } from 'next/server';
 
 export async function POST(req: Request) {
@@ -59,22 +59,16 @@ export async function POST(req: Request) {
 }
 
 export async function GET(request: NextRequest) {
-  const userId = await getServerUserId(request);
-
-  if (!userId) {
+  const session = await getServerSessionInfo(request);
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  
+
   try {
     const requests = await prisma.extendedCurfewRequest.findMany({
-      where: {
-        userId,
-      },
-      orderBy: {
-        submittedAt: 'desc',
-      },
+      where: session.role === 'admin' ? undefined : { userId: session.id },
+      orderBy: { submittedAt: 'desc' },
     });
-
     return NextResponse.json(requests);
   } catch (error) {
     console.error('Error fetching extended curfew requests:', error);

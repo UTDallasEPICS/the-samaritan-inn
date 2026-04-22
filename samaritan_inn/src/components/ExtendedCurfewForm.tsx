@@ -245,18 +245,6 @@ export default function ExtendedCurfewForm({ onClose, residentName }: ExtendedCu
         />
       </div>
 
-      {/* Coverage signature */}
-      {/* <div className="mb-4">
-        <label className={labelClass}>Signature of Person Providing Coverage</label>
-        <input
-          type="text"
-          placeholder="Type full name as signature"
-          value={form.choreCoverageSignature}
-          onChange={e => update('choreCoverageSignature', e.target.value)}
-          className={inputClass}
-        />
-      </div> */}
-
       {/* Resident signature */}
       <div className="mb-4">
         <label className={labelClass}>

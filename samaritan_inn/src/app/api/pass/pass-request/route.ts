@@ -1,12 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { getServerUserId } from '@/lib/getServerUserId';
+import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
 import type { NextRequest } from 'next/server';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log('API /api/pass/pass-request received body:', body);
     const {
       userId,
       residentName,
@@ -41,7 +40,7 @@ export async function POST(req: Request) {
         reason,
         choreCoveredById: choreCoveredById || null,
         choreCoverageSignature: choreCoverageSignature || null,
-        signatureDate: new Date(todayDate),
+        signatureDate: new Date(signatureDate || todayDate),
         residentSignature,
         assignedCaseworkerId: assignedCaseworkerId || null,
       },
@@ -55,17 +54,14 @@ export async function POST(req: Request) {
 }
 
 export async function GET(request: NextRequest) {
-  const userId = await getServerUserId(request);
-
-  if (!userId) {
+  const session = await getServerSessionInfo(request);
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  
+
   try {
     const requests = await prisma.passRequest.findMany({
-      where: {
-        userId,
-      },
+      where: session.role === 'admin' ? undefined : { userId: session.id },
       orderBy: { submittedAt: 'desc' },
     });
     return NextResponse.json(requests);

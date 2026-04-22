@@ -23,7 +23,7 @@ interface FormData {
 }
 
 const inputClass =
-  'w-full border border-gray-300 rounded px-3 py-2 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#29abe2]';
+  'w-full border border-gray-300 rounded px-3 py-2 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary';
 
 const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
 
@@ -70,13 +70,11 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
   
     setIsSubmitting(true);
     try {
-      console.log('Submitting pass request to /api/pass/pass-request', { form, userId: session?.user?.id });
       const res = await fetch('/api/pass/pass-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, userId: session?.user?.id }),
       });
-      console.log('Pass request response status:', res.status);
       if (!res.ok) throw new Error('Failed to submit');
       setSubmitted(true);
       } catch {
@@ -108,7 +106,7 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
   return (
     <form onSubmit={handleSubmit} noValidate>
       {/* Title */}
-      <h2 className="text-xl font-bold text-center text-[#00167c] mb-1 uppercase tracking-wide">
+      <h2 className="text-xl font-bold text-center text-primary mb-1 uppercase tracking-wide">
         Resident Pass Request
       </h2>
       <p className="text-center text-xs text-gray-500 mb-5">
@@ -260,7 +258,7 @@ export default function PassRequestForm({ onClose, residentName }: PassRequestFo
         <button
           type="submit"
           disabled={isSubmitting}
-          className="bg-[#29abe2] text-white px-6 py-2 rounded hover:bg-[#64bee3] disabled:bg-[#64bee3] text-sm font-semibold"
+          className="bg-secondary text-white px-6 py-2 rounded hover:bg-secondary/80 disabled:bg-secondary/60 text-sm font-semibold"
         >
           {isSubmitting ? 'Submitting...' : 'Submit Request'}
         </button>
