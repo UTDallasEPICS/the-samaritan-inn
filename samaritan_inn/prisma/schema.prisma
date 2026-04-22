@@ -214,6 +214,7 @@ model WorkSchedule {
   status              String            @default("PENDING")
   decisionDate        DateTime?
   commentsNotes       String?
+  assignedCaseworkerId String?
   userId              String
   submittedAt         DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
