@@ -105,7 +105,7 @@ export default function SidebarCalendar({
           >
             ‹
           </button>
-          <div className="text-lg font-semibold">{monthLabel}</div>
+          <div className="text-lg font-semibold text-gray-800">{monthLabel}</div>
           <button
             type="button"
             onClick={() => setViewDate((d) => addMonths(d, 1))}
@@ -169,14 +169,14 @@ export default function SidebarCalendar({
               setViewDate(new Date(t.getFullYear(), t.getMonth(), 1));
               handleSelect(t);
             }}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50"
+            className="text-xs px-3 py-1.5 rounded-lg border border-gray-400 text-gray-500 hover:bg-gray-50"
           >
             Today
           </button>
           <button
             type="button"
             onClick={() => setViewDate((d) => addMonths(d, 0))}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50"
+            className="text-xs px-3 py-1.5 rounded-lg border border-gray-400 text-gray-500 hover:bg-gray-50"
           >
             This Month
           </button>
@@ -186,7 +186,7 @@ export default function SidebarCalendar({
       {/* Announcements */}
       <div className="bg-white rounded-2xl shadow p-4">
         <div className="flex items-baseline justify-between mb-2">
-          <h2 className="text-base font-semibold">Announcements</h2>
+          <h2 className="text-base font-semibold text-gray-800">Announcements</h2>
           <span className="text-xs text-gray-500">{selectedKey}</span>
         </div>
 
@@ -206,7 +206,7 @@ export default function SidebarCalendar({
                   key={a.id ?? `${a.title}-${a.date}`}
                   className="border border-gray-200 rounded-xl p-3 hover:bg-gray-50"
                 >
-                  <div className="text-sm font-medium">{a.title}</div>
+                  <div className="text-sm font-bold text-gray-700">{a.title}</div>
                   {a.content ? (
                     <p className="text-sm text-gray-600 mt-1">{a.content}</p>
                   ) : null}
