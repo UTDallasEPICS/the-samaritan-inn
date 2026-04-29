@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,25 +7,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Post{ 
-  id String @id @default(cuid())
+model Post {
+  id   String @id @default(cuid())
   name String
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -50,59 +47,62 @@ model VerificationToken {
 }
 
 model User {
-  id              String           @id @default(cuid())
-  email           String           @unique
-  password        String
-  name            String
-  role            String           @default("resident") // e.g., "resident", "staff", "admin"
-  emailVerified   DateTime?
-  image           String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  accounts        Account[]
-  sessions        Session[]
-  appointments    Appointment[]
-  classSignups    ClassSignup[]
+  id                    String                  @id @default(cuid())
+  email                 String                  @unique
+  password              String
+  name                  String
+  role                  String                  @default("resident") // e.g., "resident", "staff", "admin"
+  emailVerified         DateTime?
+  image                 String?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  accounts              Account[]
+  sessions              Session[]
+  appointments          Appointment[]
+  classSignups          ClassSignup[]
+  ExtendedCurfewRequest ExtendedCurfewRequest[]
+  PassRequest           PassRequest[]
+  WorkSchedule          WorkSchedule[]
 }
 
 model ScheduledEvent {
-  id           String   @id @default(cuid())
-  appointmentId String  @unique
-  title        String
-  startTime    DateTime
-  endTime      DateTime
-  caseWorker   String
-  salesforceId String?  @unique
-  userId       String
-  createdAt    DateTime @default(now())
+  id            String   @id @default(cuid())
+  appointmentId String   @unique
+  title         String
+  startTime     DateTime
+  endTime       DateTime
+  caseWorker    String
+  salesforceId  String?  @unique
+  userId        String
+  createdAt     DateTime @default(now())
 
   @@index([userId, startTime])
 }
 
 model Appointment {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  startTime   DateTime
-  endTime     DateTime
-  location    String?
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  salesforceEventId String? @unique
-  ownerId      String?
-  bookingDate  String?
+  id                   String    @id @default(cuid())
+  title                String
+  description          String?
+  startTime            DateTime
+  endTime              DateTime
+  location             String?
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  salesforceEventId    String?   @unique
+  ownerId              String?
+  bookingDate          String?
   activeBookingOrdinal Int?
   activeBookingDateKey String?
-  canceledAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  canceledAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
-  @@index([userId, bookingDate])
   @@unique([userId, activeBookingOrdinal])
+  @@index([userId, bookingDate])
 }
 
 model Class {
-  id          String    @id @default(cuid())
+  id          String        @id @default(cuid())
   title       String
   description String?
   instructor  String
@@ -110,18 +110,18 @@ model Class {
   endTime     DateTime
   location    String?
   capacity    Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   signups     ClassSignup[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
 }
 
 model ClassSignup {
   id        String   @id @default(cuid())
   classId   String
-  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@unique([classId, userId])
 }
@@ -132,11 +132,10 @@ model Announcement {
   content   String
   author    String
   important Boolean  @default(false)
-  date      String?  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  date      String?
 }
-
 
 model Event {
   id        String   @id @default(cuid())
@@ -148,4 +147,89 @@ model Event {
   startTime DateTime
   endTime   DateTime
   createdAt DateTime @default(now())
+}
+
+model ExtendedCurfewRequest {
+  id                     String    @id @default(cuid())
+  todayDate              DateTime
+  residentName           String
+  datesNeeded            String
+  expectedReturnTime     String
+  isOngoing              Boolean   @default(false)
+  reason                 String
+  choreCoveredById       String?
+  choreCoverageSignature String?
+  residentSignature      String
+  adminName              String?
+  status                 String    @default("PENDING")
+  adminSignature         String?
+  decisionDate           DateTime?
+  commentsNotes          String?
+  receivedDate           DateTime?
+  adminInitials          String?
+  userId                 String
+  submittedAt            DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  assignedCaseworkerId   String?
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PassRequest {
+  id                     String    @id @default(cuid())
+  residentName           String
+  todayDate              DateTime
+  datesRequested         String
+  reason                 String
+  choreCoveredById       String?
+  choreCoverageSignature String?
+  residentSignature      String
+  signatureDate          DateTime
+  adminName              String?
+  status                 String    @default("PENDING")
+  adminSignature         String?
+  decisionDate           DateTime?
+  commentsNotes          String?
+  assignedCaseworkerId   String?
+  userId                 String
+  submittedAt            DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WorkSchedule {
+  id                  String            @id @default(cuid())
+  residentName        String
+  room                String
+  employmentStatus    String
+  employerName        String?
+  employerLocation    String?
+  weekOf              DateTime
+  monthOf             String
+  transportation      String
+  estimatedTravelTime String
+  residentSignature   String
+  signatureDate       DateTime
+  enteredByInitials   String?
+  adminName           String?
+  status              String            @default("PENDING")
+  decisionDate        DateTime?
+  commentsNotes       String?
+  assignedCaseworkerId String?
+  userId              String
+  submittedAt         DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  days                WorkScheduleDay[]
+}
+
+model WorkScheduleDay {
+  id         String       @id @default(cuid())
+  scheduleId String
+  dayOfWeek  String
+  date       DateTime?
+  startTime  String?
+  endTime    String?
+  schedule   WorkSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, dayOfWeek])
 }

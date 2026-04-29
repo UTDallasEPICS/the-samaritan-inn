@@ -31,6 +31,7 @@ export default function Navigation() {
             <Link href="/schedule" className={linkClass('/schedule')}>Classes</Link>
             <Link href="/Resources" className={linkClass('/Resources')}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
+            <Link href="/pass-form" className={linkClass('/pass-form')}>Pass</Link>
             <Link href="/my-events" className={linkClass('/my-events')}>Schedule Event</Link>
             {status === 'authenticated' ? (
               <>
@@ -39,22 +40,22 @@ export default function Navigation() {
                   onClick={() => signOut({ callbackUrl: '/login' })}
                   className={`px-3 py-2 rounded-md font-bold ${pathname === '/login' ? 'bg-red-600' : 'bg-red-500 hover:bg-red-600'}`}
                 >
-                  Sign Out
+                  Logout
                 </button>
                 <div className="px-3 py-2">
-                  <span className="text-sm font-bold">Hi, {session.user.name}</span>
+                  <span className="text-sm font-bold whitespace-nowrap">Hi, {session.user.name}</span>
                 </div>
               </>
             ) : (
               <>
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
                 <Link href="/login" className={linkClass('/login')}>Login</Link>
-                <Link
+                {/* <Link
                   href="/signup"
                   className={`px-3 py-2 rounded-md font-bold ${pathname === '/signup' ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'}`}
                 >
                   Sign Up
-                </Link>
+                </Link> */}
               </>
             )}
           </div>
@@ -92,6 +93,7 @@ export default function Navigation() {
             <Link href="/Resources" className={linkClass('/Resources', true)} onClick={() => setIsMenuOpen(false)}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements', true)} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
             <Link href="/my-events" className={linkClass('/my-events', true)} onClick={() => setIsMenuOpen(false)}>Schedule Event</Link>
+            <Link href="/pass-form" className={linkClass('/pass-form', true)} onClick={() => setIsMenuOpen(false)}>Pass</Link>
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile', true)} onClick={() => setIsMenuOpen(false)}>Profile</Link>
@@ -109,7 +111,7 @@ export default function Navigation() {
               <>
                 <Link href="/profile" className={linkClass('/profile', true)} onClick={() => setIsMenuOpen(false)}>Profile</Link>
                 <Link href="/login" className={linkClass('/login', true)} onClick={() => setIsMenuOpen(false)}>Login</Link>
-                <Link href="/signup" className={`block w-full text-left px-3 py-2 rounded-md font-bold bg-green-500 hover:bg-green-600`} onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
+                {/* <Link href="/signup" className={`block w-full text-left px-3 py-2 rounded-md font-bold bg-green-500 hover:bg-green-600`} onClick={() => setIsMenuOpen(false)}>Sign Up</Link> */}
               </>
             )}
           </div>
