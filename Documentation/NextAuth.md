@@ -2,272 +2,68 @@
 
 ## Overview
 
-This document outlines the implementation of authentication in The Samaritan Inn application using NextAuth.js with password hashing. The implementation provides secure user authentication, protected routes, and role-based access control.
+Authentication uses NextAuth.js with the credentials provider and bcrypt password hashing. Public self-signup is disabled. Admins create all user accounts from inside the web app, and users continue to log in with email and password.
 
-## Files Created/Modified
+## Core Files
 
-### Core Authentication Configuration
+### `src/app/api/auth/[...nextauth]/route.ts`
 
-#### `src/app/api/auth/[...nextauth]/route.ts`
+- Hosts the NextAuth handler.
+- Uses the credentials provider.
+- Stores `id` and `role` in the JWT/session callbacks.
 
-The central NextAuth configuration file that handles authentication requests.
+### `src/lib/auth.ts`
 
-**Key Features:**
-- Credential-based authentication provider
-- Password hashing with bcrypt
-- JWT session strategy
-- Custom callback functions for token and session management
+- Provides server-side helpers such as `getCurrentUser`, `requireAuth`, and `requireAdmin`.
 
-```typescript
-// Configuration for NextAuth with credential provider and JWT session
-import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/lib/prisma";
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
+### `src/app/login/page.tsx`
 
-// Handler for NextAuth endpoints
-const handler = NextAuth({
-  adapter: PrismaAdapter(prisma) as any,
-  providers: [CredentialsProvider({...})],
-  session: { strategy: "jwt" },
-  callbacks: {...},
-  pages: { signIn: "/login" },
-});
+- Displays the standard login form.
+- Tells users that admins create accounts for them.
 
-export { handler as GET, handler as POST };
-```
+### `src/app/signup/page.tsx`
 
-#### `src/types/next-auth.d.ts`
+- No longer renders a public registration form.
+- Redirects unauthenticated users to `/login`.
+- Redirects admins to `/admin-forms`.
+- Redirects authenticated non-admins to `/unauthorized`.
 
-TypeScript definitions to extend NextAuth's default types with custom properties.
+### `src/app/api/admin/users/route.ts`
 
+- Admin-only user creation endpoint.
+- Returns `401` for unauthenticated requests.
+- Returns `403` for authenticated non-admin requests.
+- Validates required fields, role, email format, password length, and duplicate emails.
+- Hashes passwords with bcrypt before writing to the database.
 
-### Authentication Utilities
+### `src/lib/user-config.ts`
 
-#### `src/lib/auth.ts`
+- Shared user-creation field definitions.
+- Allowed roles list.
+- Validation and normalization helpers.
 
-Utility functions for server-side authentication checks and user access.
+### `src/lib/user-management.ts`
 
-**Key Features:**
-- Session retrieval from server components
-- Helper functions for protected routes
-- Role-based authorization checks
+- Shared server-side user creation logic.
+- Reused by the admin API route and the seed script.
 
-```typescript
-// Server-side authentication utilities
-export async function getSession() {...}
-export async function getCurrentUser() {...}
-export async function requireAuth() {...}
-export async function requireAdmin() {...}
-```
+## Authentication Flow
 
-### API Routes
+1. An admin creates a user account from the admin page.
+2. The password is hashed with bcrypt.
+3. The admin shares the credentials manually with the user.
+4. The user logs in through `/login`.
+5. NextAuth verifies the credentials and issues the session.
 
-#### `src/app/api/register/route.ts`
+## Seeded Admin Account
 
-API endpoint for user registration with password hashing.
+The seed script creates this local test account:
 
-**Key Features:**
-- User registration with form validation
-- Password hashing using bcrypt
-- Duplicate email checking
-- Secure user creation in database
+- `email: admin@test.com`
+- `password: TestAdmin123!`
 
-```typescript
-// API endpoint for user registration
-export async function POST(req: Request) {
-  // Extract user data
-  // Hash password with bcrypt
-  // Create user in database
-  // Return success response
-}
-```
+## Notes
 
-### Components
-
-#### `src/components/providers/SessionProvider.tsx`
-
-Client-side provider for NextAuth session management.
-
-**Key Features:**
-- Wraps application with session context
-- Enables auth state across components
-
-```typescript
-// Provider component for NextAuth session
-export default function AuthProvider({ children }) {
-  return <SessionProvider>{children}</SessionProvider>;
-}
-```
-
-#### `src/components/Navigation.tsx`
-
-Navigation bar with dynamic content based on authentication status.
-
-**Key Features:**
-- Responsive design for mobile and desktop
-- Conditional rendering based on auth state
-- Sign-out functionality
-- User information display
-
-```typescript
-// Navigation component with authentication awareness
-export default function Navigation() {
-  const { data: session, status } = useSession();
-  // Render different navigation based on authentication status
-}
-```
-
-### Pages
-
-#### `src/app/layout.tsx` (Modified)
-
-Root layout updated to include the SessionProvider.
-
-**Key Features:**
-- Wraps all pages with auth context
-- Ensures consistent session access
-
-```typescript
-// Root layout with SessionProvider integration
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>
-        <AuthProvider>{children}</AuthProvider>
-      </body>
-    </html>
-  );
-}
-```
-
-#### `src/app/profile/page.tsx`
-
-Page displaying user authentication status and details.
-
-**Key Features:**
-- Shows authentication state (logged in/out)
-- Displays user details when authenticated
-- Provides login/signup links when not authenticated
-
-```typescript
-// Page to display authentication status
-export default function AuthStatus() {
-  const { data: session, status } = useSession();
-  // Render different content based on authentication status
-}
-```
-
-#### `src/app/dashboard/page.tsx`
-
-Protected route that requires authentication to access.
-
-**Key Features:**
-- Server-side authentication check
-- Redirects to login if not authenticated
-- Displays user-specific content
-- Shows admin controls for admin users
-
-```typescript
-// Protected dashboard page
-export default async function Dashboard() {
-  const user = await requireAuth();
-  // Render dashboard with user-specific information
-}
-```
-
-#### `src/app/login/page.tsx` and `src/app/signup/page.tsx`
-
-Pages for user authentication and registration.
-
-**Key Features:**
-- Form validation
-- Error handling
-- Integration with NextAuth
-- Password confirmation
-
-```typescript
-// Login/signup pages with form handling
-export default function Login/Signup() {
-  // Form state management
-  // Form submission handling
-  // Error messaging
-}
-```
-
-#### `src/app/unauthorized/page.tsx`
-
-Error page for unauthorized access attempts.
-
-**Key Features:**
-- Clear error messaging
-- Navigation links to authorized pages
-
-```typescript
-// Unauthorized access page
-export default function Unauthorized() {
-  // Display unauthorized message with navigation options
-}
-```
-
-## Database Schema Changes
-
-The Prisma schema was updated to include the necessary tables for NextAuth:
-
-- `Account` - For Auth account linking
-- `Session` - For session storage
-- `VerificationToken` - For email verification
-- `User` - Updated with NextAuth fields
-
-## Environment Variables
-
-Added NextAuth-specific environment variables:
-
-```
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secure-random-string"
-```
-
-## Implementation Details
-
-### Authentication Flow
-
-1. User registers via `/signup` page
-2. Password is hashed using bcrypt
-3. User logs in via `/login` page
-4. Credentials are verified against database
-5. Session is created and JWT token issued
-6. Protected routes check session before allowing access
-
-### Password Hashing
-
-Bcrypt is used for secure password hashing with a cost factor of 10:
-
-```typescript
-const hashedPassword = await bcrypt.hash(password, 10);
-```
-
-### Role-Based Access
-
-The application supports role-based access control:
-
-- Regular users can access their dashboard
-- Admins can access additional admin features
-- The `requireAdmin()` function enforces admin-only routes
-
-## Testing and Debugging
-
-The authentication implementation can be tested by:
-
-1. Creating user accounts
-2. Logging in with different credentials
-3. Accessing protected routes
-4. Checking authentication status
-5. Attempting to access unauthorized pages
-
-## Maintenance Considerations
-
-- NextAuth configuration may need updates with package upgrades
-- Environment variables must be set in production environments
-- Database migrations should be applied when updating schema
+- Existing login behavior remains email/password based.
+- No third-party verification is required.
+- The `User` model now stores `firstName`, `lastName`, `caseWorkerName`, and `salesforceAccountId` in addition to the existing `name`, `email`, `password`, and `role` fields.

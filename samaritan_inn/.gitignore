@@ -47,12 +47,3 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-<<<<<<< HEAD
-=======
-# database
-prisma/*.db
-prisma/*.db-journal
-prisma/
-deb.db
->>>>>>> f3f40659b4e8aaf76cd5a22956dc7ee59e6718e7
-

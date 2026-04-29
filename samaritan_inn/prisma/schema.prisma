@@ -51,6 +51,10 @@ model User {
   email                 String                  @unique
   password              String
   name                  String
+  firstName             String?
+  lastName              String?
+  caseWorkerName        String?
+  salesforceAccountId   String?
   role                  String                  @default("resident") // e.g., "resident", "staff", "admin"
   emailVerified         DateTime?
   image                 String?

@@ -35,6 +35,9 @@ export default function Navigation() {
             <Link href="/my-events" className={linkClass('/my-events')}>Schedule Event</Link>
             {status === 'authenticated' ? (
               <>
+                {session.user.role === 'admin' && (
+                  <Link href="/admin-forms" className={linkClass('/admin-forms')}>Admin</Link>
+                )}
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}
@@ -96,6 +99,9 @@ export default function Navigation() {
             <Link href="/pass-form" className={linkClass('/pass-form', true)} onClick={() => setIsMenuOpen(false)}>Pass</Link>
             {status === 'authenticated' ? (
               <>
+                {session.user.role === 'admin' && (
+                  <Link href="/admin-forms" className={linkClass('/admin-forms', true)} onClick={() => setIsMenuOpen(false)}>Admin</Link>
+                )}
                 <Link href="/profile" className={linkClass('/profile', true)} onClick={() => setIsMenuOpen(false)}>Profile</Link>
                 <button
                   onClick={() => { setIsMenuOpen(false); signOut({ callbackUrl: '/login' }); }}

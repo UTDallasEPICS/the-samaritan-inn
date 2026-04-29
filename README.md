@@ -1,213 +1,92 @@
 # Samaritan Inn Scheduling App
 
-Samaritan Inn Scheduling App is a web application serving the residents and staff of Samaritan Inn, a nonprofit homeless shelter dedicated to community support. Staff members can create, schedule, edit, and remove announcements to keep everyone informed and organized. Residents can register for life skills classes, book appointments, request curfew extensions, and manage personal schedules through an integrated calendar. The platform leverages Next.js, Prisma, and SQLite to deliver a secure, scalable, and user-friendly experience.
-
----
-
-## Table of Contents
-
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Project Structure](#project-structure)
-- [Database Management](#database-management)
-- [Authentication](#authentication)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
-
----
+Samaritan Inn Scheduling App is a Next.js application for Samaritan Inn residents and staff. Staff can manage announcements and admin workflows, while residents can log in to use the existing scheduling and request features.
 
 ## Features
 
-### Role-Based Access Control
-
-- **Residents**
-  - View announcements posted by staff.
-  - Schedule life skills classes to enhance their personal development.
-  - Request curfew extensions.
-  - Manage their schedules using a personal calendar to organize appointments and busy times.
-- **Staff**
-  - Create, post, and schedule announcements for residents.
-  - Manage life skills classes, including scheduling and capacity limits.
-
-### Announcements Management
-
-- Staff can create, edit, and delete announcements.
-- Announcements include timestamps and author details.
-
-### Curfew Extension Requests
-
-- Residents can request curfew extensions through the platform.
-
-### Authentication
-
-- Secure login and signup using NextAuth.js.
-- Role-based access for staff and residents.
-
-### Responsive Design
-
-- Optimized for both desktop and mobile devices.
-
----
+- Email/password authentication with NextAuth.js
+- Admin-created user accounts only
+- Role-based access for admins, staff, case workers, and residents
+- Announcement and pass-form workflows
+- Prisma + SQLite persistence
 
 ## Tech Stack
 
-- **Frontend:** Next.js (React Framework)
-- **Backend:** Node.js with Next.js API routes
-- **Database:** SQLite with Prisma ORM
-- **Authentication:** NextAuth.js
-- **Styling:** Tailwind CSS
-
----
+- Next.js
+- React
+- NextAuth.js
+- Prisma
+- SQLite
+- Tailwind CSS
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- npm or Yarn
-- SQLite (comes pre-installed with Prisma)
+- Node.js 18+
+- npm
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/samaritan-inn.git
-   cd samaritan-inn
-   ```
-2. Install dependencies:
-   - `npm install`
-   - (create `.env` file and add the required information)
-   - `npx prisma migrate dev`
-   - `npx prisma generate`
-3. Configure environment variables:
-   Create a `.env` file in the root directory with:
-   ```env
-   DATABASE_URL="file:./dev.db"
-   NEXTAUTH_URL="http://localhost:3000"
-   NEXTAUTH_SECRET="your-secret-key-for-jwt-encryption"
-   ```
-4. Start the development server:
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-5. Open your browser and navigate to `http://localhost:3000`.
+1. Clone the repository.
+2. Change into `samaritan_inn/`.
+3. Install dependencies with `npm install`.
+4. Create `.env` with:
 
----
+```env
+DATABASE_URL="file:./dev.db"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-for-jwt-encryption"
+```
 
-## Project Structure
+5. Run `npx prisma migrate dev`.
+6. Run `npx prisma generate`.
+7. Run `npx prisma db seed`.
+8. Start the app with `npm run dev`.
 
-```text
-├── .env  
-├── .gitignore  
-├── eslint.config.mjs  
-├── next-env.d.ts  
-├── next.config.ts  
-├── package.json  
-├── postcss.config.mjs  
-├── README.md  
-├── tailwind.config.ts  
-├── tsconfig.json  
-├── prisma  
-│   ├── schema.prisma  
-│   ├── dev.db  
-│   └── migrations  
-├── public  
-│   ├── file.svg  
-│   ├── globe.svg  
-│   ├── next.svg  
-│   ├── vercel.svg  
-│   └── window.svg  
-├── src  
-│   ├── app  
-│   │   ├── favicon.ico  
-│   │   ├── globals.css  
-│   │   ├── layout.tsx  
-│   │   ├── page.tsx  
-│   │   ├── announcements  
-│   │   ├── api  
-│   │   │   ├── announcements  
-│   │   │   ├── auth  
-│   │   │   ├── login  
-│   │   │   └── register  
-│   │   ├── auth-status  
-│   │   ├── caseworker  
-│   │   ├── curfew  
-│   │   ├── dashboard  
-│   │   ├── homepage  
-│   │   ├── login  
-│   │   ├── signup  
-│   │   ├── unauthorized  
-│   │   └── Resources  
-│   ├── components  
-│   │   ├── Navigation.tsx  
-│   │   └── providers  
-│   │       └── SessionProvider.tsx  
-│   ├── lib  
-│   │   ├── auth.ts  
-│   │   └── prisma.ts  
-│   └── types  
-│       └── next-auth.d.ts  
-└── .next  
-    ├── app-build-manifest.json  
-    ├── build-manifest.json  
-    ├── cache  
-    ├── server  
-    └── static  
+## Scripts
 
-
-### Scripts
-
-- `npm run dev` – Start the development server  
-- `npm run build` – Build for production  
-- `npm start` – Start the production server  
-- `npm run lint` – Run linter  
-
----
-
-## Database Management
-
-- **Prisma Studio:**  
-  ```bash
-  npx prisma studio
-  ```
-- **Migrations:**  
-  ```bash
-  npx prisma migrate dev --name <migration_name>
-  ```
-
----
+- `npm run dev` starts the development server.
+- `npm test` runs the user-creation tests.
+- `npm run typecheck` runs TypeScript checks.
+- `npm run lint` runs the configured linter.
+- `npm run build` builds the app for production.
+- `npm run db:seed` seeds the local database.
 
 ## Authentication
 
-This project uses NextAuth.js for authentication with two roles:
+Public self-signup is disabled. Every user account must be created and verified by an admin inside the web app.
 
-- **Staff (Admin):** Can post and manage announcements.  
-- **Resident:** Can view announcements and request curfew extensions.
+Users still log in with email and password through `/login`.
 
----
+### Seeded Admin Account
+
+After seeding, use these credentials for local testing:
+
+- `email: admin@test.com`
+- `password: TestAdmin123!`
+
+### Admin-Created User Flow
+
+1. Log in as the seeded admin.
+2. Open the `Admin` page in the web app.
+3. Use the `Create User` form to enter:
+   - first name
+   - last name
+   - case worker name
+   - Salesforce account ID
+   - role
+   - email
+   - password
+4. Share the created credentials directly with the new user.
+
+## Database Management
+
+- `npx prisma studio` opens Prisma Studio.
+- `npx prisma migrate dev --name <migration_name>` creates and applies a migration.
+- `npx prisma db seed` seeds the local database.
 
 ## Deployment
 
-1. Build the application:
-   ```bash
-   npm run build
-   ```
-2. Start the production server:
-   ```bash
-   npm start
-   ```
-
----
-## Future requirements:
-
-1. Allow admin to add attachements to announcements and events
-2. Change curfew to more of a form and then sends admin response to user in form of email or notification
-3. Change scheduling to Salesforce rather than Calendly
-4. User request form to fulfill order in inflow. 
----
+1. Run `npm run build`.
+2. Run `npm start`.

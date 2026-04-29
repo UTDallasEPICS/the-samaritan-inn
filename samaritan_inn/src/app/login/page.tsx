@@ -2,14 +2,11 @@
 
 import React, { FormEvent, useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 
 const Login = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const registered = searchParams.get('registered');
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +31,7 @@ const Login = () => {
         router.push('/');
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred during login');
     } finally {
       setIsLoading(false);
@@ -50,12 +47,10 @@ const Login = () => {
           <h1 className="text-2xl font-bold mb-4 text-center text-black">
             Welcome to The Samaritan Inn
           </h1>
-          
-          {registered && (
-            <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-              <p>Account created successfully! Please log in.</p>
-            </div>
-          )}
+
+          <div className="mb-4 rounded border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            User accounts are created by admins only. Contact an admin if you need login credentials.
+          </div>
           
           <form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
             <input
@@ -82,11 +77,8 @@ const Login = () => {
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
-            <p className="text-center text-black">
-              New User?{' '}
-              <Link href="/signup" className="text-blue-500 hover:underline">
-                Create an account
-              </Link>
+            <p className="text-center text-sm text-gray-600">
+              Need an account? Ask an admin to create one for you.
             </p>
           </form>
         </div>
