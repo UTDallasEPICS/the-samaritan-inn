@@ -206,7 +206,7 @@ export default function SidebarCalendar({
                   key={a.id ?? `${a.title}-${a.date}`}
                   className="border border-gray-200 rounded-xl p-3 hover:bg-gray-50"
                 >
-                  <div className="text-sm font-medium">{a.title}</div>
+                  <div className="text-sm font-bold text-gray-700">{a.title}</div>
                   {a.content ? (
                     <p className="text-sm text-gray-600 mt-1">{a.content}</p>
                   ) : null}
