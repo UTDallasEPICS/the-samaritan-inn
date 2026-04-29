@@ -34,6 +34,21 @@ export default function Profile() {
                     <li><strong>User ID:</strong> {session.user.id}</li>
                   </ul>
                 </div>
+
+                {session.user.role === 'admin' && (
+                  <div className="rounded-md border border-blue-200 bg-blue-50 p-4">
+                    <h2 className="text-lg font-medium text-blue-900 mb-2">Admin Tools</h2>
+                    <p className="mb-4 text-sm text-blue-800">
+                      Create and verify user accounts from the profile flow.
+                    </p>
+                    <Link
+                      href="/profile/create-user"
+                      className="inline-block rounded bg-[#29abe2] px-4 py-2 font-semibold text-white hover:bg-blue-600"
+                    >
+                      Create Users
+                    </Link>
+                  </div>
+                )}
                 
                 <div className="flex justify-between">
                   <Link 
@@ -64,12 +79,9 @@ export default function Profile() {
                   >
                     Login
                   </Link>
-                  <Link 
-                    href="/signup"
-                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                  >
-                    Sign Up
-                  </Link>
+                  <span className="rounded bg-gray-200 px-4 py-2 text-sm text-gray-700">
+                    Contact an admin for an account
+                  </span>
                 </div>
               </>
             )}

@@ -1,4 +1,4 @@
-export const USER_ROLES = ["resident", "admin", "staff", "case_worker"] as const;
+export const USER_ROLES = ["resident", "admin"] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];
 
@@ -22,8 +22,6 @@ export const PASSWORD_MIN_LENGTH = 8;
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
   resident: "Resident",
   admin: "Admin",
-  staff: "Staff",
-  case_worker: "Case Worker",
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

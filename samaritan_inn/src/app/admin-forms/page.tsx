@@ -10,7 +10,6 @@ import StatusBadge from '@/components/StatusBadge';
 import PassRequestDetailModal from '@/components/admin/PassRequestDetailModal';
 import ExtendedCurfewDetailModal from '@/components/admin/ExtendedCurfewDetailModal';
 import WorkScheduleDetailModal from '@/components/admin/WorkScheduleDetailModal';
-import AdminUserCreateForm from '@/components/admin/AdminUserCreateForm';
 import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
 import Badge from '@mui/material/Badge';
@@ -217,8 +216,6 @@ export default function AdminPassFormPage() {
               Past Forms
             </Link>
           </div>
-
-          <AdminUserCreateForm />
         </div>
       </div>
 

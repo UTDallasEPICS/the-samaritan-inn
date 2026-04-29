@@ -88,7 +88,7 @@ export default function AdminUserCreateForm() {
         />
         <input
           type="text"
-          placeholder="Case worker name"
+          placeholder="Case worker ID"
           value={form.caseWorkerName}
           onChange={event => updateField('caseWorkerName', event.target.value)}
           className="rounded border border-gray-300 px-3 py-2 text-black focus:outline-none focus:border-blue-500"
