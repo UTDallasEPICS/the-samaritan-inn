@@ -108,19 +108,6 @@ export default function AdminPassFormPage() {
           {showFilters && (
             <div className="flex flex-wrap gap-4 mb-4 p-4 border border-gray-200 rounded-md bg-white">
               <div className="flex flex-col gap-1">
-                <label className="text-sm text-gray-700">Status</label>
-                <select
-                  value={statusFilter}
-                  onChange={e => setStatusFilter(e.target.value)}
-                  className="border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700"
-                >
-                  <option value="">All Statuses</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="APPROVED">Approved</option>
-                  <option value="DENIED">Denied</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
                 <label className="text-sm text-gray-700">Submitted From</label>
                 <input
                   type="date"
