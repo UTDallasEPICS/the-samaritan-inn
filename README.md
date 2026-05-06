@@ -1,6 +1,6 @@
 # Samaritan Inn Scheduling App
 
-Samaritan Inn Scheduling App is a web application serving the residents and staff of Samaritan Inn, a nonprofit homeless shelter dedicated to community support. Staff members can create, schedule, edit, and remove announcements to keep everyone informed and organized. Residents can register for life skills classes, book appointments, request curfew extensions, and manage personal schedules through an integrated calendar. The platform leverages Next.js, Prisma, and SQLite to deliver a secure, scalable, and user-friendly experience.
+Samaritan Inn Scheduling App is a web application serving the residents and staff of Samaritan Inn, a nonprofit homeless shelter dedicated to community support. Staff members can create, schedule, edit, and remove announcements to keep everyone informed and organized. Residents can register for life skills classes, book appointments, request curfew extensions, and manage personal schedules through an integrated calendar. In addition, residents can submit pass forms to request extended curfew or time away from the shelter. Residents can see if their requests have been approved or denied by staff. Staff can approve or deny residents' requests and see past forms. The platform leverages Next.js, Prisma, and SQLite to deliver a secure, scalable, and user-friendly experience.
 
 ---
 
@@ -41,7 +41,12 @@ Samaritan Inn Scheduling App is a web application serving the residents and staf
 
 ### Curfew Extension Requests
 
-- Residents can request curfew extensions through the platform.
+- **Residents**
+  - Residents can request curfew extensions through the platform.
+  - Residents can see if their requests have been approved or denied by staff.
+- **Staff**
+  - Staff can approve or deny residents' requests
+  - Staff can see past forms
 
 ### Authentication
 
