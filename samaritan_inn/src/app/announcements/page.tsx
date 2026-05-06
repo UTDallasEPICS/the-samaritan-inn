@@ -340,7 +340,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
     />
   </>
 )}
-{/* ⬆️ END OF NEW DATE FIELD */}
+{/* END OF NEW DATE FIELD */}
                 {/* Event-only fields */}
                 {section === 'events' && (
                   <>
