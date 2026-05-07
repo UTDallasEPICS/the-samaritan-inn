@@ -134,24 +134,32 @@ Samaritan Inn Scheduling App is a web application serving the residents and staf
 │   │   ├── favicon.ico  
 │   │   ├── globals.css  
 │   │   ├── layout.tsx  
-│   │   ├── page.tsx  
+│   │   ├── page.tsx
+│   │   ├── admin-forms  
 │   │   ├── announcements  
 │   │   ├── api  
 │   │   │   ├── announcements  
 │   │   │   ├── auth  
 │   │   │   ├── login  
 │   │   │   └── register  
-│   │   ├── auth-status  
+│   │   ├── auth-status
+│   │   ├── calendar-form  
 │   │   ├── caseworker  
 │   │   ├── curfew  
 │   │   ├── dashboard  
 │   │   ├── homepage  
-│   │   ├── login  
+│   │   ├── login
+│   │   ├── pass-form  
 │   │   ├── signup  
 │   │   ├── unauthorized  
 │   │   └── Resources  
 │   ├── components  
-│   │   ├── Navigation.tsx  
+│   │   ├── Navigation.tsx
+│   │   └── admin
+│   │       └── DecisionPanel.tsx
+│   │       └── ExtendedCurfewDetailModal.tsx
+│   │       └── PassRequestDetailModal.tsx
+│   │       └── WorkScheduleDetailModal.tsx   
 │   │   └── providers  
 │   │       └── SessionProvider.tsx  
 │   ├── lib  
