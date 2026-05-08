@@ -33,6 +33,7 @@ Samaritan Inn Scheduling App is a web application serving the residents and staf
 - **Staff**
   - Create, post, and schedule announcements for residents.
   - Manage life skills classes, including scheduling and capacity limits.
+  - Deny or approve resident passes.
 
 ### Announcements Management
 
