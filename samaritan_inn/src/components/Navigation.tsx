@@ -18,7 +18,7 @@ export default function Navigation() {
 
   const handleLogoutConfirm = () => {
     setShowLogoutConfirm(false);
-    signOut({ callbackUrl: '/login' });
+    signOut({ callbackUrl: '/auth/login' });
   };
 
   return (
@@ -52,7 +52,7 @@ export default function Navigation() {
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
-                  className={`px-3 py-2 rounded-md font-bold ${pathname === '/login' ? 'bg-red-600' : 'bg-red-500 hover:bg-red-600'}`}
+                  className={`px-3 py-2 rounded-md font-bold ${pathname === '/auth/login' ? 'bg-red-600' : 'bg-red-500 hover:bg-red-600'}`}
                 >
                   Logout
                 </button>
@@ -60,7 +60,7 @@ export default function Navigation() {
             ) : (
               <>
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
-                <Link href="/login" className={linkClass('/login')}>Login</Link>
+                <Link href="/auth/login" className={linkClass('/auth/login')}>Login</Link>
                 {/* <Link
                   href="/signup"
                   className={`px-3 py-2 rounded-md font-bold ${pathname === '/signup' ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'}`}
@@ -121,7 +121,7 @@ export default function Navigation() {
             ) : (
               <>
                 <Link href="/profile" className={linkClass('/profile', true)} onClick={() => setIsMenuOpen(false)}>Profile</Link>
-                <Link href="/login" className={linkClass('/login', true)} onClick={() => setIsMenuOpen(false)}>Login</Link>
+                <Link href="/auth/login" className={linkClass('/auth/login', true)} onClick={() => setIsMenuOpen(false)}>Login</Link>
                 {/* <Link href="/signup" className={`block w-full text-left px-3 py-2 rounded-md font-bold bg-green-500 hover:bg-green-600`} onClick={() => setIsMenuOpen(false)}>Sign Up</Link> */}
               </>
             )}
@@ -143,7 +143,7 @@ export default function Navigation() {
               No
             </button>
             <button
-              onClick={() => { setShowLogoutConfirm(false); signOut({ callbackUrl: '/login' }); }}
+              onClick={() => { setShowLogoutConfirm(false); signOut({ callbackUrl: '/auth/login' }); }}
               className="flex-1 px-4 py-2 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 transition"
             >
               Yes

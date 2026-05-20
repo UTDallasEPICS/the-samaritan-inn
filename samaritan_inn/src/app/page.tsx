@@ -13,7 +13,7 @@ const HomePage = () => {
   // redirect unauthenticated users off the homepage
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.replace('/unauthorized');
+      router.replace('/auth/unauthorized');
     }
   }, [status, router]);
 
