@@ -71,7 +71,7 @@ const HomePage = () => {
               <h2 className="text-xl font-bold text-[#00167c] mb-2">Classes</h2>
               <p className="text-[#231f20] mb-4">Browse Classes, view details, and schedule sessions! </p>
               <Link
-                href="/schedule"
+                href="/classes"
                 className="inline-block bg-[#0caebb] text-white py-2 px-6 rounded-md hover:bg-[#29abe2] transition duration-300"
               >
                 Classes
@@ -92,7 +92,7 @@ const HomePage = () => {
               <h2 className="text-xl font-bold text-[#00167c] mb-2">Resources</h2>
               <p className="text-[#231f20] mb-4">Access helpful community resources</p>
               <Link
-                href="/Resources"
+                href="/resources"
                 className="inline-block bg-[#0caebb] text-white py-2 px-6 rounded-md hover:bg-[#29abe2] transition duration-300"
               >
                 View

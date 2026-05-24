@@ -50,7 +50,7 @@ const Signup = () => {
       }
 
       // Redirect to login page on success
-      router.push('/login?registered=true');
+      router.push('/auth/login?registered=true');
     } catch (error: any) {
       setError(error.message || 'An error occurred during signup');
     } finally {
@@ -113,7 +113,7 @@ const Signup = () => {
             </button>
             <p className="text-center text-black">
               Already have an account?{' '}
-              <Link href="/login" className="text-blue-500 hover:underline">
+              <Link href="/auth/login" className="text-blue-500 hover:underline">
                 Log in
               </Link>
             </p>

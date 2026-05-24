@@ -41,7 +41,7 @@ export default function PastFormsPage() {
     return null;
   }
   if (session?.user?.role !== 'admin') {
-    router.replace('/pass-form');
+    router.replace('/user-pass-form');
     return null;
   }
 
