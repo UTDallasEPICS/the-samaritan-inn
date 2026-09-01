@@ -82,9 +82,10 @@ Samaritan Inn Scheduling App is a web application serving the residents and staf
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/samaritan-inn.git
-   cd samaritan-inn
+   git clone https://github.com/UTDallasEPICS/the-samaritan-inn.git
+   cd the-samaritan-inn/samaritan_inn
    ```
+   All remaining commands run from `samaritan_inn/`, where `package.json` and `prisma/` live.
 2. Install dependencies:
    - `npm install`
    - (create `.env` file and add the required information)
@@ -109,72 +110,121 @@ Samaritan Inn Scheduling App is a web application serving the residents and staf
 
 ## Project Structure
 
-```text
-├── .env  
-├── .gitignore  
-├── eslint.config.mjs  
-├── next-env.d.ts  
-├── next.config.ts  
-├── package.json  
-├── postcss.config.mjs  
-├── README.md  
-├── tailwind.config.ts  
-├── tsconfig.json  
-├── prisma  
-│   ├── schema.prisma  
-│   ├── dev.db  
-│   └── migrations  
-├── public  
-│   ├── file.svg  
-│   ├── globe.svg  
-│   ├── next.svg  
-│   ├── vercel.svg  
-│   └── window.svg  
-├── src  
-│   ├── app  
-│   │   ├── favicon.ico  
-│   │   ├── globals.css  
-│   │   ├── layout.tsx  
-│   │   ├── page.tsx
-│   │   ├── admin-forms  
-│   │   ├── announcements  
-│   │   ├── api  
-│   │   │   ├── announcements  
-│   │   │   ├── auth  
-│   │   │   ├── login  
-│   │   │   └── register  
-│   │   ├── auth-status
-│   │   ├── calendar-form  
-│   │   ├── caseworker  
-│   │   ├── curfew  
-│   │   ├── dashboard  
-│   │   ├── homepage  
-│   │   ├── login
-│   │   ├── pass-form  
-│   │   ├── signup  
-│   │   ├── unauthorized  
-│   │   └── Resources  
-│   ├── components  
-│   │   ├── Navigation.tsx
-│   │   └── admin
-│   │       └── DecisionPanel.tsx
-│   │       └── ExtendedCurfewDetailModal.tsx
-│   │       └── PassRequestDetailModal.tsx
-│   │       └── WorkScheduleDetailModal.tsx   
-│   │   └── providers  
-│   │       └── SessionProvider.tsx  
-│   ├── lib  
-│   │   ├── auth.ts  
-│   │   └── prisma.ts  
-│   └── types  
-│       └── next-auth.d.ts  
-└── .next  
-    ├── app-build-manifest.json  
-    ├── build-manifest.json  
-    ├── cache  
-    ├── server  
-    └── static  
+The Next.js application lives in `samaritan_inn/`. All `npm` commands below are run from that directory, not the repository root.
 
+```text
+the-samaritan-inn/
+├── README.md
+├── end_of_sem_samaritan_inn.md
+├── Documentation/                     # Feature write-ups
+│   ├── NextAuth.md
+│   └── Annoucements/
+│       ├── page.md
+│       └── route.md
+└── samaritan_inn/                     # The Next.js app
+    ├── .env
+    ├── CLAUDE.md
+    ├── eslint.config.mjs
+    ├── next.config.ts
+    ├── package.json
+    ├── postcss.config.mjs
+    ├── tailwind.config.ts
+    ├── tsconfig.json
+    ├── ADR-WPR-REQ/                   # Architecture decision records, weekly progress, requirements
+    ├── prisma/
+    │   ├── schema.prisma
+    │   ├── dev.db
+    │   ├── migrations/
+    │   ├── add-mock-caseworkers.js
+    │   └── add-mock-residents.js
+    ├── public/                        # logo.png and svg assets
+    └── src/
+        ├── app/
+        │   ├── favicon.ico
+        │   ├── globals.css
+        │   ├── layout.tsx
+        │   ├── page.tsx               # "/" resident home (redirects to /auth/unauthorized when signed out)
+        │   ├── admin-forms/           # Staff form review queue
+        │   │   ├── page.tsx
+        │   │   └── sorted-forms/
+        │   │       ├── pending-forms/
+        │   │       └── past-forms/
+        │   ├── announcements/
+        │   ├── appointments/          # Salesforce-backed scheduling
+        │   │   ├── calendar-form/
+        │   │   └── my-events/
+        │   ├── auth/                  # Auth-related pages
+        │   │   ├── login/
+        │   │   ├── signup/
+        │   │   └── unauthorized/
+        │   ├── classes/               # Life skills classes (Calendly embed)
+        │   ├── profile/
+        │   ├── resources/
+        │   ├── user-pass-form/        # Resident pass / curfew / work schedule submissions
+        │   └── api/
+        │       ├── announcements/     # + [id]
+        │       ├── auth/[...nextauth]/
+        │       ├── debug-session/
+        │       ├── events/            # + [id]
+        │       ├── get-available-slots/
+        │       ├── get-calendar/
+        │       ├── login/
+        │       ├── my-events/         # + [id]
+        │       ├── pass/
+        │       │   ├── extended-curfew/   # + [id]
+        │       │   ├── pass-request/      # + [id]
+        │       │   └── work-schedule/     # + [id]
+        │       ├── register/
+        │       ├── submit-event/
+        │       └── users/
+        │           ├── caseworkers/
+        │           └── residents/
+        ├── components/
+        │   ├── CaseworkerSelect.tsx
+        │   ├── ExtendedCurfewForm.tsx
+        │   ├── Fetchforms.tsx
+        │   ├── Navigation.tsx
+        │   ├── PassRequestForm.tsx
+        │   ├── ResidentSearch.tsx
+        │   ├── SidebarCalendar.jsx     # + SidebarCalendar.d.ts
+        │   ├── StatusBadge.tsx
+        │   ├── WorkScheduleForm.tsx
+        │   ├── admin/
+        │   │   ├── DecisionPanel.tsx
+        │   │   ├── ExtendedCurfewDetailModal.tsx
+        │   │   ├── PassRequestDetailModal.tsx
+        │   │   └── WorkScheduleDetailModal.tsx
+        │   └── providers/
+        │       └── SessionProvider.tsx
+        ├── lib/
+        │   ├── auth.ts
+        │   ├── authOptions.ts
+        │   ├── booking.ts              # Booking validation and business rules
+        │   ├── getServerSessionInfo.ts
+        │   ├── getServerUserId.ts
+        │   ├── prisma.ts
+        │   ├── salesforce.ts           # Shared Salesforce OAuth + REST client
+        │   └── scheduled-events.ts     # Local ScheduledEvent mirror helpers
+        └── types/
+            └── next-auth.d.ts
+```
+
+### Routes at a Glance
+
+| Route | Who | Purpose |
+| --- | --- | --- |
+| `/` | Resident | Home page and entry point |
+| `/announcements` | All | View announcements; staff can create and manage them |
+| `/classes` | Resident | Life skills class signup (Calendly embed) |
+| `/resources` | Resident | Shelter resources |
+| `/user-pass-form` | Resident | Submit work schedule, extended curfew, and pass requests, plus submission history |
+| `/appointments/my-events` | Resident | Book and view caseworker appointments |
+| `/appointments/calendar-form` | Resident | Alternate booking UI for the same Salesforce flow |
+| `/admin-forms` | Staff | Review queue for resident forms |
+| `/admin-forms/sorted-forms/pending-forms` | Staff | Forms awaiting a decision |
+| `/admin-forms/sorted-forms/past-forms` | Staff | Previously decided forms |
+| `/profile` | All | Account details and sign out |
+| `/auth/login`, `/auth/signup`, `/auth/unauthorized` | Public | Authentication pages |
 
 ### Scripts
 
@@ -209,7 +259,7 @@ This project uses NextAuth.js for authentication with two roles:
 
 ## Salesforce Integration and APIs
 
-The resident appointment flow is integrated with Salesforce so that scheduled appointments are created as Salesforce `Event` records and also mirrored in the local SQLite database for app-specific rules and UI rendering. In the current codebase, this Salesforce-backed flow is used by `/my-events` and `/calendar-form`. The separate `/schedule` page still embeds a Calendly widget for classes and is not part of the Salesforce event flow.
+The resident appointment flow is integrated with Salesforce so that scheduled appointments are created as Salesforce `Event` records and also mirrored in the local SQLite database for app-specific rules and UI rendering. In the current codebase, this Salesforce-backed flow is used by `/appointments/my-events` and `/appointments/calendar-form`. The separate `/classes` page still embeds a Calendly widget for life skills classes and is not part of the Salesforce event flow.
 
 ### Overview
 
@@ -221,7 +271,7 @@ The resident appointment flow is integrated with Salesforce so that scheduled ap
 
 ### Architecture and Data Flow
 
-1. A signed-in user opens `/my-events` or `/calendar-form` and selects a caseworker calendar owner id from the frontend environment-configured list.
+1. A signed-in user opens `/appointments/my-events` or `/appointments/calendar-form` and selects a caseworker calendar owner id from the frontend environment-configured list.
 2. The page calls `GET /api/get-available-slots?date=YYYY-MM-DD&ownerId=<salesforce-owner-id>`.
 3. The route validates the date and owner id, queries Salesforce `Event` records for overlapping time on that owner's calendar, and returns available 30-minute slots inside business hours.
 4. The user submits `POST /api/submit-event` with `title`, `startDate`, `endDate`, and `ownerId`.
@@ -417,8 +467,8 @@ The root README setup example already includes `DATABASE_URL`, `NEXTAUTH_URL`, a
 - Local development requires valid Salesforce credentials and reachable Salesforce org URLs; otherwise Salesforce-backed routes fail.
 - The repository includes mock user scripts at `samaritan_inn/prisma/add-mock-caseworkers.js` and `samaritan_inn/prisma/add-mock-residents.js`, but these only seed local Prisma users. They do not seed Salesforce calendars, owners, or events.
 - No automated tests, fixtures, or seed data specific to Salesforce event creation were found in the current repository.
-- `/my-events` and `/calendar-form` both implement the same Salesforce-backed scheduling UI flow.
-- `/schedule` still uses a Calendly embed for classes, so the app currently contains both a Salesforce-backed appointment flow and a separate legacy Calendly flow.
+- `/appointments/my-events` and `/appointments/calendar-form` both implement the same Salesforce-backed scheduling UI flow.
+- `/classes` still uses a Calendly embed for life skills classes, so the app currently contains both a Salesforce-backed appointment flow and a separate legacy Calendly flow.
 - `/api/get-calendar` appears to be older or auxiliary code and is not clearly integrated into the current UI.
 
 ## Deployment
@@ -437,6 +487,6 @@ The root README setup example already includes `DATABASE_URL`, `NEXTAUTH_URL`, a
 
 1. Allow admin to add attachements to announcements and events
 2. Change curfew to more of a form and then sends admin response to user in form of email or notification
-3. Retire the legacy Calendly scheduling page in favor of the Salesforce-backed scheduling flow already used by `/my-events` and `/calendar-form`
+3. Retire the legacy Calendly scheduling page (`/classes`) in favor of the Salesforce-backed scheduling flow already used by `/appointments/my-events` and `/appointments/calendar-form`
 4. User request form to fulfill order in inflow. 
 ---
