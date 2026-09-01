@@ -27,6 +27,7 @@ export default function PassFormPage() {
   const [activeForm, setActiveForm] = useState<FormType>(null);
   const [activityFeed, setActivityFeed] = useState<ActivityRow[]>([]);
 
+  //Redirects admin to admin forms page
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.role === 'admin') {
       router.replace('/admin-forms');

@@ -18,7 +18,7 @@ export default function Navigation() {
 
   const handleLogoutConfirm = () => {
     setShowLogoutConfirm(false);
-    signOut({ callbackUrl: '/login' });
+    signOut({ callbackUrl: '/auth/login' });
   };
 
   return (
@@ -42,17 +42,17 @@ export default function Navigation() {
           {/* Desktop navigation */}
           <div className="hidden md:flex md:items-center md:space-x-6">
             <Link href="/" className={linkClass('/')}>Home</Link>
-            <Link href="/schedule" className={linkClass('/schedule')}>Classes</Link>
-            <Link href="/Resources" className={linkClass('/Resources')}>Resources</Link>
+            <Link href="/classes" className={linkClass('/classes')}>Classes</Link>
+            <Link href="/resources" className={linkClass('/resources')}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
-            <Link href="/pass-form" className={linkClass('/pass-form')}>Pass</Link>
-            <Link href="/my-events" className={linkClass('/my-events')}>Appointments</Link>
+            <Link href="/user-pass-form" className={linkClass('/user-pass-form')}>Pass</Link>
+            <Link href="/appointments/my-events" className={linkClass('/appointments/my-events')}>Appointments</Link>
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
-                  className={`px-3 py-2 rounded-md font-bold ${pathname === '/login' ? 'bg-red-600' : 'bg-red-500 hover:bg-red-600'}`}
+                  className={`px-3 py-2 rounded-md font-bold ${pathname === '/auth/login' ? 'bg-red-600' : 'bg-red-500 hover:bg-red-600'}`}
                 >
                   Logout
                 </button>
@@ -60,10 +60,10 @@ export default function Navigation() {
             ) : (
               <>
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
-                <Link href="/login" className={linkClass('/login')}>Login</Link>
+                <Link href="/auth/login" className={linkClass('/auth/login')}>Login</Link>
                 {/* <Link
-                  href="/signup"
-                  className={`px-3 py-2 rounded-md font-bold ${pathname === '/signup' ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'}`}
+                  href="/auth/signup"
+                  className={`px-3 py-2 rounded-md font-bold ${pathname === '/auth/signup' ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'}`}
                 >
                   Sign Up
                 </Link> */}
@@ -100,11 +100,11 @@ export default function Navigation() {
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link href="/" className={linkClass('/', true)} onClick={() => setIsMenuOpen(false)}>Home</Link>
-            <Link href="/schedule" className={linkClass('/schedule', true)} onClick={() => setIsMenuOpen(false)}>Classes</Link>
-            <Link href="/Resources" className={linkClass('/Resources', true)} onClick={() => setIsMenuOpen(false)}>Resources</Link>
+            <Link href="/classes" className={linkClass('/classes', true)} onClick={() => setIsMenuOpen(false)}>Classes</Link>
+            <Link href="/resources" className={linkClass('/resources', true)} onClick={() => setIsMenuOpen(false)}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements', true)} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
-            <Link href="/my-events" className={linkClass('/my-events', true)} onClick={() => setIsMenuOpen(false)}>Schedule Event</Link>
-            <Link href="/pass-form" className={linkClass('/pass-form', true)} onClick={() => setIsMenuOpen(false)}>Pass</Link>
+            <Link href="/appointments/my-events" className={linkClass('/appointments/my-events', true)} onClick={() => setIsMenuOpen(false)}>Schedule Event</Link>
+            <Link href="/user-pass-form" className={linkClass('/user-pass-form', true)} onClick={() => setIsMenuOpen(false)}>Pass</Link>
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile', true)} onClick={() => setIsMenuOpen(false)}>Profile</Link>
@@ -121,8 +121,8 @@ export default function Navigation() {
             ) : (
               <>
                 <Link href="/profile" className={linkClass('/profile', true)} onClick={() => setIsMenuOpen(false)}>Profile</Link>
-                <Link href="/login" className={linkClass('/login', true)} onClick={() => setIsMenuOpen(false)}>Login</Link>
-                {/* <Link href="/signup" className={`block w-full text-left px-3 py-2 rounded-md font-bold bg-green-500 hover:bg-green-600`} onClick={() => setIsMenuOpen(false)}>Sign Up</Link> */}
+                <Link href="/auth/login" className={linkClass('/auth/login', true)} onClick={() => setIsMenuOpen(false)}>Login</Link>
+                {/* <Link href="/auth/signup" className={`block w-full text-left px-3 py-2 rounded-md font-bold bg-green-500 hover:bg-green-600`} onClick={() => setIsMenuOpen(false)}>Sign Up</Link> */}
               </>
             )}
           </div>
@@ -143,7 +143,7 @@ export default function Navigation() {
               No
             </button>
             <button
-              onClick={() => { setShowLogoutConfirm(false); signOut({ callbackUrl: '/login' }); }}
+              onClick={() => { setShowLogoutConfirm(false); signOut({ callbackUrl: '/auth/login' }); }}
               className="flex-1 px-4 py-2 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 transition"
             >
               Yes

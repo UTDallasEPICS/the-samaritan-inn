@@ -35,11 +35,11 @@ export default function AdminPassFormPage() {
 
   if (status === 'loading') return null;
   if (status === 'unauthenticated') {
-    router.replace('/login');
+    router.replace('/auth/login');
     return null;
   }
   if (session?.user?.role !== 'admin') {
-    router.replace('/pass-form');
+    router.replace('/user-pass-form');
     return null;
   }
 

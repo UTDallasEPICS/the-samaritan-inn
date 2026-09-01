@@ -95,7 +95,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
   // 4) Redirect unauthenticated users
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/unauthorized');
+      router.push('/auth/unauthorized');
     }
   }, [status, router]);
 

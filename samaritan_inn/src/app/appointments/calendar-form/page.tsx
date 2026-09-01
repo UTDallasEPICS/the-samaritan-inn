@@ -304,7 +304,7 @@ const CalendarFormPage = () => {
 
           <div className="mt-4">
             <Link
-              href="/my-events"
+              href="/appointments/my-events"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition duration-300"
             >
               View My Scheduled Events

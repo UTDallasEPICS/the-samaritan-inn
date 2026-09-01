@@ -77,7 +77,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: "/login",
+    signIn: "/auth/login",
   },
 };
 
@@ -116,7 +116,7 @@ export async function requireAuth() {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/auth/login");
   }
 
   return user;
@@ -126,7 +126,7 @@ export async function requireAdmin() {
   const user = await getCurrentUser();
 
   if (!user || user.role !== "admin") {
-    redirect("/unauthorized");
+    redirect("/auth/unauthorized");
   }
 
   return user;

@@ -29,7 +29,7 @@ export default function SchedulePage() {
   // Redirect if unauthenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/unauthorized');
+      router.push('/auth/unauthorized');
     }
   }, [status, router]);
 

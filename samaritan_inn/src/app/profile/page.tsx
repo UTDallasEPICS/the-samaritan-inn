@@ -43,7 +43,7 @@ export default function Profile() {
                     Home
                   </Link>
                   <button
-                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    onClick={() => signOut({ callbackUrl: '/auth/login' })}
                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                   >
                     Logout
@@ -59,13 +59,13 @@ export default function Profile() {
                 
                 <div className="flex justify-between">
                   <Link 
-                    href="/login"
+                    href="/auth/login"
                     className="bg-[#29abe2] text-white px-4 py-2 rounded hover:bg-blue-600"
                   >
                     Login
                   </Link>
                   <Link 
-                    href="/signup"
+                    href="/auth/signup"
                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                   >
                     Sign Up
