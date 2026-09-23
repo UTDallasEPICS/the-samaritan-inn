@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
+import { can } from '@/lib/permissions';
+import type { NextRequest } from 'next/server';
 
 // Fetch all announcements
 export async function GET() {
@@ -15,15 +18,18 @@ export async function GET() {
 }
 
 // Create a new announcement
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { title, content, author, isAdmin, date } = body;
-
-    // Check if the user is an admin
-    if (!isAdmin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    const session = await getServerSessionInfo(req);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!can(session.role, 'MANAGE_ANNOUNCEMENTS')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const { title, content, author, date } = body;
 
     // Create a new announcement
     const announcement = await prisma.announcement.create({

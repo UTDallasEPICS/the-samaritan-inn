@@ -12,6 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import SidebarCalendar from "@/components/SidebarCalendar";
+import { can } from '@/lib/permissions';
 
 
 interface Announcement {
@@ -89,7 +90,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
 
 
   // 3) Derived values
-  const isAdmin = session?.user?.role === 'admin';
+  const canManageAnnouncements = can(session?.user?.role, 'MANAGE_ANNOUNCEMENTS');
   const items = filteredItems;
 
   // 4) Redirect unauthenticated users
@@ -142,7 +143,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
   };
 
   const handlePostItem = async () => {
-    if (!isAdmin) return;
+    if (!canManageAnnouncements) return;
     if (section === 'announcements') {
   const { title, content, date } = newAnnouncement;
   if (!title.trim() || !content.trim() || !date) {
@@ -154,7 +155,6 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
     body: JSON.stringify({
       ...newAnnouncement,
       author: 'Admin',
-      isAdmin,
     }),
   });
       if (!res.ok) return console.error('Post failed');
@@ -192,7 +192,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
   };
 
   const handleSaveItem = async () => {
-    if (!isAdmin || !editingId) return;
+    if (!canManageAnnouncements || !editingId) return;
     const path =
       section === 'announcements'
         ? `/api/announcements/${editingId}`
@@ -213,7 +213,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!isAdmin || !confirm('Confirm delete?')) return;
+    if (!canManageAnnouncements || !confirm('Confirm delete?')) return;
     const path =
       section === 'announcements'
         ? `/api/announcements/${id}`
@@ -247,7 +247,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-semibold text-black">Announcements</h1>
-            {isAdmin && (
+            {canManageAnnouncements && (
               <Button
                 variant="contained"
                 onClick={() => {
@@ -419,7 +419,7 @@ const filteredItems = section === 'announcements' ? filteredAnnouncements : filt
                 <li key={item.id} className="border border-gray-300 p-4 rounded-md bg-gray-50">
                   <div className="flex justify-between items-start">
                     <h2 className="text-lg font-semibold text-black">{item.title}</h2>
-                    {isAdmin && (
+                    {canManageAnnouncements && (
                       <div className="flex space-x-1">
                         <IconButton size="small" onClick={() => initEdit(item)}>
                           <EditIcon fontSize="small" />

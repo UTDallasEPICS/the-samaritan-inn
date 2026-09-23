@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { can } from '@/lib/permissions';
 
 export default function Navigation() {
   const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const pathname = usePathname();
+  const canManageUsers = can(session?.user?.role, 'MANAGE_USERS');
 
   // Helper to apply active styling to nav links
   const linkClass = (path: string, mobile = false) =>
@@ -47,6 +49,9 @@ export default function Navigation() {
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form')}>Pass</Link>
             <Link href="/appointments/my-events" className={linkClass('/appointments/my-events')}>Appointments</Link>
+            {canManageUsers && (
+              <Link href="/admin-users" className={linkClass('/admin-users')}>Manage Users</Link>
+            )}
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
@@ -105,6 +110,9 @@ export default function Navigation() {
             <Link href="/announcements" className={linkClass('/announcements', true)} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
             <Link href="/appointments/my-events" className={linkClass('/appointments/my-events', true)} onClick={() => setIsMenuOpen(false)}>Schedule Event</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form', true)} onClick={() => setIsMenuOpen(false)}>Pass</Link>
+            {canManageUsers && (
+              <Link href="/admin-users" className={linkClass('/admin-users', true)} onClick={() => setIsMenuOpen(false)}>Manage Users</Link>
+            )}
             {status === 'authenticated' ? (
               <>
                 <Link href="/profile" className={linkClass('/profile', true)} onClick={() => setIsMenuOpen(false)}>Profile</Link>

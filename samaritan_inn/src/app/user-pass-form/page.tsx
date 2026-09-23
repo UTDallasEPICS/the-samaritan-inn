@@ -8,6 +8,7 @@ import WorkScheduleForm from '@/components/WorkScheduleForm';
 import ExtendedCurfewForm from '@/components/ExtendedCurfewForm';
 import PassRequestForm from '@/components/PassRequestForm';
 import StatusBadge from '@/components/StatusBadge';
+import { can } from '@/lib/permissions';
 
 type FormType = 'work-schedule' | 'extended-curfew' | 'pass-request' | null;
 
@@ -27,15 +28,15 @@ export default function PassFormPage() {
   const [activeForm, setActiveForm] = useState<FormType>(null);
   const [activityFeed, setActivityFeed] = useState<ActivityRow[]>([]);
 
-  //Redirects admin to admin forms page
+  //Redirects admin/caseworker to admin forms page
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.role === 'admin') {
+    if (status === 'authenticated' && can(session?.user?.role, 'VIEW_ALL_REQUESTS')) {
       router.replace('/admin-forms');
     }
   }, [status, session, router]);
 
   useEffect(() => {
-    if (status !== 'authenticated' || session?.user?.role === 'admin') return;
+    if (status !== 'authenticated' || can(session?.user?.role, 'VIEW_ALL_REQUESTS')) return;
 
     async function fetchForms() {
       try {
@@ -81,7 +82,7 @@ export default function PassFormPage() {
     fetchForms();
   }, [status, session]);
 
-  if (status === 'loading' || session?.user?.role === 'admin') return null;
+  if (status === 'loading' || can(session?.user?.role, 'VIEW_ALL_REQUESTS')) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -51,7 +51,7 @@ model User {
   email                 String                  @unique
   password              String
   name                  String
-  role                  String                  @default("resident") // e.g., "resident", "staff", "admin"
+  role                  String                  @default("resident") // "resident" | "admin" | "caseworker" (see src/lib/permissions.ts)
   emailVerified         DateTime?
   image                 String?
   createdAt             DateTime                @default(now())

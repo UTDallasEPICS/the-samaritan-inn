@@ -17,7 +17,7 @@ async function main() {
         email: cw.email,
         name: cw.name,
         password: 'mock-hashed-password',
-        role: 'admin',
+        role: 'caseworker',
       },
     });
     console.log(`Upserted caseworker: ${cw.name}`);

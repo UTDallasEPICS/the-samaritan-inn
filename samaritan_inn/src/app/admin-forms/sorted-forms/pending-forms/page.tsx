@@ -11,6 +11,7 @@ import PassRequestDetailModal from '@/components/admin/PassRequestDetailModal';
 import ExtendedCurfewDetailModal from '@/components/admin/ExtendedCurfewDetailModal';
 import WorkScheduleDetailModal from '@/components/admin/WorkScheduleDetailModal';
 import type { FormApiKey } from '@/components/admin/DecisionPanel';
+import { can } from '@/lib/permissions';
 
 type DetailTarget = { formKey: FormApiKey; id: string } | null;
 type SubmittedSort = 'desc' | 'asc';
@@ -37,7 +38,7 @@ export default function PendingFormsPage() {
     router.replace('/auth/login');
     return null;
   }
-  if (session?.user?.role !== 'admin') {
+  if (!can(session?.user?.role, 'VIEW_ALL_REQUESTS')) {
     router.replace('/user-pass-form');
     return null;
   }
