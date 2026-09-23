@@ -15,7 +15,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.0.2",
     "@mui/material": "^7.0.2",
-    "@prisma/client": "^6.4.1",
+    "@prisma/client": "5.22.0",
     "bcryptjs": "^3.0.2",
     "date-fns": "^4.1.0",
     "next": "15.1.7",
@@ -34,8 +34,17 @@
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "postcss": "^8",
-    "prisma": "^6.4.1",
+    "prisma": "5.22.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "@prisma/client@6.4.1": true,
+    "@prisma/engines@6.4.1": true,
+    "esbuild@0.25.0": true,
+    "fsevents@2.3.3": true,
+    "prisma@6.4.1": true,
+    "sharp@0.33.5": true,
+    "sqlite3@5.1.7": true
   }
 }
