@@ -44,6 +44,7 @@ export default function Navigation() {
             <Link href="/" className={linkClass('/')}>Home</Link>
             <Link href="/classes" className={linkClass('/classes')}>Classes</Link>
             <Link href="/resources" className={linkClass('/resources')}>Resources</Link>
+            <Link href="/inventory" className={linkClass('/inventory')}>Inventory</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form')}>Pass</Link>
             <Link href="/appointments/my-events" className={linkClass('/appointments/my-events')}>Appointments</Link>
