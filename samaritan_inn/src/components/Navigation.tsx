@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { can } from '@/lib/permissions';
@@ -10,9 +10,34 @@ import { can } from '@/lib/permissions';
 export default function Navigation() {
   const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isMobileProfileOpen, setIsMobileProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const canManageUsers = can(session?.user?.role, 'MANAGE_USERS');
+  const inProfileSection = pathname === '/profile' || pathname === '/admin-users';
+
+  // Close the profile dropdown on outside click or Escape
+  useEffect(() => {
+    if (!isProfileMenuOpen) return;
+
+    const handleClick = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsProfileMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [isProfileMenuOpen]);
 
   // Helper to apply active styling to nav links
   const linkClass = (path: string, mobile = false) =>
@@ -49,12 +74,54 @@ export default function Navigation() {
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form')}>Pass</Link>
             <Link href="/appointments/my-events" className={linkClass('/appointments/my-events')}>Appointments</Link>
-            {canManageUsers && (
-              <Link href="/admin-users" className={linkClass('/admin-users')}>Manage Users</Link>
-            )}
             {status === 'authenticated' ? (
               <>
-                <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
+                {canManageUsers ? (
+                  <div className="relative" ref={profileMenuRef}>
+                    <button
+                      onClick={() => setIsProfileMenuOpen(open => !open)}
+                      aria-haspopup="menu"
+                      aria-expanded={isProfileMenuOpen}
+                      className={`flex items-center gap-1 px-3 py-2 rounded-md font-bold hover:bg-[#29abe2] ${inProfileSection ? 'bg-[#29abe2]' : ''}`}
+                    >
+                      Profile
+                      <svg
+                        className={`h-4 w-4 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`}
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isProfileMenuOpen && (
+                      <div
+                        role="menu"
+                        className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50"
+                      >
+                        <Link
+                          href="/profile"
+                          role="menuitem"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className={`block px-4 py-2 font-bold text-[#00167c] hover:bg-gray-100 ${pathname === '/profile' ? 'bg-gray-100' : ''}`}
+                        >
+                          My Profile
+                        </Link>
+                        <Link
+                          href="/admin-users"
+                          role="menuitem"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className={`block px-4 py-2 font-bold text-[#00167c] hover:bg-gray-100 ${pathname === '/admin-users' ? 'bg-gray-100' : ''}`}
+                        >
+                          Manage Users
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link href="/profile" className={linkClass('/profile')}>Profile</Link>
+                )}
                 <button
                   onClick={() => setShowLogoutConfirm(true)}
                   className={`px-3 py-2 rounded-md font-bold ${pathname === '/auth/login' ? 'bg-red-600' : 'bg-red-500 hover:bg-red-600'}`}
@@ -79,7 +146,7 @@ export default function Navigation() {
           {/* Mobile menu button */}
           <div className="flex md:hidden items-center">
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => { setIsMenuOpen(!isMenuOpen); setIsMobileProfileOpen(false); }}
               className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-[#29abe2] focus:outline-none"
             >
               <svg
@@ -110,12 +177,36 @@ export default function Navigation() {
             <Link href="/announcements" className={linkClass('/announcements', true)} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
             <Link href="/appointments/my-events" className={linkClass('/appointments/my-events', true)} onClick={() => setIsMenuOpen(false)}>Schedule Event</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form', true)} onClick={() => setIsMenuOpen(false)}>Pass</Link>
-            {canManageUsers && (
-              <Link href="/admin-users" className={linkClass('/admin-users', true)} onClick={() => setIsMenuOpen(false)}>Manage Users</Link>
-            )}
             {status === 'authenticated' ? (
               <>
-                <Link href="/profile" className={linkClass('/profile', true)} onClick={() => setIsMenuOpen(false)}>Profile</Link>
+                {canManageUsers ? (
+                  <>
+                    <button
+                      onClick={() => setIsMobileProfileOpen(open => !open)}
+                      aria-expanded={isMobileProfileOpen}
+                      className={`flex w-full items-center justify-between px-3 py-2 rounded-md font-bold hover:bg-[#29abe2] ${inProfileSection ? 'bg-[#29abe2]' : ''}`}
+                    >
+                      Profile
+                      <svg
+                        className={`h-4 w-4 transition-transform ${isMobileProfileOpen ? 'rotate-180' : ''}`}
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isMobileProfileOpen && (
+                      <>
+                        <Link href="/profile" className={`${linkClass('/profile', true)} pl-8`} onClick={() => setIsMenuOpen(false)}>My Profile</Link>
+                        <Link href="/admin-users" className={`${linkClass('/admin-users', true)} pl-8`} onClick={() => setIsMenuOpen(false)}>Manage Users</Link>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <Link href="/profile" className={linkClass('/profile', true)} onClick={() => setIsMenuOpen(false)}>Profile</Link>
+                )}
                 <button
                   onClick={() => { setIsMenuOpen(false); setShowLogoutConfirm(true); }}
                   className="block w-full text-left px-3 py-2 rounded-md bg-red-500 hover:bg-red-600 font-bold"
