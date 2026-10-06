@@ -14,8 +14,8 @@ import {
 } from "@/lib/appointments-data";
 
 // TODO(auth): this page is currently readable without logging in, matching the
-// old /my-events page. src/app/schedule/page.tsx shows the redirect pattern
-// (useSession -> router.push("/unauthorized")). Add it once real resident data
+// old /appointments/my-events page. src/app/classes/page.tsx shows the redirect
+// pattern (useSession -> router.push("/auth/unauthorized")). Add it once real resident data
 // is displayed here.
 
 /** Small reusable wrapper so every section is the same white rounded card. */
