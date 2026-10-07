@@ -1,21 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getCaseworkerData, type Caseworker } from '@/lib/appointments-data';
 
-const CALENDARS = [
-  { label: 'Case Worker 1', ownerId: process.env.NEXT_PUBLIC_SF_OWNER_1! },
-  { label: 'Case Worker 2', ownerId: process.env.NEXT_PUBLIC_SF_OWNER_2! },
-  { label: 'Case Worker 3', ownerId: process.env.NEXT_PUBLIC_SF_OWNER_3! },
-];
 const BOOKABLE_DURATIONS = [30, 60];
 
-const CalendarFormPage = () => {
+const CalendarForm = () => {
+  const { status } = useSession();
+  const router = useRouter();
+  // The Appointments page links here with ?ownerId=<caseworker> preselected.
+  const requestedOwnerId = useSearchParams().get('ownerId');
+
   const [form, setForm] = useState({
     title: '',
   });
-  const [selectedCalendar, setSelectedCalendar] = useState(CALENDARS[0]);
+  const [caseworkers, setCaseworkers] = useState<Caseworker[] | null>(null);
+  const [caseworkerError, setCaseworkerError] = useState('');
+  const [selectedOwnerId, setSelectedOwnerId] = useState('');
   const [date, setDate] = useState('');
   const [slots, setSlots] = useState<{ start: string; end: string; label: string }[]>([]);
   const [selectedStart, setSelectedStart] = useState<{ start: string; end: string; label: string } | null>(null);
@@ -23,6 +28,38 @@ const CalendarFormPage = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Residents only: send logged-out visitors away, same as the Classes page.
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/unauthorized');
+    }
+  }, [status, router]);
+
+  // Load the bookable caseworkers (live from Salesforce) and preselect the one
+  // chosen on the Appointments page, if it's valid.
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    let cancelled = false;
+
+    getCaseworkerData()
+      .then((data) => {
+        if (cancelled) return;
+        const bookable = data.bookableCaseworkers;
+        setCaseworkers(bookable);
+        const requested = bookable.find((cw) => cw.id === requestedOwnerId);
+        setSelectedOwnerId((requested ?? bookable[0])?.id ?? '');
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setCaseworkerError(err instanceof Error ? err.message : 'Unable to load caseworkers.');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [status, requestedOwnerId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.id]: e.target.value });
@@ -37,7 +74,9 @@ const CalendarFormPage = () => {
     setLoadingSlots(true);
     setError('');
 
-    const res = await fetch(`/api/get-available-slots?date=${dateStr}&ownerId=${ownerId}`);
+    const res = await fetch(
+      `/api/get-available-slots?date=${encodeURIComponent(dateStr)}&ownerId=${encodeURIComponent(ownerId)}`
+    );
     const data = await res.json();
 
     if (!res.ok) {
@@ -50,16 +89,15 @@ const CalendarFormPage = () => {
     setLoadingSlots(false);
   };
 
-  const handleCalendarChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const cal = CALENDARS.find(c => c.ownerId === e.target.value) ?? CALENDARS[0];
-    setSelectedCalendar(cal);
-    if (date) fetchSlots(date, cal.ownerId);
+  const handleCaseworkerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedOwnerId(e.target.value);
+    if (date) fetchSlots(date, e.target.value);
   };
 
   const handleDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
     setDate(selectedDate);
-    fetchSlots(selectedDate, selectedCalendar.ownerId);
+    fetchSlots(selectedDate, selectedOwnerId);
   };
 
   const handleStartClick = (slot: { start: string; end: string; label: string }) => {
@@ -125,8 +163,8 @@ const CalendarFormPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!form.title || !selectedStart || !selectedDuration) {
-      setError('Please fill in the Event Title, select a start time, and choose a duration.');
+    if (!form.title || !selectedOwnerId || !selectedStart || !selectedDuration) {
+      setError('Please enter a reason, choose a caseworker, select a start time, and choose a duration.');
       return;
     }
 
@@ -137,7 +175,7 @@ const CalendarFormPage = () => {
         title: form.title,
         startDate: selectedStart.start,
         endDate: getEndISO(),
-        ownerId: selectedCalendar.ownerId,
+        ownerId: selectedOwnerId,
       }),
     });
 
@@ -155,165 +193,180 @@ const CalendarFormPage = () => {
     }
   };
 
+  // Don't flash the form while the session is checked or a redirect happens.
+  if (status !== 'authenticated') return null;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
 
       <div className="flex-grow bg-gray-100 p-4 flex flex-col items-center">
         <div className="w-full max-w-4xl p-6 bg-white shadow-md rounded-md">
-          <h1 className="text-4xl font-bold mb-4 text-black">Schedule a Calendar Event</h1>
+          <h1 className="text-4xl font-bold mb-4 text-black">Book an Appointment</h1>
           <p className="text-lg mb-6 text-black">
-            Fill in the details below and select an available time slot.
+            Tell us what the appointment is for, then pick a time that works for you.
           </p>
 
-          <FormField
-            id="title"
-            label="Event Title"
-            type="text"
-            placeholder="e.g. Client Meeting"
-            value={form.title}
-            onChange={handleChange}
-            color="blue"
-            required
-          />
+          {caseworkerError ? (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+              {caseworkerError}
+            </div>
+          ) : caseworkers === null ? (
+            <p className="text-sm text-gray-500">Loading caseworkers…</p>
+          ) : caseworkers.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No caseworkers are available to book right now. Please check with the front desk.
+            </p>
+          ) : (
+            <>
+              <FormField
+                id="title"
+                label="Reason for the appointment"
+                type="text"
+                placeholder="e.g. Help with a job application"
+                value={form.title}
+                onChange={handleChange}
+                color="blue"
+                required
+              />
 
-          {/* Calendar Selector */}
-          <div className="mt-6 p-4 bg-white rounded-lg shadow-md border-2 border-primary">
-            <label className="block text-sm font-semibold mb-2 text-primary">
-              Select a Calendar <span className="text-red-400">*</span>
-            </label>
-            <select
-              value={selectedCalendar.ownerId}
-              onChange={handleCalendarChange}
-              className="w-full text-sm text-gray-800 bg-transparent outline-none"
-            >
-              {CALENDARS.map(cal => (
-                <option key={cal.ownerId} value={cal.ownerId}>{cal.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Date Picker */}
-          <div className="mt-6 p-4 bg-white rounded-lg shadow-md border-2 border-purple-600">
-            <label className="block text-sm font-semibold mb-2 text-purple-600">
-              Select a Date <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={handleDateChange}
-              className="w-full text-sm text-gray-800 bg-transparent outline-none"
-            />
-          </div>
-
-          {/* Step 1 — Pick Start Time */}
-          {loadingSlots && (
-            <div className="mt-4 text-sm text-gray-500">Loading available slots...</div>
-          )}
-
-          {slots.length > 0 && (
-            <div className="mt-6">
-              <h2 className="text-lg font-semibold text-black mb-1">Step 1 — Select a Start Time</h2>
-              <p className="text-sm text-gray-500 mb-3">Click an available time to begin.</p>
-              <div className="grid grid-cols-4 gap-2">
-                {slots.map((slot) => (
-                  <button
-                    key={slot.start}
-                    onClick={() => handleStartClick(slot)}
-                    className={`p-2 rounded border text-sm font-medium transition duration-200 ${
-                      selectedStart?.start === slot.start
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white border-blue-600 text-blue-600 hover:bg-blue-50'
-                    }`}
-                  >
-                    {slot.label}
-                  </button>
-                ))}
+              {/* Caseworker Selector */}
+              <div className="mt-6 p-4 bg-white rounded-lg shadow-md border-2 border-primary">
+                <label htmlFor="caseworker" className="block text-sm font-semibold mb-2 text-primary">
+                  Caseworker <span className="text-red-400">*</span>
+                </label>
+                <select
+                  id="caseworker"
+                  value={selectedOwnerId}
+                  onChange={handleCaseworkerChange}
+                  className="w-full text-sm text-gray-800 bg-transparent outline-none"
+                >
+                  {caseworkers.map(cw => (
+                    <option key={cw.id} value={cw.id}>{cw.name}</option>
+                  ))}
+                </select>
               </div>
-            </div>
-          )}
 
-          {/* Step 2 — Pick Duration */}
-          {selectedStart && (
-            <div className="mt-6 p-4 bg-white rounded-lg shadow-md border-2 border-orange-600">
-              <h2 className="text-lg font-semibold text-black mb-1">Step 2 — Select a Duration</h2>
-              <p className="text-sm text-gray-500 mb-3">Starting at {selectedStart.label}</p>
-              <div className="grid grid-cols-4 gap-2">
-                {BOOKABLE_DURATIONS.map((minutes) => (
-                  <button
-                    key={minutes}
-                    onClick={() => handleDurationClick(minutes)}
-                    disabled={!isDurationAvailable(minutes)}
-                    className={`p-2 rounded border text-sm font-medium transition duration-200 ${
-                      selectedDuration === minutes
-                        ? 'bg-orange-600 text-white border-orange-600'
-                        : isDurationAvailable(minutes)
-                        ? 'bg-white border-orange-600 text-orange-600 hover:bg-orange-50'
-                        : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    {minutes < 60 ? `${minutes} min` : '1 hour'}
-                  </button>
-                ))}
+              {/* Date Picker */}
+              <div className="mt-6 p-4 bg-white rounded-lg shadow-md border-2 border-purple-600">
+                <label htmlFor="date" className="block text-sm font-semibold mb-2 text-purple-600">
+                  Select a Date <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="date"
+                  type="date"
+                  value={date}
+                  onChange={handleDateChange}
+                  className="w-full text-sm text-gray-800 bg-transparent outline-none"
+                />
               </div>
-            </div>
-          )}
 
-          {/* Selection Summary */}
-          {selectedStart && selectedDuration && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-blue-700 text-sm">
-              ✓ Selected: {selectedStart.label} to {getEndTime()} ({selectedDuration} minutes)
-            </div>
-          )}
+              {/* Step 1 — Pick Start Time */}
+              {loadingSlots && (
+                <div className="mt-4 text-sm text-gray-500">Loading available slots...</div>
+              )}
 
-          {slots.length === 0 && date && !loadingSlots && !error && (
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-700 text-sm">
-              No available slots for this date. Please try another day.
-            </div>
-          )}
+              {slots.length > 0 && (
+                <div className="mt-6">
+                  <h2 className="text-lg font-semibold text-black mb-1">Step 1 — Select a Start Time</h2>
+                  <p className="text-sm text-gray-500 mb-3">Click an available time to begin.</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {slots.map((slot) => (
+                      <button
+                        key={slot.start}
+                        onClick={() => handleStartClick(slot)}
+                        className={`p-2 rounded border text-sm font-medium transition duration-200 ${
+                          selectedStart?.start === slot.start
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white border-blue-600 text-blue-600 hover:bg-blue-50'
+                        }`}
+                      >
+                        {slot.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
-              {error}
-            </div>
-          )}
+              {/* Step 2 — Pick Duration */}
+              {selectedStart && (
+                <div className="mt-6 p-4 bg-white rounded-lg shadow-md border-2 border-orange-600">
+                  <h2 className="text-lg font-semibold text-black mb-1">Step 2 — Select a Duration</h2>
+                  <p className="text-sm text-gray-500 mb-3">Starting at {selectedStart.label}</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {BOOKABLE_DURATIONS.map((minutes) => (
+                      <button
+                        key={minutes}
+                        onClick={() => handleDurationClick(minutes)}
+                        disabled={!isDurationAvailable(minutes)}
+                        className={`p-2 rounded border text-sm font-medium transition duration-200 ${
+                          selectedDuration === minutes
+                            ? 'bg-orange-600 text-white border-orange-600'
+                            : isDurationAvailable(minutes)
+                            ? 'bg-white border-orange-600 text-orange-600 hover:bg-orange-50'
+                            : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        {minutes < 60 ? `${minutes} min` : '1 hour'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {success && (
-            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-700 text-sm">
-              ✓ Your event has been successfully added to the calendar.
-            </div>
-          )}
+              {/* Selection Summary */}
+              {selectedStart && selectedDuration && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-blue-700 text-sm">
+                  ✓ Selected: {selectedStart.label} to {getEndTime()} ({selectedDuration} minutes)
+                </div>
+              )}
 
-          <div className="mt-6">
-            <button
-              onClick={handleSubmit}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-300"
-            >
-              Submit Event
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-          </div>
+              {slots.length === 0 && date && !loadingSlots && !error && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-700 text-sm">
+                  No available slots for this date. Please try another day.
+                </div>
+              )}
+
+              {error && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-700 text-sm">
+                  ✓ Your appointment is booked. You can see it under Upcoming Appointments.
+                </div>
+              )}
+
+              <div className="mt-6">
+                <button
+                  onClick={handleSubmit}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-300"
+                >
+                  Book Appointment
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </button>
+              </div>
+            </>
+          )}
 
           <div className="mt-4">
             <Link
-              href="/appointments/my-events"
+              href="/appointments"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition duration-300"
             >
-              View My Scheduled Events
+              Back to My Appointments
             </Link>
           </div>
-
-          <p className="mt-4 text-sm text-gray-500">
-            This form submits directly to Salesforce via the REST API.
-          </p>
         </div>
       </div>
     </div>
@@ -383,5 +436,12 @@ const FormField = ({
     </div>
   );
 };
+
+// useSearchParams() needs a Suspense boundary, or `next build` fails.
+const CalendarFormPage = () => (
+  <Suspense fallback={null}>
+    <CalendarForm />
+  </Suspense>
+);
 
 export default CalendarFormPage;

@@ -1,22 +1,18 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Navigation from "@/components/Navigation";
 import CaseworkerCard from "@/components/appointments/CaseworkerCard";
 import PersonRow from "@/components/appointments/PersonRow";
 import UpcomingAppointmentRow from "@/components/appointments/UpcomingAppointmentRow";
 import {
-  getMyCaseworkers,
-  getBookableCaseworkers,
+  getCaseworkerData,
   getUpcomingAppointments,
-  type Caseworker,
+  type CaseworkerData,
   type UpcomingAppointment,
 } from "@/lib/appointments-data";
-
-// TODO(auth): this page is currently readable without logging in, matching the
-// old /appointments/my-events page. src/app/classes/page.tsx shows the redirect
-// pattern (useSession -> router.push("/auth/unauthorized")). Add it once real resident data
-// is displayed here.
 
 /** Small reusable wrapper so every section is the same white rounded card. */
 function Card({
@@ -37,48 +33,78 @@ function Card({
 }
 
 const AppointmentsPage = () => {
-  // ── Data loaded from the (currently mocked) data layer ──
-  const [myCaseworkers, setMyCaseworkers] = useState<Caseworker[]>([]);
-  const [bookable, setBookable] = useState<Caseworker[]>([]);
-  const [upcoming, setUpcoming] = useState<UpcomingAppointment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const { status } = useSession();
+  const router = useRouter();
+
+  // ── Caseworker data (from Salesforce, via /api/caseworkers) ──
+  const [caseworkerData, setCaseworkerData] = useState<CaseworkerData | null>(null);
+  const [caseworkerError, setCaseworkerError] = useState<string | null>(null);
+
+  // ── Appointments (from our database, via /api/my-events) ──
+  const [upcoming, setUpcoming] = useState<UpcomingAppointment[] | null>(null);
+  const [upcomingError, setUpcomingError] = useState<string | null>(null);
 
   // ── Dropdown state ──
   const [isOpen, setIsOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [scheduleNotice, setScheduleNotice] = useState<string | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch everything once, when the page first appears. Promise.all runs the
-  // three requests at the same time rather than waiting for each in turn.
+  // Residents only: send logged-out visitors away, same as the Classes page.
   useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/unauthorized");
+    }
+  }, [status, router]);
+
+  const loadUpcoming = useCallback(async () => {
+    try {
+      setUpcoming(await getUpcomingAppointments());
+      setUpcomingError(null);
+    } catch (error) {
+      setUpcomingError(
+        error instanceof Error ? error.message : "Unable to load your appointments."
+      );
+    }
+  }, []);
+
+  // Load both data sources once the session is confirmed. They load
+  // independently, so if Salesforce is down the resident still sees their
+  // appointments (which live in our database).
+  useEffect(() => {
+    if (status !== "authenticated") return;
     let cancelled = false;
 
-    Promise.all([
-      getMyCaseworkers(),
-      getBookableCaseworkers(),
-      getUpcomingAppointments(),
-    ])
-      .then(([mine, all, appts]) => {
-        // If the user navigated away before this resolved, don't touch state.
-        if (cancelled) return;
-        setMyCaseworkers(mine);
-        setBookable(all);
-        setUpcoming(appts);
+    getCaseworkerData()
+      .then((data) => {
+        if (!cancelled) setCaseworkerData(data);
       })
-      .catch(() => {
-        if (!cancelled) setLoadError(true);
+      .catch((error) => {
+        if (!cancelled) {
+          setCaseworkerError(
+            error instanceof Error
+              ? error.message
+              : "Unable to load caseworker information."
+          );
+        }
+      });
+
+    getUpcomingAppointments()
+      .then((appts) => {
+        if (!cancelled) setUpcoming(appts);
       })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+      .catch((error) => {
+        if (!cancelled) {
+          setUpcomingError(
+            error instanceof Error ? error.message : "Unable to load your appointments."
+          );
+        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [status]);
 
   // Close the dropdown on an outside click or the Escape key.
   useEffect(() => {
@@ -105,21 +131,21 @@ const AppointmentsPage = () => {
     };
   }, [isOpen]);
 
+  // Don't flash resident-only content while the session is being checked or
+  // while redirecting a logged-out visitor.
+  if (status !== "authenticated") return null;
+
+  const bookable = caseworkerData?.bookableCaseworkers ?? [];
   const selected = bookable.find((cw) => cw.id === selectedId) ?? null;
 
-  const handleSelect = (caseworker: Caseworker) => {
-    setSelectedId(caseworker.id);
-    setIsOpen(false);
-    setScheduleNotice(null);
-  };
-
   const handleSchedule = () => {
-    // No booking backend yet, and the approved design has no date/time picker,
-    // so say so out loud instead of failing silently.
-    setScheduleNotice(
-      "Booking isn't connected yet — picking a date and time is the next step.",
+    if (!selected) return;
+    router.push(
+      `/appointments/calendar-form?ownerId=${encodeURIComponent(selected.id)}`
     );
   };
+
+  const caseworkersLoading = !caseworkerData && !caseworkerError;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -138,28 +164,25 @@ const AppointmentsPage = () => {
             </p>
           </Card>
 
-          {loadError && (
-            <Card>
-              <p className="text-red-600">
-                We couldn&apos;t load your appointment information. Please
-                refresh the page or try again later.
-              </p>
-            </Card>
-          )}
-
           {/* ── My Caseworker(s) ── */}
           <Card title="My Caseworker(s)">
-            {loading ? (
+            {caseworkersLoading ? (
               <p className="text-gray-500">Loading your caseworker…</p>
-            ) : myCaseworkers.length === 0 ? (
+            ) : caseworkerError ? (
+              <p className="text-red-600">{caseworkerError}</p>
+            ) : caseworkerData!.myCaseworkers.length === 0 ? (
               <p className="text-gray-500">
                 You don&apos;t have a caseworker assigned yet. Please check with
                 the front desk.
               </p>
             ) : (
               <div className="space-y-3">
-                {myCaseworkers.map((cw) => (
-                  <CaseworkerCard key={cw.id} caseworker={cw} />
+                {caseworkerData!.myCaseworkers.map((cw) => (
+                  <CaseworkerCard
+                    key={cw.id}
+                    caseworker={cw}
+                    bookingHours={caseworkerData!.bookingHours}
+                  />
                 ))}
               </div>
             )}
@@ -171,8 +194,18 @@ const AppointmentsPage = () => {
               Who would you like to meet with?
             </p>
 
-            {loading ? (
+            {caseworkersLoading ? (
               <p className="text-gray-500">Loading caseworkers…</p>
+            ) : caseworkerError ? (
+              <p className="text-red-600">
+                Booking is unavailable while caseworker information can&apos;t
+                be loaded. Please try again later.
+              </p>
+            ) : bookable.length === 0 ? (
+              <p className="text-gray-500">
+                No caseworkers are available to book right now. Please check
+                with the front desk.
+              </p>
             ) : (
               <>
                 <div ref={dropdownRef} className="relative w-full">
@@ -215,7 +248,10 @@ const AppointmentsPage = () => {
                         <li key={cw.id} role="option" aria-selected={cw.id === selectedId}>
                           <button
                             type="button"
-                            onClick={() => handleSelect(cw)}
+                            onClick={() => {
+                              setSelectedId(cw.id);
+                              setIsOpen(false);
+                            }}
                             className="block w-full px-4 py-2 text-left text-black hover:bg-gray-100"
                           >
                             {cw.name}
@@ -227,14 +263,10 @@ const AppointmentsPage = () => {
                 </div>
 
                 {/* The chosen person, echoed back so the resident can confirm
-                    they picked the right one before committing. */}
+                    they picked the right one before continuing. */}
                 {selected && (
                   <div className="mt-3 rounded-lg bg-gray-100 p-3">
-                    <PersonRow
-                      name={selected.name}
-                      role={selected.role}
-                      avatarUrl={selected.avatarUrl}
-                    />
+                    <PersonRow name={selected.name} title={selected.title} />
                   </div>
                 )}
 
@@ -252,19 +284,15 @@ const AppointmentsPage = () => {
                     Choose a case worker above to continue.
                   </p>
                 )}
-
-                {scheduleNotice && (
-                  <p role="status" className="mt-2 text-sm text-gray-600">
-                    {scheduleNotice}
-                  </p>
-                )}
               </>
             )}
           </Card>
 
           {/* ── Upcoming Appointments ── */}
           <Card title="Upcoming Appointments">
-            {loading ? (
+            {upcomingError ? (
+              <p className="text-red-600">{upcomingError}</p>
+            ) : upcoming === null ? (
               <p className="text-gray-500">Loading your appointments…</p>
             ) : upcoming.length === 0 ? (
               <p className="text-gray-500">
@@ -273,7 +301,11 @@ const AppointmentsPage = () => {
             ) : (
               <div className="space-y-3">
                 {upcoming.map((appt) => (
-                  <UpcomingAppointmentRow key={appt.id} appointment={appt} />
+                  <UpcomingAppointmentRow
+                    key={appt.id}
+                    appointment={appt}
+                    onCancelled={loadUpcoming}
+                  />
                 ))}
               </div>
             )}

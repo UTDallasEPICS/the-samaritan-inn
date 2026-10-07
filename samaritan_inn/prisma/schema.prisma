@@ -63,6 +63,20 @@ model User {
   ExtendedCurfewRequest ExtendedCurfewRequest[]
   PassRequest           PassRequest[]
   WorkSchedule          WorkSchedule[]
+  caseworkerAssignments CaseworkerAssignment[]
+}
+
+// Which caseworker(s) a resident is assigned to. Keyed by the caseworker's
+// email rather than a Salesforce id so assignments survive a move from
+// Salesforce to Outlook.
+model CaseworkerAssignment {
+  id              String   @id @default(cuid())
+  residentId      String
+  resident        User     @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  caseworkerEmail String
+  createdAt       DateTime @default(now())
+
+  @@unique([residentId, caseworkerEmail])
 }
 
 model ScheduledEvent {
