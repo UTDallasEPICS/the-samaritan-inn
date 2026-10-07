@@ -8,6 +8,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { can, isRole } from "@/lib/permissions";
+import type { Permission, Role } from "@/lib/permissions";
 
 if (!process.env.NEXTAUTH_URL) {
   console.warn("Warning: NEXTAUTH_URL not set");
@@ -52,7 +54,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
+          role: isRole(user.role) ? user.role : "resident",
         };
       },
     }),
@@ -71,7 +73,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        session.user.role = token.role as Role;
       }
       return session;
     },
@@ -125,7 +127,17 @@ export async function requireAuth() {
 export async function requireAdmin() {
   const user = await getCurrentUser();
 
-  if (!user || user.role !== "admin") {
+  if (!user || !can(user.role, "VIEW_ALL_REQUESTS")) {
+    redirect("/auth/unauthorized");
+  }
+
+  return user;
+}
+
+export async function requirePermission(permission: Permission) {
+  const user = await getCurrentUser();
+
+  if (!user || !can(user.role, permission)) {
     redirect("/auth/unauthorized");
   }
 

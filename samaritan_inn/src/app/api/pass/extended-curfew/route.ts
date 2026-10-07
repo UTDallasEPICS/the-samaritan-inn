@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
+import { can } from '@/lib/permissions';
 import type { NextRequest } from 'next/server';
 
 export async function POST(req: Request) {
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const requests = await prisma.extendedCurfewRequest.findMany({
-      where: session.role === 'admin' ? undefined : { userId: session.id },
+      where: can(session.role, 'VIEW_ALL_REQUESTS') ? undefined : { userId: session.id },
       orderBy: { submittedAt: 'desc' },
     });
     return NextResponse.json(requests);
