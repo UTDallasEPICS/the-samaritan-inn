@@ -14,6 +14,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
 import Badge from '@mui/material/Badge';
 import type { FormApiKey } from '@/components/admin/DecisionPanel';
+import { can } from '@/lib/permissions';
 
 type DetailTarget = { formKey: FormApiKey; id: string } | null;
 
@@ -38,7 +39,7 @@ export default function AdminPassFormPage() {
     router.replace('/auth/login');
     return null;
   }
-  if (session?.user?.role !== 'admin') {
+  if (!can(session?.user?.role, 'VIEW_ALL_REQUESTS')) {
     router.replace('/user-pass-form');
     return null;
   }
@@ -73,7 +74,7 @@ export default function AdminPassFormPage() {
               Pass Forms — Admin
             </h1>
             <p className="text-lg text-[#231f20] mb-4">
-              Hi, {session.user.name ?? 'Admin'}
+              Hi, {session?.user?.name ?? 'Admin'}
             </p>
             <Badge badgeContent={pendingCount} color="primary">
               <span className="text-sm font-semibold text-gray-700 px-3">

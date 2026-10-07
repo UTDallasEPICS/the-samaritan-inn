@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
+import { can } from '@/lib/permissions';
 import type { NextRequest } from 'next/server';
 
 interface DayInput {
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const schedules = await prisma.workSchedule.findMany({
-      where: session.role === 'admin' ? undefined : { userId: session.id },
+      where: can(session.role, 'VIEW_ALL_REQUESTS') ? undefined : { userId: session.id },
       orderBy: { submittedAt: 'desc' },
     });
     return NextResponse.json(schedules);
