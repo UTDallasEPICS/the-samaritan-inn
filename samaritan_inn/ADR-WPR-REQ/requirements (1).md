@@ -13,22 +13,25 @@ Use the matrix below to track requirements throughout the project lifecycle.
 - **Mapping:** baseline requirements map to the source that implements them; project
   requirements you add should map to a GitHub issue.
 
-| ID        | Description                                                                                      | Status   | Target Semester | Mapping (source / issue)                     |
-| --------- | ------------------------------------------------------------------------------------------------ | -------- | --------------- | -------------------------------------------- |
-| REQ-F-01  | Passwordless sign-in via email OTP (Better Auth + Nodemailer); OTP emailed to an existing user   | Verified | 2026F           | `server/utils/auth.ts`, `app/pages/auth.vue` |
-| REQ-F-02  | Server API gateway rejects unauthenticated requests to non-public routes with HTTP 401           | Verified | 2026F           | `server/middleware/auth.ts`                  |
-| REQ-F-03  | Client route guard redirects signed-out users to `/auth` and signed-in users away from `/auth`   | Verified | 2026F           | `app/middleware/auth.global.ts`              |
-| REQ-F-04  | Authenticated user can upload a profile image, stored per-user under the configured storage path | Verified | 2026F           | `server/api/users/upload.post.ts`            |
-| REQ-F-05  | Profile image is served with its `Content-Type` detected from file contents (magic bytes)        | Verified | 2026F           | `server/api/users/[id]/profile.get.ts`       |
-| REQ-F-06  | User-list endpoint returns only non-sensitive fields and never leaks image storage paths         | Verified | 2026F           | `server/api/users/index.get.ts`              |
-| REQ-F-07  | Unauthenticated `/api/health` endpoint returns HTTP 200 for load-balancer probes                 | Verified | 2026F           | `server/api/health.ts`                       |
-| REQ-NF-01 | Persistence is type-safe: Drizzle ORM schema with generated Zod select/insert schemas            | Verified | 2026F           | `server/db/schema.ts`                        |
-| REQ-NF-02 | CI runs lint, type-check, and the Vitest suite on every PR and on `dev`/`stage`/`prod` pushes    | Verified | 2026F           | `.github/workflows/test.yml`                 |
-| REQ-NF-03 | Deploy pipeline order is build → migrate → push → deploy, so a failed migration never ships       | Verified | 2026F           | `.github/workflows/deploy.yml`               |
-| REQ-NF-04 | `stage`/`prod` auto-deploy to AWS ECS via GitHub OIDC — no static AWS keys stored                | Verified | 2026F           | `.github/workflows/{stage,prod}.yml`         |
-| REQ-NF-05 | App ships as a container image with the toolchain to compile native modules in the builder       | Verified | 2026F           | `Dockerfile`                                 |
-| REQ-NF-06 | Test baseline runs with no `.env`, database, email, or browser (`pnpm test` works on clone)      | Verified | 2026F           | `vitest.config.ts`, `tests/`                 |
-| REQ-NF-07 | Dependency versions are pinned for reproducible, deploy-safe builds                              | Verified | 2026F           | `package.json`                               |
+| ID | Description | Status | Target Semester | Mapping (source / issue) |
+| --- | --- | --- | --- | --- |
+| REQ-F-01 | Appointments will be scheduled by caseworkers and admins. | Verified | 2026F | `samaritan_inn\src\app\appointments\calendar-form\page.tsx` |
+| REQ-F-02 | Residents will see their assigned caseworkers on the Appointments page. That information will come from an outside data source (SalesForce/Bookings) | In Progress | 2026F | `samaritan_inn/src/app/appointments/my-events/page.tsx` |
+| REQ-F-03 | Admins will be able to add, edit and delete caseworkers (including each caseworker's Microsoft Bookings link) and assign residents to them. Non-admins will be blocked | Verified | 2026F | `src/app/admin-caseworkers/page.tsx`, `src/app/api/admin/caseworkers/`, `src/app/api/admin/caseworker-assignments/`, `prisma/schema.prisma` |
+| REQ-F-04 | View and cancel upcoming appointments. Residents will be able to see their upcoming appointments, soonest first, and cancel them. | In Progress | 2026F | `src/components/appointments/UpcomingAppointmentRow.tsx`, `src/app/api/my-events/route.ts`, `src/app/api/my-events/[id]/route.ts`, `src/lib/scheduled-events.ts` |
+| REQ-F-05 | Appointments can be cancelled through the Appointments page. | In Progress | 2026F | `samaritan_inn/src/app/appointments/my-events/page.tsx` |
+| REQ-F-06 | Staff will be able to manage caseworker information without code changes. | In Progress | 2026F | `samaritan_inn/src/app/api/users/caseworkers` |
+| REQ-F-07 | UI updated to include a profile icon in the navbar rather than “Profile” text. | Verified | 2026F | `samaritan_inn/src/components/Navigation.tsx` |
+| REQ-F-08 | UI updated to include a calendar on the homepage to display upcoming events to residents. | In Progress | 2026F | `samaritan_inn/src/app/page.tsx` |
+| REQ-F-09 | The inventory (Inflow) button will be easily accessible to admins. | In Progress | 2026F | `the-samaritan-inn\samaritan_inn\src\components\Navigation.tsx` |
+| REQ-F-10 | Inflow Page should accurately track stock and orders. | Deprecated | 2026F | `samaritan_inn/src/app/inventory/page.tsx` |
+| REQ-F-11 | Caseworkers should have dedicated permissions. | Verified | 2026F | `permissions.ts`, lines 82–96: `CASEWORKER_PERMISSIONS` mapped in `ROLE_PERMISSIONS`. |
+| REQ-F-12 | Create a lead caseworker role (life-coach lead) that can see all pass forms. | Backlog | 2026F | `samaritan_inn/src/app/api/users` |
+| REQ-NF-01 | Residents can no longer sign themselves up. Admins create resident accounts and hand off credentials. | In Progress | 2026F | `the-samaritan-inn\samaritan_inn\src\app\admin-users\page.tsx` |
+| REQ-NF-02 | Email/text notifications after booking an appointment are sent in less than 30 seconds. | In Progress | 2026F | `samaritan_inn/src/app/appointments/my-events/page.tsx` |
+| REQ-NF-03 | Updates to appointments are displayed in less than 30 seconds. | In Progress | 2026F | `samaritan_inn/src/app/appointments/my-events/page.tsx` |
+| REQ-NF-04 | Database backups should take no longer than 5 minutes. | In Progress | 2026F | `samaritan_inn/prisma/prisma/dev.db` |
+| REQ-NF-05 | Appointment data should sync to Salesforce in less than 15 seconds. | In Progress | 2026F | `samaritan_inn/src/app/appointments/my-events/page.tsx` |
 
 ## 2. Change Log
 
