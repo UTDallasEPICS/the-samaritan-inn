@@ -1,8 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
+import { can } from '@/lib/permissions';
+import type { NextRequest } from 'next/server';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const id = params.id;
+
+  const session = await getServerSessionInfo(req);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!can(session.role, 'MANAGE_ANNOUNCEMENTS')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   const { title, content } = await req.json();
 
   if (!title?.trim() || !content?.trim()) {
@@ -21,8 +33,16 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const id = params.id;
+
+  const session = await getServerSessionInfo(req);
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!can(session.role, 'MANAGE_ANNOUNCEMENTS')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
 
   try {
     await prisma.announcement.delete({ where: { id } });
