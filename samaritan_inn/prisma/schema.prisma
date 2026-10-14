@@ -79,6 +79,26 @@ model CaseworkerAssignment {
   @@unique([residentId, caseworkerEmail])
 }
 
+/// Caseworker directory managed by staff at /admin-caseworkers. Only read when
+/// CASEWORKER_SOURCE="local" (see src/lib/caseworker-directory.ts). Residents
+/// are linked to these rows through CaseworkerAssignment.caseworkerEmail, the
+/// same table Salesforce mode uses, so switching modes never moves data.
+model Caseworker {
+  id           String   @id @default(cuid())
+  name         String
+  title        String?
+  /// Stored lowercase; matched against CaseworkerAssignment.caseworkerEmail.
+  email        String   @unique
+  phone        String?
+  room         String?
+  /// Free text shown to residents, e.g. "Mon–Fri, 9:00 AM – 5:00 PM".
+  availability String?
+  /// Public Microsoft Bookings page; residents are sent here to book.
+  bookingUrl   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model ScheduledEvent {
   id            String   @id @default(cuid())
   appointmentId String   @unique

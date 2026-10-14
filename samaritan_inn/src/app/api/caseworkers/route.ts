@@ -8,6 +8,10 @@ import {
   getConfiguredCaseworkerOwnerIds,
   isSameCaseworkerId,
 } from "@/lib/caseworkers";
+import {
+  getCaseworkerSource,
+  getLocalCaseworkerData,
+} from "@/lib/caseworker-directory";
 
 /**
  * Caseworker data for the logged-in resident's Appointments page:
@@ -20,6 +24,20 @@ export async function GET(request: NextRequest) {
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // CASEWORKER_SOURCE="local": caseworkers come from the in-app directory
+  // and residents book through each caseworker's Microsoft Bookings link.
+  if (getCaseworkerSource() === "local") {
+    try {
+      return NextResponse.json(await getLocalCaseworkerData(userId));
+    } catch (error) {
+      console.error("caseworkers (local) error:", error);
+      return NextResponse.json(
+        { error: "Unable to load caseworker information." },
+        { status: 500 }
+      );
+    }
   }
 
   try {

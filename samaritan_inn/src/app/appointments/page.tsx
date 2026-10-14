@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import CaseworkerCard from "@/components/appointments/CaseworkerCard";
 import PersonRow from "@/components/appointments/PersonRow";
@@ -33,10 +34,10 @@ function Card({
 }
 
 const AppointmentsPage = () => {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
-  // ── Caseworker data (from Salesforce, via /api/caseworkers) ──
+  // ── Caseworker data (Salesforce or the in-app directory, via /api/caseworkers) ──
   const [caseworkerData, setCaseworkerData] = useState<CaseworkerData | null>(null);
   const [caseworkerError, setCaseworkerError] = useState<string | null>(null);
 
@@ -162,6 +163,17 @@ const AppointmentsPage = () => {
             <p className="mt-1 text-center text-gray-500">
               Schedule a meeting with someone on your support team.
             </p>
+            {session?.user?.role === "admin" &&
+              caseworkerData?.source === "local" && (
+                <p className="mt-3 text-center text-sm">
+                  <Link
+                    href="/admin-caseworkers"
+                    className="font-semibold text-blue-600 hover:underline"
+                  >
+                    Manage caseworkers →
+                  </Link>
+                </p>
+              )}
           </Card>
 
           {/* ── My Caseworker(s) ── */}
@@ -270,14 +282,32 @@ const AppointmentsPage = () => {
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  onClick={handleSchedule}
-                  disabled={!selected}
-                  className="mt-3 w-full rounded bg-blue-600 py-3 font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-                >
-                  Schedule Appointment
-                </button>
+                {selected?.bookingUrl ? (
+                  // Directory caseworkers book on their Microsoft Bookings
+                  // page; a real link (not window.open) avoids popup blockers.
+                  <>
+                    <a
+                      href={selected.bookingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 block w-full rounded bg-blue-600 py-3 text-center font-bold text-white hover:bg-blue-700"
+                    >
+                      Schedule Appointment
+                    </a>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Opens Microsoft Bookings in a new tab.
+                    </p>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSchedule}
+                    disabled={!selected}
+                    className="mt-3 w-full rounded bg-blue-600 py-3 font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                  >
+                    Schedule Appointment
+                  </button>
+                )}
 
                 {!selected && (
                   <p className="mt-2 text-sm text-gray-500">

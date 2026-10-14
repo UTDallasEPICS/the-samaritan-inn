@@ -9,20 +9,30 @@
 
 /** One caseworker. Any detail Salesforce doesn't have on file is null. */
 export type Caseworker = {
-  /** Salesforce User id; also the calendar id used when booking. */
+  /** Salesforce User id (also the calendar id used when booking), or the
+   *  in-app directory id when caseworkers come from the local directory. */
   id: string;
   name: string;
   title: string | null;
   email: string | null;
   phone: string | null;
+  // Only set by the in-app directory (CASEWORKER_SOURCE="local"):
+  room?: string | null;
+  /** Free text, e.g. "Mon–Fri, 9:00 AM – 5:00 PM". */
+  availability?: string | null;
+  /** Microsoft Bookings page. When present, booking opens this link. */
+  bookingUrl?: string | null;
 };
 
 export type CaseworkerData = {
+  /** "local" = in-app directory + Bookings links; absent = Salesforce. */
+  source?: "local";
   /** Caseworker(s) assigned to the logged-in resident. */
   myCaseworkers: Caseworker[];
   /** Everyone the resident is allowed to book with. */
   bookableCaseworkers: Caseworker[];
-  /** e.g. "Every day, 9:00 AM – 5:00 PM (Central Time)". */
+  /** e.g. "Every day, 9:00 AM – 5:00 PM (Central Time)". Empty in local
+   *  mode, where each caseworker has their own `availability` instead. */
   bookingHours: string;
 };
 
