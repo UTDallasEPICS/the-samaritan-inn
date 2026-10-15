@@ -41,6 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 # database
-prisma/*.db
-prisma/*.db-journal
+prisma/**/*.db
+prisma/**/*.db-journal
 
+
+# pnpm
+/.pnpm-store
