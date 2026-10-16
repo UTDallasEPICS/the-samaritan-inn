@@ -46,9 +46,12 @@ next-env.d.ts
 # NOTE: do NOT re-add a bare `prisma/` rule here. It silently excluded new
 # migrations from commits, which is how schema.prisma drifted out of sync with
 # prisma/migrations/. Ignore the local SQLite files only.
-prisma/*.db
-prisma/*.db-journal
-prisma/*.db-wal
-prisma/*.db-shm
+prisma/**/*.db
+prisma/**/*.db-journal
+prisma/**/*.db-wal
+prisma/**/*.db-shm
 dev.db
 
+
+# pnpm
+/.pnpm-store

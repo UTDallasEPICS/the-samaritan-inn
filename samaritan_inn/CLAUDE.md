@@ -20,10 +20,10 @@ Web app for The Samaritan Inn (nonprofit homeless shelter) to digitize resident-
 
 ```bash
 cd samaritan_inn
-npm install
+pnpm install
 cp .env.example .env        # fill in values below
-npx prisma migrate dev
-npm run dev                 # http://localhost:3000
+pnpm exec prisma migrate dev
+pnpm dev                     # http://localhost:3000
 ```
 
 Required `.env` variables:
@@ -98,13 +98,13 @@ Note: the current pass form API routes (`src/app/api/pass/*/route.ts`) use `user
 
 ```bash
 # After editing prisma/schema.prisma:
-npx prisma migrate dev --name <short-description>
+pnpm exec prisma migrate dev --name <short-description>
 
 # Browse data:
-npx prisma studio
+pnpm exec prisma studio
 
 # Regenerate client (usually automatic after migrate):
-npx prisma generate
+pnpm exec prisma generate
 ```
 
 Never edit migration files in `prisma/migrations/` manually.
@@ -201,7 +201,7 @@ export async function GET() {
 ## AI Assistant Notes
 
 - Read existing components and API routes before generating new ones — patterns are established.
-- Never modify `prisma/schema.prisma` without also running `npx prisma migrate dev`.
+- Never modify `prisma/schema.prisma` without also running `pnpm exec prisma migrate dev`.
 - Use `@/lib/prisma` for the Prisma client, never instantiate a new `PrismaClient` directly.
 - Use Tailwind color tokens (`primary`, `secondary`, `light`) — do not hardcode hex values.
 - Keep API route handlers thin; put reusable logic in `src/lib/`.

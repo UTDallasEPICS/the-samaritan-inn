@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+.env*
+*.db
+*.db-journal
+.git
+Dockerfile
+.dockerignore
+*.md
+ADR-WPR-REQ
+*.log
+.DS_Store
+.pnpm-store
