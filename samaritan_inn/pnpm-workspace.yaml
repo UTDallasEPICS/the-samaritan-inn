@@ -1,0 +1,13 @@
+# pnpm 11 blocks dependency build scripts unless each is explicitly allowed (true)
+# or denied (false) here. Declaring this block also stops the NPTS migration Lambda
+# from injecting its own approvals.
+#
+# @prisma/engines downloads the schema engine `prisma migrate deploy` needs, and
+# @prisma/client runs `prisma generate` on install. The rest ship prebuilt binaries
+# or only run a version check.
+allowBuilds:
+  "@prisma/client": true
+  "@prisma/engines": true
+  esbuild: false
+  prisma: false
+  sharp: false

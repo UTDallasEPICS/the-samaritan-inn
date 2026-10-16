@@ -1,0 +1,16 @@
+name: Deploy (stage)
+
+on:
+  push:
+    branches: [stage]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: stage
+    secrets: inherit
