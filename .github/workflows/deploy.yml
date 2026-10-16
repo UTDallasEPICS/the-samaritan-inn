@@ -67,6 +67,8 @@ jobs:
           aws s3 cp /tmp/migration.zip \
             s3://npts-env-bucket/$REPOSITORY/migrations/${{ github.sha }}.zip
 
+      # Seeding (prisma/seed.js demo accounts) runs only on stage when the
+      # SEED_MIGRATION repo variable is "true"; prod never gets demo logins.
       - name: Run migration via Lambda
         run: |
           aws lambda invoke \
@@ -74,7 +76,7 @@ jobs:
             --invocation-type RequestResponse \
             --cli-read-timeout 900 \
             --cli-binary-format raw-in-base64-out \
-            --payload '{"project":"${{ vars.REPOSITORY }}","environment":"${{ inputs.environment }}","orm":"prisma","migration_bucket":"npts-env-bucket","migration_key":"${{ vars.REPOSITORY }}/migrations/${{ github.sha }}.zip","seed":${{ vars.SEED_MIGRATION == 'true' }}}' \
+            --payload '{"project":"${{ vars.REPOSITORY }}","environment":"${{ inputs.environment }}","orm":"prisma","migration_bucket":"npts-env-bucket","migration_key":"${{ vars.REPOSITORY }}/migrations/${{ github.sha }}.zip","seed":${{ vars.SEED_MIGRATION == 'true' && inputs.environment == 'stage' }}}' \
             /tmp/lambda-response.json
 
           STATUS=$(jq -r '.status' /tmp/lambda-response.json)
