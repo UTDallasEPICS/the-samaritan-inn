@@ -142,7 +142,7 @@ export default function RootLayout({ children }) {
 }
 ```
 
-#### `src/app/auth-status/page.tsx`
+#### `src/app/profile/page.tsx`
 
 Page displaying user authentication status and details.
 

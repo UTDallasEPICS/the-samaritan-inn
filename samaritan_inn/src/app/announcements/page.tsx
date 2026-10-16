@@ -9,6 +9,11 @@ import Button from '@mui/material/Button';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import SidebarCalendar from "@/components/SidebarCalendar";
+import { can } from '@/lib/permissions';
+
 
 interface Announcement {
   id: string;
@@ -16,6 +21,7 @@ interface Announcement {
   content: string;
   author: string;
   createdAt: string;
+  date: string;
 }
 
 interface EventItem {
@@ -32,7 +38,7 @@ interface EventItem {
 
 type Section = 'announcements' | 'events';
 
-// Turn an ISO timestamp into a human‑readable string
+// Turn an ISO timestamp into a human-readable string
 const formatDateTime = (isoStr: string) => {
   const dt = new Date(isoStr);
   return isNaN(dt.getTime())
@@ -41,10 +47,20 @@ const formatDateTime = (isoStr: string) => {
 };
 
 export default function Announcements() {
+  // 1) Authentication hooks
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // 2) State hooks (always at top)
   const [section, setSection] = useState<Section>('announcements');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
+  const [newAnnouncement, setNewAnnouncement] = useState({
+  title: '',
+  content: '',
+  date: '',
+});
+
   const [events, setEvents] = useState<EventItem[]>([]);
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -54,33 +70,37 @@ export default function Announcements() {
     startTime: '',
     endTime: '',
   });
-  const [isAdmin] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<any>({});
   const [showModal, setShowModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  // derive unified list
-  const items = section === 'announcements'
-    ? announcements
-    : events;
+const filteredAnnouncements = selectedDate
+  ? announcements.filter(
+      a => (a.date || a.createdAt?.slice(0, 10)) === selectedDate
+    )
+  : announcements;
 
-  // Reset modal state
-  const handleModalClose = () => {
-    setShowModal(false);
-    setEditingId(null);
-    setEditingItem({});
-    setNewAnnouncement({ title: '', content: '' });
-    setNewEvent({
-      title: '',
-      content: '',
-      startDate: '',
-      endDate: '',
-      startTime: '',
-      endTime: '',
-    });
-  };
 
-  // Load data
+const filteredEvents = selectedDate
+  ? events.filter(e => e.startDate?.slice(0,10) === selectedDate || e.endDate?.slice(0,10) === selectedDate)
+  : events;
+
+const filteredItems = section === 'announcements' ? filteredAnnouncements : filteredEvents;
+
+
+  // 3) Derived values
+  const canManageAnnouncements = can(session?.user?.role, 'MANAGE_ANNOUNCEMENTS');
+  const items = filteredItems;
+
+  // 4) Redirect unauthenticated users
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/unauthorized');
+    }
+  }, [status, router]);
+
+  // 5) Load announcements and events
   useEffect(() => {
     fetch('/api/announcements')
       .then(res => res.json())
@@ -92,7 +112,27 @@ export default function Announcements() {
       .catch(console.error);
   }, []);
 
-  // Dropdown handlers
+// 5) While session is still loading, render nothing
+  if (status === 'loading') {
+    return null;
+  }
+
+  // 7) Handlers
+  const handleModalClose = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setEditingItem({});
+    setNewAnnouncement({ title: '', content: '', date: '' });
+    setNewEvent({
+      title: '',
+      content: '',
+      startDate: '',
+      endDate: '',
+      startTime: '',
+      endTime: '',
+    });
+  };
+
   const open = Boolean(anchorEl);
   const handleSectionClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     setAnchorEl(e.currentTarget);
@@ -102,18 +142,21 @@ export default function Announcements() {
     setAnchorEl(null);
   };
 
-  // Create new
   const handlePostItem = async () => {
-    if (!isAdmin) return;
+    if (!canManageAnnouncements) return;
     if (section === 'announcements') {
-      const { title, content } = newAnnouncement;
-      if (!title.trim() || !content.trim())
-        return alert('Title and content required');
-      const res = await fetch('/api/announcements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newAnnouncement, author: 'Admin', isAdmin}),
-      });
+  const { title, content, date } = newAnnouncement;
+  if (!title.trim() || !content.trim() || !date) {
+    return alert('Title, content, and date are required');
+  }
+  const res = await fetch('/api/announcements', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...newAnnouncement,
+      author: 'Admin',
+    }),
+  });
       if (!res.ok) return console.error('Post failed');
       const data = await res.json();
       setAnnouncements(prev => [data, ...prev]);
@@ -133,8 +176,9 @@ export default function Announcements() {
         !endDate ||
         !startTime ||
         !endTime
-      )
+      ) {
         return alert('All fields required');
+      }
       const res = await fetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -147,9 +191,8 @@ export default function Announcements() {
     handleModalClose();
   };
 
-  // Save edits
   const handleSaveItem = async () => {
-    if (!isAdmin || !editingId) return;
+    if (!canManageAnnouncements || !editingId) return;
     const path =
       section === 'announcements'
         ? `/api/announcements/${editingId}`
@@ -169,9 +212,8 @@ export default function Announcements() {
     handleModalClose();
   };
 
-  // Delete item
   const handleDeleteItem = async (id: string) => {
-    if (!isAdmin || !confirm('Confirm delete?')) return;
+    if (!canManageAnnouncements || !confirm('Confirm delete?')) return;
     const path =
       section === 'announcements'
         ? `/api/announcements/${id}`
@@ -185,50 +227,44 @@ export default function Announcements() {
     }
   };
 
-  // Begin edit
   const initEdit = (item: any) => {
     setEditingId(item.id);
     setEditingItem({ ...item });
     setShowModal(true);
   };
 
+
+  // 8) Render
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
-      <div className="flex-grow flex flex-col items-center bg-gray-100 p-4">
-        <div className="w-full max-w-3xl p-6 bg-white shadow-md rounded-md">
+      <div className="flex-grow bg-gray-100 p-4">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6">
+
+          {/* LEFT: Announcements list */}
+          <div className="w-full lg:flex-1 p-6 bg-white shadow-md rounded-md">
 
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            {/* section selector */}
-            <Button
-              onClick={handleSectionClick}
-              endIcon={<ExpandMoreIcon />}
-              color="primary"
-              sx={{ fontSize: '1.25rem' }}
-            >
-              {section === 'announcements' ? 'Announcements' : 'Events'}
-            </Button>
-            <Menu anchorEl={anchorEl} open={open} onClose={handleSectionClose}>
-              <MenuItem onClick={() => handleSectionSelect('announcements')}>
-                Announcements
-              </MenuItem>
-              <MenuItem onClick={() => handleSectionSelect('events')}>
-                Events
-              </MenuItem>
-            </Menu>
-            {/* “New Announcement” / “New Event” */}
-            {isAdmin && (
+            <h1 className="text-2xl font-semibold text-black">Announcements</h1>
+            {canManageAnnouncements && (
               <Button
                 variant="contained"
-                color="primary"
-                onClick={() => setShowModal(true)}
+                onClick={() => {
+                  if (section === 'announcements') {
+                    setNewAnnouncement(prev => ({
+                      ...prev,
+                      date: selectedDate || new Date().toISOString().slice(0, 10),
+                    }));
+                  }
+                  setShowModal(true);
+                }}
+                sx={{ backgroundColor: '#29abe2', '&:hover': { backgroundColor: '#1f8fbf' } }}
               >
                 New {section === 'announcements' ? 'Announcement' : 'Event'}
               </Button>
             )}
           </div>
-
           {/* Modal */}
           {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -287,7 +323,24 @@ export default function Announcements() {
                   }}
                   className="w-full border border-gray-300 rounded px-3 py-2 h-24 mb-4 text-black placeholder-gray-400"
                 />
-
+                {section === 'announcements' && (
+  <>
+    <label className="block mb-1 text-black">Date</label>
+    <input
+      type="date"
+      value={editingId ? editingItem.date : newAnnouncement.date}
+      onChange={e => {
+        if (editingId) {
+          setEditingItem({ ...editingItem, date: e.target.value });
+        } else {
+          setNewAnnouncement({ ...newAnnouncement, date: e.target.value });
+        }
+      }}
+      className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+    />
+  </>
+)}
+{/* END OF NEW DATE FIELD */}
                 {/* Event-only fields */}
                 {section === 'events' && (
                   <>
@@ -363,47 +416,49 @@ export default function Announcements() {
             {items.map(item => {
               const isEvent = section === 'events';
               return (
-                <li
-                  key={item.id}
-                  className="border border-gray-300 p-4 rounded-md bg-gray-50"
-                >
+                <li key={item.id} className="border border-gray-300 p-4 rounded-md bg-gray-50">
                   <div className="flex justify-between items-start">
-                    <h2 className="text-lg font-semibold text-black">
-                      {item.title}
-                    </h2>
-                    {isAdmin && (
+                    <h2 className="text-lg font-semibold text-black">{item.title}</h2>
+                    {canManageAnnouncements && (
                       <div className="flex space-x-1">
                         <IconButton size="small" onClick={() => initEdit(item)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDeleteItem(item.id)}
-                        >
+                        <IconButton size="small" onClick={() => handleDeleteItem(item.id)}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </div>
                     )}
                   </div>
-
                   <p className="text-black mt-2">{item.content}</p>
-
                   {isEvent && (
                     <small className="text-gray-500 block mt-2">
-                      {formatDateTime((item as EventItem).startTime)} –{' '}
-                      {formatDateTime((item as EventItem).endTime)}
+                      {formatDateTime((item as EventItem).startTime)} – {formatDateTime((item as EventItem).endTime)}
                     </small>
                   )}
-
                   <small className="text-gray-500 block mt-2">
-                    Posted by {item.author} on{' '}
-                    {new Date(item.createdAt).toLocaleString()}
+                    Posted by {item.author} on {new Date(item.createdAt).toLocaleString()}
                   </small>
                 </li>
               );
             })}
           </ul>
-        </div>
+          </div>{/* end left panel */}
+
+          {/* RIGHT: Sidebar Calendar */}
+          <aside className="w-full lg:w-80 lg:sticky lg:top-4 self-start">
+            <SidebarCalendar
+              announcements={announcements.map(a => ({
+                id: a.id,
+                title: a.title,
+                content: a.content,
+                date: a.date || a.createdAt?.slice(0, 10),
+              }))}
+              onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
+            />
+          </aside>
+
+        </div>{/* end flex row */}
       </div>
     </div>
   );
