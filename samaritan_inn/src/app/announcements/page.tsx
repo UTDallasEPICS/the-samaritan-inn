@@ -1,95 +1,465 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import Navigation from '@/components/Navigation';
+import IconButton from '@mui/material/IconButton';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Button from '@mui/material/Button';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import SidebarCalendar from "@/components/SidebarCalendar";
+import { can } from '@/lib/permissions';
 
-const Announcements = () => {
-  const [announcements, setAnnouncements] = useState<{ id: string; title: string; content: string; author: string; createdAt: string }[]>([]);
-  const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
-  const [isAdmin, setIsAdmin] = useState(true); // Replace with actual admin check logic
 
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  createdAt: string;
+  date: string;
+}
+
+interface EventItem {
+  id: string;
+  title: string;
+  content: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  author: string;
+  createdAt: string;
+}
+
+type Section = 'announcements' | 'events';
+
+// Turn an ISO timestamp into a human-readable string
+const formatDateTime = (isoStr: string) => {
+  const dt = new Date(isoStr);
+  return isNaN(dt.getTime())
+    ? 'Invalid Date'
+    : dt.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+};
+
+export default function Announcements() {
+  // 1) Authentication hooks
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // 2) State hooks (always at top)
+  const [section, setSection] = useState<Section>('announcements');
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [newAnnouncement, setNewAnnouncement] = useState({
+  title: '',
+  content: '',
+  date: '',
+});
+
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    content: '',
+    startDate: '',
+    endDate: '',
+    startTime: '',
+    endTime: '',
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<any>({});
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+const filteredAnnouncements = selectedDate
+  ? announcements.filter(
+      a => (a.date || a.createdAt?.slice(0, 10)) === selectedDate
+    )
+  : announcements;
+
+
+const filteredEvents = selectedDate
+  ? events.filter(e => e.startDate?.slice(0,10) === selectedDate || e.endDate?.slice(0,10) === selectedDate)
+  : events;
+
+const filteredItems = section === 'announcements' ? filteredAnnouncements : filteredEvents;
+
+
+  // 3) Derived values
+  const canManageAnnouncements = can(session?.user?.role, 'MANAGE_ANNOUNCEMENTS');
+  const items = filteredItems;
+
+  // 4) Redirect unauthenticated users
   useEffect(() => {
-    // Fetch announcements
-    const fetchAnnouncements = async () => {
-      try {
-        const res = await fetch('/api/announcements');
-        if (!res.ok) throw new Error('Failed to fetch announcements');
-        const data = await res.json();
-        setAnnouncements(data);
-      } catch (error) {
-        console.error('Error fetching announcements:', error);
-      }
-    };
+    if (status === 'unauthenticated') {
+      router.push('/auth/unauthorized');
+    }
+  }, [status, router]);
 
-    fetchAnnouncements();
+  // 5) Load announcements and events
+  useEffect(() => {
+    fetch('/api/announcements')
+      .then(res => res.json())
+      .then(setAnnouncements)
+      .catch(console.error);
+    fetch('/api/events')
+      .then(res => res.json())
+      .then(setEvents)
+      .catch(console.error);
   }, []);
 
-  const handlePost = async () => {
-    if (!isAdmin) return;
-
-    // Validation: To make sure the annoucement the staff posts is not empty.
-    if (!newAnnouncement.title.trim() || !newAnnouncement.content.trim()) {
-    alert('Both title and content are required to post an announcement.');
-    return;
+// 5) While session is still loading, render nothing
+  if (status === 'loading') {
+    return null;
   }
 
-    try {
-      const res = await fetch('/api/announcements', {
+  // 7) Handlers
+  const handleModalClose = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setEditingItem({});
+    setNewAnnouncement({ title: '', content: '', date: '' });
+    setNewEvent({
+      title: '',
+      content: '',
+      startDate: '',
+      endDate: '',
+      startTime: '',
+      endTime: '',
+    });
+  };
+
+  const open = Boolean(anchorEl);
+  const handleSectionClick = (e: React.MouseEvent<HTMLButtonElement>) =>
+    setAnchorEl(e.currentTarget);
+  const handleSectionClose = () => setAnchorEl(null);
+  const handleSectionSelect = (sec: Section) => {
+    setSection(sec);
+    setAnchorEl(null);
+  };
+
+  const handlePostItem = async () => {
+    if (!canManageAnnouncements) return;
+    if (section === 'announcements') {
+  const { title, content, date } = newAnnouncement;
+  if (!title.trim() || !content.trim() || !date) {
+    return alert('Title, content, and date are required');
+  }
+  const res = await fetch('/api/announcements', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...newAnnouncement,
+      author: 'Admin',
+    }),
+  });
+      if (!res.ok) return console.error('Post failed');
+      const data = await res.json();
+      setAnnouncements(prev => [data, ...prev]);
+    } else {
+      const {
+        title,
+        content,
+        startDate,
+        endDate,
+        startTime,
+        endTime,
+      } = newEvent;
+      if (
+        !title.trim() ||
+        !content.trim() ||
+        !startDate ||
+        !endDate ||
+        !startTime ||
+        !endTime
+      ) {
+        return alert('All fields required');
+      }
+      const res = await fetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newAnnouncement, author: 'Admin', isAdmin }),
+        body: JSON.stringify(newEvent),
       });
-      if (!res.ok) throw new Error('Failed to post announcement');
-      const newPost = await res.json();
-      setAnnouncements([newPost, ...announcements]);
-      setNewAnnouncement({ title: '', content: '' });
-    } catch (error) {
-      console.error('Error posting announcement:', error);
+      if (!res.ok) return console.error('Post failed');
+      const data = await res.json();
+      setEvents(prev => [data, ...prev]);
+    }
+    handleModalClose();
+  };
+
+  const handleSaveItem = async () => {
+    if (!canManageAnnouncements || !editingId) return;
+    const path =
+      section === 'announcements'
+        ? `/api/announcements/${editingId}`
+        : `/api/events/${editingId}`;
+    const res = await fetch(path, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editingItem),
+    });
+    if (!res.ok) return console.error('Update failed');
+    const data = await res.json();
+    if (section === 'announcements') {
+      setAnnouncements(prev => prev.map(a => (a.id === data.id ? data : a)));
+    } else {
+      setEvents(prev => prev.map(e => (e.id === data.id ? data : e)));
+    }
+    handleModalClose();
+  };
+
+  const handleDeleteItem = async (id: string) => {
+    if (!canManageAnnouncements || !confirm('Confirm delete?')) return;
+    const path =
+      section === 'announcements'
+        ? `/api/announcements/${id}`
+        : `/api/events/${id}`;
+    const res = await fetch(path, { method: 'DELETE' });
+    if (!res.ok) return console.error('Delete failed');
+    if (section === 'announcements') {
+      setAnnouncements(prev => prev.filter(a => a.id !== id));
+    } else {
+      setEvents(prev => prev.filter(e => e.id !== id));
     }
   };
 
+  const initEdit = (item: any) => {
+    setEditingId(item.id);
+    setEditingItem({ ...item });
+    setShowModal(true);
+  };
+
+
+  // 8) Render
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Announcements</h1>
+    <div className="min-h-screen flex flex-col">
+      <Navigation />
+      <div className="flex-grow bg-gray-100 p-4">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6">
 
-      <div className="mb-4">
-        {isAdmin && (
-          <div className="flex flex-col gap-y-2">
-            <input
-              type="text"
-              placeholder="Title"
-              value={newAnnouncement.title}
-              onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
-              className="border p-2 rounded text-black"
-            />
-            <textarea
-              placeholder="Content"
-              value={newAnnouncement.content}
-              onChange={(e) => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })}
-              className="border p-2 rounded text-black"
-            />
-            <button
-              onClick={handlePost}
-              className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              Post Announcement
-            </button>
+          {/* LEFT: Announcements list */}
+          <div className="w-full lg:flex-1 p-6 bg-white shadow-md rounded-md">
+
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-semibold text-black">Announcements</h1>
+            {canManageAnnouncements && (
+              <Button
+                variant="contained"
+                onClick={() => {
+                  if (section === 'announcements') {
+                    setNewAnnouncement(prev => ({
+                      ...prev,
+                      date: selectedDate || new Date().toISOString().slice(0, 10),
+                    }));
+                  }
+                  setShowModal(true);
+                }}
+                sx={{ backgroundColor: '#29abe2', '&:hover': { backgroundColor: '#1f8fbf' } }}
+              >
+                New {section === 'announcements' ? 'Announcement' : 'Event'}
+              </Button>
+            )}
           </div>
-        )}
-      </div>
+          {/* Modal */}
+          {showModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-md shadow-lg p-6 w-full max-w-md">
+                <h2 className="text-xl font-semibold mb-4 text-black">
+                  {editingId
+                    ? `Edit ${
+                        section === 'announcements' ? 'Announcement' : 'Event'
+                      }`
+                    : `New ${
+                        section === 'announcements' ? 'Announcement' : 'Event'
+                      }`}
+                </h2>
 
-      <ul className="flex flex-col gap-y-4">
-        {announcements.map((announcement) => (
-          <li key={announcement.id} className="border p-4 rounded">
-            <h2 className="font-bold">{announcement.title}</h2>
-            <p>{announcement.content}</p>
-            <small className="text-gray-500">
-              Posted by {announcement.author} on {new Date(announcement.createdAt).toLocaleString()}
-            </small>
-          </li>
-        ))}
-      </ul>
+                {/* Title */}
+                <input
+                  type="text"
+                  placeholder="Title"
+                  value={
+                    editingId
+                      ? editingItem.title
+                      : section === 'announcements'
+                      ? newAnnouncement.title
+                      : newEvent.title
+                  }
+                  onChange={e => {
+                    if (editingId) {
+                      setEditingItem({ ...editingItem, title: e.target.value });
+                    } else if (section === 'announcements') {
+                      setNewAnnouncement({ ...newAnnouncement, title: e.target.value });
+                    } else {
+                      setNewEvent({ ...newEvent, title: e.target.value });
+                    }
+                  }}
+                  className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+                />
+
+                {/* Content */}
+                <textarea
+                  placeholder="Content"
+                  value={
+                    editingId
+                      ? editingItem.content
+                      : section === 'announcements'
+                      ? newAnnouncement.content
+                      : newEvent.content
+                  }
+                  onChange={e => {
+                    if (editingId) {
+                      setEditingItem({ ...editingItem, content: e.target.value });
+                    } else if (section === 'announcements') {
+                      setNewAnnouncement({ ...newAnnouncement, content: e.target.value });
+                    } else {
+                      setNewEvent({ ...newEvent, content: e.target.value });
+                    }
+                  }}
+                  className="w-full border border-gray-300 rounded px-3 py-2 h-24 mb-4 text-black placeholder-gray-400"
+                />
+                {section === 'announcements' && (
+  <>
+    <label className="block mb-1 text-black">Date</label>
+    <input
+      type="date"
+      value={editingId ? editingItem.date : newAnnouncement.date}
+      onChange={e => {
+        if (editingId) {
+          setEditingItem({ ...editingItem, date: e.target.value });
+        } else {
+          setNewAnnouncement({ ...newAnnouncement, date: e.target.value });
+        }
+      }}
+      className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+    />
+  </>
+)}
+{/* END OF NEW DATE FIELD */}
+                {/* Event-only fields */}
+                {section === 'events' && (
+                  <>
+                    <label className="block mb-1 text-black">Start Date</label>
+                    <input
+                      type="date"
+                      value={editingId ? editingItem.startDate : newEvent.startDate}
+                      onChange={e =>
+                        editingId
+                          ? setEditingItem({ ...editingItem, startDate: e.target.value })
+                          : setNewEvent({ ...newEvent, startDate: e.target.value })
+                      }
+                      className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+                    />
+
+                    <label className="block mb-1 text-black">End Date</label>
+                    <input
+                      type="date"
+                      value={editingId ? editingItem.endDate : newEvent.endDate}
+                      onChange={e =>
+                        editingId
+                          ? setEditingItem({ ...editingItem, endDate: e.target.value })
+                          : setNewEvent({ ...newEvent, endDate: e.target.value })
+                      }
+                      className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+                    />
+
+                    <label className="block mb-1 text-black">Start Time</label>
+                    <input
+                      type="time"
+                      value={editingId ? editingItem.startTime : newEvent.startTime}
+                      onChange={e =>
+                        editingId
+                          ? setEditingItem({ ...editingItem, startTime: e.target.value })
+                          : setNewEvent({ ...newEvent, startTime: e.target.value })
+                      }
+                      className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+                    />
+
+                    <label className="block mb-1 text-black">End Time</label>
+                    <input
+                      type="time"
+                      value={editingId ? editingItem.endTime : newEvent.endTime}
+                      onChange={e =>
+                        editingId
+                          ? setEditingItem({ ...editingItem, endTime: e.target.value })
+                          : setNewEvent({ ...newEvent, endTime: e.target.value })
+                      }
+                      className="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-black placeholder-gray-400"
+                    />
+                  </>
+                )}
+
+                {/* Actions */}
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    onClick={editingId ? handleSaveItem : handlePostItem}
+                    variant="contained"
+                    color="primary"
+                  >
+                    {editingId ? 'Save' : 'Post'}
+                  </Button>
+                  <Button onClick={handleModalClose} variant="outlined">
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Unified List */}
+          <ul className="flex flex-col gap-y-4">
+            {items.map(item => {
+              const isEvent = section === 'events';
+              return (
+                <li key={item.id} className="border border-gray-300 p-4 rounded-md bg-gray-50">
+                  <div className="flex justify-between items-start">
+                    <h2 className="text-lg font-semibold text-black">{item.title}</h2>
+                    {canManageAnnouncements && (
+                      <div className="flex space-x-1">
+                        <IconButton size="small" onClick={() => initEdit(item)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => handleDeleteItem(item.id)}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-black mt-2">{item.content}</p>
+                  {isEvent && (
+                    <small className="text-gray-500 block mt-2">
+                      {formatDateTime((item as EventItem).startTime)} – {formatDateTime((item as EventItem).endTime)}
+                    </small>
+                  )}
+                  <small className="text-gray-500 block mt-2">
+                    Posted by {item.author} on {new Date(item.createdAt).toLocaleString()}
+                  </small>
+                </li>
+              );
+            })}
+          </ul>
+          </div>{/* end left panel */}
+
+          {/* RIGHT: Sidebar Calendar */}
+          <aside className="w-full lg:w-80 lg:sticky lg:top-4 self-start">
+            <SidebarCalendar
+              announcements={announcements.map(a => ({
+                id: a.id,
+                title: a.title,
+                content: a.content,
+                date: a.date || a.createdAt?.slice(0, 10),
+              }))}
+              onDateSelect={(isoDate: string) => setSelectedDate(isoDate)}
+            />
+          </aside>
+
+        </div>{/* end flex row */}
+      </div>
     </div>
   );
-};
-
-export default Announcements;
+}

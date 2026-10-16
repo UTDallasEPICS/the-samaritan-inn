@@ -1,9 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* globals.css */
 
+/* 1) Import Montserrat from Google */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
+
+/* 2) Tailwind’s base reset */
+@tailwind base;
+
+/* 3) CSS variables for light/dark mode */
 :root {
-  --background: #ffffff;
+  --background: #c7c8ca;
   --foreground: #171717;
 }
 
@@ -14,8 +19,17 @@
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* 4) Apply Montserrat and global defaults in the base layer */
+@layer base {
+  html, body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: var(--foreground);
+    background-color: var(--background);
+  }
 }
+
+/* 5) Tailwind’s component and utility layers */
+@tailwind components;
+@tailwind utilities;
