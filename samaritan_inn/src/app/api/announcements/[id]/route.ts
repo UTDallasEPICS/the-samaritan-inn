@@ -4,8 +4,8 @@ import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
 import { can } from '@/lib/permissions';
 import type { NextRequest } from 'next/server';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   const session = await getServerSessionInfo(req);
   if (!session) {
@@ -33,8 +33,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   const session = await getServerSessionInfo(req);
   if (!session) {
