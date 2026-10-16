@@ -71,6 +71,12 @@ export default function Navigation() {
             <Link href="/" className={linkClass('/')}>Home</Link>
             <Link href="/classes" className={linkClass('/classes')}>Classes</Link>
             <Link href="/resources" className={linkClass('/resources')}>Resources</Link>
+            <a href= {process.env.NEXT_PUBLIC_INFLOW_URL}
+            target="_blank"
+            rel= "noopener noreferrer"
+            className={linkClass('/inventory')}>Inflow</a>
+            
+            
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form')}>Pass</Link>
             <Link href="/appointments/my-events" className={linkClass('/appointments/my-events')}>Appointments</Link>
