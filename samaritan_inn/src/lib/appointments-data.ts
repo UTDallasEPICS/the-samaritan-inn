@@ -94,3 +94,59 @@ export async function cancelAppointment(id: string): Promise<void> {
     throw new Error(await readError(res, "Unable to cancel this appointment."));
   }
 }
+
+// ── Caseworker's own view (GET/PATCH /api/caseworkers/me) ─────────────────────
+
+/** One resident assigned to the logged-in caseworker. Dates are ISO strings. */
+export type AssignedResident = {
+  id: string;
+  name: string;
+  email: string;
+  joinedAt: string;
+  assignedAt: string;
+  /** From the resident's latest work schedule; null if they haven't sent one. */
+  room: string | null;
+  employmentStatus: string | null;
+  employerName: string | null;
+  workScheduleUpdatedAt: string | null;
+  /** Pending pass, curfew and work-schedule requests combined. */
+  pendingRequests: number;
+};
+
+export type OwnCaseworkerView = {
+  /** Where residents currently book; absent when no profile is linked. */
+  source?: "local" | "salesforce";
+  /** Null until an admin links this account to a caseworker profile. */
+  profile: Required<Caseworker> | null;
+  residents: AssignedResident[];
+};
+
+/** The fields a caseworker may edit on their own profile. */
+export type CaseworkerSelfEdit = {
+  phone: string;
+  availability: string;
+  bookingUrl: string;
+};
+
+export async function getOwnCaseworkerView(): Promise<OwnCaseworkerView> {
+  const res = await fetch("/api/caseworkers/me");
+  if (!res.ok) {
+    throw new Error(await readError(res, "Unable to load your caseworker profile."));
+  }
+  return res.json();
+}
+
+/** Saves one or more of the caseworker's editable fields and returns the updated profile. */
+export async function updateOwnCaseworkerProfile(
+  fields: Partial<CaseworkerSelfEdit>
+): Promise<Required<Caseworker>> {
+  const res = await fetch("/api/caseworkers/me", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) {
+    throw new Error(await readError(res, "Unable to save your profile."));
+  }
+  return res.json();
+}

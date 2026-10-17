@@ -64,6 +64,7 @@ model User {
   PassRequest           PassRequest[]
   WorkSchedule          WorkSchedule[]
   caseworkerAssignments CaseworkerAssignment[]
+  caseworkerProfile     Caseworker?
 }
 
 // Which caseworker(s) a resident is assigned to. Keyed by the caseworker's
@@ -95,6 +96,10 @@ model Caseworker {
   availability String?
   /// Public Microsoft Bookings page; residents are sent here to book.
   bookingUrl   String?
+  /// Login account that owns this profile. Lets a caseworker see their
+  /// assigned residents and edit their own Bookings link at /appointments.
+  userId       String?  @unique
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

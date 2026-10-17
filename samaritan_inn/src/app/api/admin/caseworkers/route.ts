@@ -1,26 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
-  caseworkerSelect,
+  adminCaseworkerSelect,
   checkAdmin,
+  checkLinkableAccount,
   getCaseworkerSource,
+  isLinkedAccountViolation,
   isUniqueViolation,
   parseCaseworkerInput,
 } from "@/lib/caseworker-directory";
 
 /**
  Everything the /admin-caseworkers page needs in one call: the caseworker
- directory, every resident ↔ caseworker assignment, and the residents that
-  can be assigned.
+ directory, every resident ↔ caseworker assignment, the residents that
+  can be assigned, and the caseworker login accounts profiles can be linked to.
  */
 export async function GET(request: NextRequest) {
   const denied = await checkAdmin(request);
   if (denied) return denied;
 
   try {
-    const [caseworkers, assignments, residents] = await Promise.all([
+    const [caseworkers, assignments, residents, accounts] = await Promise.all([
       prisma.caseworker.findMany({
-        select: caseworkerSelect,
+        select: adminCaseworkerSelect,
         orderBy: { name: "asc" },
       }),
       prisma.caseworkerAssignment.findMany({
@@ -36,6 +38,11 @@ export async function GET(request: NextRequest) {
         select: { id: true, name: true, email: true },
         orderBy: { name: "asc" },
       }),
+      prisma.user.findMany({
+        where: { role: "caseworker" },
+        select: { id: true, name: true, email: true },
+        orderBy: { name: "asc" },
+      }),
     ]);
 
     return NextResponse.json({
@@ -43,6 +50,7 @@ export async function GET(request: NextRequest) {
       caseworkers,
       assignments,
       residents,
+      accounts,
     });
   } catch (error) {
     console.error("admin caseworkers GET error:", error);
@@ -69,13 +77,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
+  const accountError = await checkLinkableAccount(parsed.data.userId);
+  if (accountError) {
+    return NextResponse.json({ error: accountError }, { status: 400 });
+  }
+
   try {
     const caseworker = await prisma.caseworker.create({
       data: parsed.data,
-      select: caseworkerSelect,
+      select: adminCaseworkerSelect,
     });
     return NextResponse.json(caseworker, { status: 201 });
   } catch (error) {
+    if (isLinkedAccountViolation(error)) {
+      return NextResponse.json(
+        { error: "That login account is already linked to another caseworker." },
+        { status: 409 }
+      );
+    }
     if (isUniqueViolation(error)) {
       return NextResponse.json(
         { error: "A caseworker with that email already exists." },

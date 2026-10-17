@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
-  caseworkerSelect,
+  adminCaseworkerSelect,
   checkAdmin,
+  checkLinkableAccount,
+  isLinkedAccountViolation,
   isUniqueViolation,
   parseCaseworkerInput,
 } from "@/lib/caseworker-directory";
@@ -36,6 +38,11 @@ export async function PUT(
     return NextResponse.json({ error: "Caseworker not found." }, { status: 404 });
   }
 
+  const accountError = await checkLinkableAccount(parsed.data.userId);
+  if (accountError) {
+    return NextResponse.json({ error: accountError }, { status: 400 });
+  }
+
   try {
     const caseworker = await prisma.$transaction(async (tx) => {
       // Assignments are linked by email, so they follow an email change.
@@ -48,11 +55,17 @@ export async function PUT(
       return tx.caseworker.update({
         where: { id },
         data: parsed.data,
-        select: caseworkerSelect,
+        select: adminCaseworkerSelect,
       });
     });
     return NextResponse.json(caseworker);
   } catch (error) {
+    if (isLinkedAccountViolation(error)) {
+      return NextResponse.json(
+        { error: "That login account is already linked to another caseworker." },
+        { status: 409 }
+      );
+    }
     if (isUniqueViolation(error)) {
       return NextResponse.json(
         {

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
+import { can } from "@/lib/permissions";
 
 /**
  * Admin-only caseworker directory (used when CASEWORKER_SOURCE="local").
@@ -12,6 +13,8 @@ import Navigation from "@/components/Navigation";
  * then assign residents to them. Residents see their assigned caseworkers on
  * /appointments and book through the Bookings link.
  */
+
+type Person = { id: string; name: string; email: string };
 
 type DirectoryCaseworker = {
   id: string;
@@ -22,9 +25,9 @@ type DirectoryCaseworker = {
   room: string | null;
   availability: string | null;
   bookingUrl: string | null;
+  /** Login account that owns this profile, if linked. */
+  user: Person | null;
 };
-
-type Person = { id: string; name: string; email: string };
 
 type Assignment = { id: string; caseworkerEmail: string; resident: Person };
 
@@ -33,11 +36,13 @@ type DirectoryData = {
   caseworkers: DirectoryCaseworker[];
   assignments: Assignment[];
   residents: Person[];
+  /** Accounts with the caseworker role, which a profile can be linked to. */
+  accounts: Person[];
 };
 
-type FormFields = Omit<DirectoryCaseworker, "id">;
+type FormFields = Omit<DirectoryCaseworker, "id" | "user">;
 
-const EMPTY_FORM: Record<keyof FormFields, string> = {
+const EMPTY_FORM: Record<keyof FormFields | "userId", string> = {
   name: "",
   title: "",
   email: "",
@@ -45,6 +50,7 @@ const EMPTY_FORM: Record<keyof FormFields, string> = {
   room: "",
   availability: "",
   bookingUrl: "",
+  userId: "",
 };
 
 const FIELDS: {
@@ -103,7 +109,7 @@ async function readError(res: Response, fallback: string) {
 export default function AdminCaseworkersPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const isAdmin = session?.user?.role === "admin";
+  const isAdmin = can(session?.user?.role, "MANAGE_COACH_ACCOUNTS");
 
   const [data, setData] = useState<DirectoryData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -162,6 +168,7 @@ export default function AdminCaseworkersPage() {
       room: cw.room ?? "",
       availability: cw.availability ?? "",
       bookingUrl: cw.bookingUrl ?? "",
+      userId: cw.user?.id ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -291,6 +298,40 @@ export default function AdminCaseworkersPage() {
                 </label>
               ))}
 
+              <label className="block md:col-span-2">
+                <span className="mb-1 block text-sm font-semibold text-gray-700">
+                  Login account
+                </span>
+                <select
+                  value={form.userId}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, userId: e.target.value }))
+                  }
+                  className="w-full rounded border border-gray-300 px-3 py-2 text-black"
+                >
+                  <option value="">Not linked</option>
+                  {data?.accounts
+                    .filter(
+                      (account) =>
+                        // Hide accounts already linked to another caseworker.
+                        !data.caseworkers.some(
+                          (cw) => cw.user?.id === account.id && cw.id !== editingId
+                        )
+                    )
+                    .map((account) => (
+                      <option key={account.id} value={account.id}>
+                        {account.name} ({account.email})
+                      </option>
+                    ))}
+                </select>
+                <span className="mt-1 block text-xs text-gray-500">
+                  The linked caseworker sees these details and their assigned
+                  residents on Appointments, and can edit their own phone,
+                  availability and Bookings link. Only accounts with the
+                  caseworker role (set on Manage Users) are listed.
+                </span>
+              </label>
+
               {formError && (
                 <p className="text-red-600 md:col-span-2">{formError}</p>
               )}
@@ -337,7 +378,7 @@ export default function AdminCaseworkersPage() {
                   const available = data.residents.filter((r) => !assignedIds.has(r.id));
 
                   return (
-                    <div key={cw.id} className="rounded-lg border-2 border-blue-600 p-4">
+                    <div key={cw.id} className="rounded-lg border-2 border-blue-600 bg-blue-50/40 p-4">
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div className="min-w-0 text-sm text-gray-700">
                           <p className="text-lg font-bold text-black">{cw.name}</p>
@@ -346,6 +387,9 @@ export default function AdminCaseworkersPage() {
                           {cw.phone && <p>{cw.phone}</p>}
                           {cw.room && <p>Room: {cw.room}</p>}
                           {cw.availability && <p>{cw.availability}</p>}
+                          <p className={cw.user ? "" : "text-gray-500"}>
+                            Login: {cw.user ? cw.user.email : "not linked"}
+                          </p>
                           {cw.bookingUrl ? (
                             <a
                               href={cw.bookingUrl}
