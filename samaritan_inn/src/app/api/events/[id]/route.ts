@@ -4,9 +4,9 @@ import { prisma } from '@/lib/prisma'
 // PUT /api/events/:id
 export async function PUT(
   req: Request,
-  { params }: { params: any }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params
+  const { id } = await params
   try {
     const { title, content, startDate, endDate, startTime, endTime } =
       await req.json()
@@ -53,9 +53,9 @@ export async function PUT(
 // DELETE /api/events/:id
 export async function DELETE(
   _req: Request,
-  { params }: { params: any }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params
+  const { id } = await params
   try {
     await prisma.event.delete({ where: { id } })
     return NextResponse.json({ success: true })

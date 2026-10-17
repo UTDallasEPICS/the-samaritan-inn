@@ -75,7 +75,7 @@ Samaritan Inn Scheduling App is a web application serving the residents and staf
 ### Prerequisites
 
 - Node.js (v18 or higher)
-- npm or Yarn
+- pnpm 11 (`corepack enable` or `npm i -g pnpm@11.12.0`)
 - SQLite (comes pre-installed with Prisma)
 
 ### Installation
@@ -87,10 +87,10 @@ Samaritan Inn Scheduling App is a web application serving the residents and staf
    ```
    All remaining commands run from `samaritan_inn/`, where `package.json` and `prisma/` live.
 2. Install dependencies:
-   - `npm install`
+   - `pnpm install`
    - (create `.env` file and add the required information)
-   - `npx prisma migrate dev`
-   - `npx prisma generate`
+   - `pnpm exec prisma migrate dev`
+   - `pnpm exec prisma generate`
 3. Configure environment variables:
    Create a `.env` file in the root directory with:
    ```env
@@ -100,7 +100,7 @@ Samaritan Inn Scheduling App is a web application serving the residents and staf
    ```
 4. Start the development server:
    ```bash
-   npm run dev
+   pnpm dev
    # or
    yarn dev
    ```
@@ -110,7 +110,7 @@ Samaritan Inn Scheduling App is a web application serving the residents and staf
 
 ## Project Structure
 
-The Next.js application lives in `samaritan_inn/`. All `npm` commands below are run from that directory, not the repository root.
+The Next.js application lives in `samaritan_inn/`. All `pnpm` commands below are run from that directory, not the repository root.
 
 ```text
 the-samaritan-inn/
@@ -228,10 +228,10 @@ the-samaritan-inn/
 
 ### Scripts
 
-- `npm run dev` – Start the development server  
-- `npm run build` – Build for production  
-- `npm start` – Start the production server  
-- `npm run lint` – Run linter  
+- `pnpm dev` – Start the development server  
+- `pnpm build` – Build for production  
+- `pnpm start` – Start the production server  
+- `pnpm lint` – Run linter  
 
 ---
 
@@ -239,11 +239,11 @@ the-samaritan-inn/
 
 - **Prisma Studio:**  
   ```bash
-  npx prisma studio
+  pnpm exec prisma studio
   ```
 - **Migrations:**  
   ```bash
-  npx prisma migrate dev --name <migration_name>
+  pnpm exec prisma migrate dev --name <migration_name>
   ```
 
 ---
@@ -473,14 +473,21 @@ The root README setup example already includes `DATABASE_URL`, `NEXTAUTH_URL`, a
 
 ## Deployment
 
-1. Build the application:
-   ```bash
-   npm run build
-   ```
-2. Start the production server:
-   ```bash
-   npm start
-   ```
+The app runs on NPTS infra (ECS on arm64, SQLite on EFS) at `samaritan-inn.npts.tech` (prod) and `samaritan-inn-stage.npts.tech` (stage).
+
+- Push to the `stage` or `prod` branch. `.github/workflows/deploy.yml` builds the Docker image in `samaritan_inn/`, runs `prisma migrate deploy` through the NPTS migration Lambda, pushes to ECR, and restarts the ECS service. A failed migration never publishes an image.
+- Runtime env vars (`DATABASE_URL=file:/efs/prod.db`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `SF_*`) live in `s3://npts-env-bucket/<project>/<env>.env`, managed from the NPTS infra repo.
+- `NEXT_PUBLIC_SF_OWNER_1..3` are inlined at build time, so they are GitHub repo variables passed as Docker build args, not runtime env vars.
+- GitHub repo settings: variable `REPOSITORY` (the project name in the infra repo's `projects.auto.tfvars`), plus `ACTIONS_ROLE_ARN` and `CLUSTER_NAME` secrets if the org does not provide them.
+- The ALB health check hits `/api/health`.
+
+Test the image locally before pushing:
+
+```bash
+cd samaritan_inn
+docker build -t samaritan-inn .
+docker run --rm -p 3000:3000 --env-file .env samaritan-inn
+```
 
 ---
 ## Future requirements:
