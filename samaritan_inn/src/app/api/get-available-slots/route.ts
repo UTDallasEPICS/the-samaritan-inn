@@ -13,6 +13,7 @@ import {
   resolveSalesforceOwnerId,
   SalesforceError,
 } from "@/lib/salesforce";
+import { isBookableCaseworker } from "@/lib/caseworkers";
 
 function errorResponse(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -29,8 +30,8 @@ export async function GET(request: Request) {
       throw new ApiError(400, "The date query parameter is required.");
     }
 
-    if (!ownerId) {
-      throw new ApiError(400, "A valid calendar ownerId is required.");
+    if (!ownerId || !isBookableCaseworker(ownerId)) {
+      throw new ApiError(400, "Please choose one of the available caseworkers.");
     }
 
     if (!isDateWithinBookingWindow(date)) {

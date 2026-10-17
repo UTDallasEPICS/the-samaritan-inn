@@ -8,6 +8,7 @@ export type Permission =
   | 'VIEW_ALL_REQUESTS' // see all residents' pass/curfew/work-schedule requests 
   | 'REVIEW_REQUESTS' // approve/deny those requests
   | 'MANAGE_USERS' // add/edit/disable other users' accounts and change their roles (admin only)
+  | 'EDIT_OWN_COACH_PROFILE' // edit own Bookings link, availability and phone on /appointments
 
   // Universal: every role gets these
   | 'VIEW_OWN_PROFILE'
@@ -31,7 +32,8 @@ export type Permission =
 // - VIEW_ALL_APPOINTMENTS: No staff view for all residents' appointments yet.
 // - EDIT_REQUESTS / DELETE_REQUESTS: Request APIs currently support submitting
 //   and reviewing requests, but not editing or deleting them.
-// - VIEW_RESIDENT_PROFILES: No staff resident profile page or endpoint yet.
+// - VIEW_RESIDENT_PROFILES: Only a caseworker's own assigned residents are
+//   shown so far (/appointments); no page for viewing any resident yet.
 // - MANAGE_COACH_ACCOUNTS / ADD_COACH / EDIT_COACH / DISABLE_COACH /
 //   MANAGE_COACH_BOOKING_LINKS: Coach = caseworker. 
 // - MANAGE_INFLOW_PAGE: No staff management for the Inflow page yet.
@@ -80,6 +82,7 @@ const ADMIN_PERMISSIONS: Permission[] = [
 
 // Caseworker's permissions on top of the universal set. 
 const CASEWORKER_PERMISSIONS: Permission[] = [
+  'EDIT_OWN_COACH_PROFILE',
   'MANAGE_ANNOUNCEMENTS',
   'VIEW_ALL_REQUESTS',
   'REVIEW_REQUESTS',

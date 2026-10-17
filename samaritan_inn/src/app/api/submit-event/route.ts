@@ -16,6 +16,7 @@ import {
   SalesforceError,
 } from "@/lib/salesforce";
 import { deleteScheduledEventMirror, syncScheduledEvent } from "@/lib/scheduled-events";
+import { getCaseworkerProfiles, isBookableCaseworker } from "@/lib/caseworkers";
 
 function errorResponse(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -39,8 +40,10 @@ export async function POST(request: NextRequest) {
       throw new ApiError(400, "title, startDate, and endDate are required.");
     }
 
-    if (!ownerId) {
-      throw new ApiError(400, "A valid calendar ownerId is required.");
+    // Only the configured caseworkers can be booked — never an arbitrary
+    // Salesforce user id sent by the browser.
+    if (!ownerId || !isBookableCaseworker(ownerId)) {
+      throw new ApiError(400, "Please choose one of the available caseworkers.");
     }
 
     const interval = {
@@ -86,16 +89,25 @@ export async function POST(request: NextRequest) {
         ownerId,
         startDate: interval.start.toISOString(),
         endDate: interval.end.toISOString(),
-        whatId: "001gK00000hBCOaQAO",
+        // The Salesforce record every appointment is linked to. Configured per
+        // environment; when unset the Event is created without a link.
+        whatId: process.env.SF_DEFAULT_WHAT_ID || undefined,
       });
 
       await finalizeAppointmentReservation(reservation.id, salesforceEventId);
+
+      // Best effort: a failed name lookup must not undo a successful booking.
+      const [caseworker] = await getCaseworkerProfiles({ ids: [ownerId] }).catch(
+        () => []
+      );
+
       await syncScheduledEvent({
         appointmentId: reservation.id,
         title,
         startTime: interval.start,
         endTime: interval.end,
         ownerId,
+        caseWorkerName: caseworker?.name ?? null,
         salesforceId: salesforceEventId,
         userId,
       });

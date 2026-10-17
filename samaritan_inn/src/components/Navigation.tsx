@@ -73,7 +73,7 @@ export default function Navigation() {
             <Link href="/resources" className={linkClass('/resources')}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form')}>Pass</Link>
-            <Link href="/appointments/my-events" className={linkClass('/appointments/my-events')}>Appointments</Link>
+            <Link href="/appointments" className={linkClass('/appointments')}>Appointments</Link>
             {status === 'authenticated' ? (
               <>
                 {canManageUsers ? (
@@ -175,7 +175,7 @@ export default function Navigation() {
             <Link href="/classes" className={linkClass('/classes', true)} onClick={() => setIsMenuOpen(false)}>Classes</Link>
             <Link href="/resources" className={linkClass('/resources', true)} onClick={() => setIsMenuOpen(false)}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements', true)} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
-            <Link href="/appointments/my-events" className={linkClass('/appointments/my-events', true)} onClick={() => setIsMenuOpen(false)}>Schedule Event</Link>
+            <Link href="/appointments" className={linkClass('/appointments', true)} onClick={() => setIsMenuOpen(false)}>Appointments</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form', true)} onClick={() => setIsMenuOpen(false)}>Pass</Link>
             {status === 'authenticated' ? (
               <>

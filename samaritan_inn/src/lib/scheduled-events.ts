@@ -1,39 +1,13 @@
 import { prisma } from "@/lib/prisma";
 
-function getConfiguredCaseWorkers() {
-  return [
-    {
-      ownerId: process.env.NEXT_PUBLIC_SF_OWNER_1,
-      label: "Case Worker 1",
-    },
-    {
-      ownerId: process.env.NEXT_PUBLIC_SF_OWNER_2,
-      label: "Case Worker 2",
-    },
-    {
-      ownerId: process.env.NEXT_PUBLIC_SF_OWNER_3,
-      label: "Case Worker 3",
-    },
-  ].filter((worker): worker is { ownerId: string; label: string } => Boolean(worker.ownerId));
-}
-
-export function getCaseWorkerLabel(ownerId?: string | null) {
-  if (!ownerId) {
-    return "Case Worker";
-  }
-
-  return (
-    getConfiguredCaseWorkers().find((worker) => worker.ownerId === ownerId)?.label ??
-    ownerId
-  );
-}
-
 type SyncScheduledEventInput = {
   appointmentId: string;
   title: string;
   startTime: Date;
   endTime: Date;
   ownerId?: string | null;
+  /** The caseworker's real name from Salesforce, when it could be looked up. */
+  caseWorkerName?: string | null;
   salesforceId?: string | null;
   userId: string;
 };
@@ -51,7 +25,8 @@ export async function syncScheduledEvent(input: SyncScheduledEventInput) {
         title: input.title,
         startTime: input.startTime,
         endTime: input.endTime,
-        caseWorker: getCaseWorkerLabel(input.ownerId),
+        // Keep the stored name if Salesforce couldn't be reached this time.
+        ...(input.caseWorkerName ? { caseWorker: input.caseWorkerName } : {}),
         salesforceId: input.salesforceId ?? null,
         userId: input.userId,
       },
@@ -64,7 +39,9 @@ export async function syncScheduledEvent(input: SyncScheduledEventInput) {
       title: input.title,
       startTime: input.startTime,
       endTime: input.endTime,
-      caseWorker: getCaseWorkerLabel(input.ownerId),
+      // Fall back to the Salesforce owner id so the record still identifies
+      // who the appointment is with.
+      caseWorker: input.caseWorkerName || input.ownerId || "",
       salesforceId: input.salesforceId ?? null,
       userId: input.userId,
     },

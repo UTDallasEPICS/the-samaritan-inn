@@ -63,6 +63,45 @@ model User {
   ExtendedCurfewRequest ExtendedCurfewRequest[]
   PassRequest           PassRequest[]
   WorkSchedule          WorkSchedule[]
+  caseworkerAssignments CaseworkerAssignment[]
+  caseworkerProfile     Caseworker?
+}
+
+// Which caseworker(s) a resident is assigned to. Keyed by the caseworker's
+// email rather than a Salesforce id so assignments survive a move from
+// Salesforce to Outlook.
+model CaseworkerAssignment {
+  id              String   @id @default(cuid())
+  residentId      String
+  resident        User     @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  caseworkerEmail String
+  createdAt       DateTime @default(now())
+
+  @@unique([residentId, caseworkerEmail])
+}
+
+/// Caseworker directory managed by staff at /admin-caseworkers. Only read when
+/// CASEWORKER_SOURCE="local" (see src/lib/caseworker-directory.ts). Residents
+/// are linked to these rows through CaseworkerAssignment.caseworkerEmail, the
+/// same table Salesforce mode uses, so switching modes never moves data.
+model Caseworker {
+  id           String   @id @default(cuid())
+  name         String
+  title        String?
+  /// Stored lowercase; matched against CaseworkerAssignment.caseworkerEmail.
+  email        String   @unique
+  phone        String?
+  room         String?
+  /// Free text shown to residents, e.g. "Mon–Fri, 9:00 AM – 5:00 PM".
+  availability String?
+  /// Public Microsoft Bookings page; residents are sent here to book.
+  bookingUrl   String?
+  /// Login account that owns this profile. Lets a caseworker see their
+  /// assigned residents and edit their own Bookings link at /appointments.
+  userId       String?  @unique
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model ScheduledEvent {
