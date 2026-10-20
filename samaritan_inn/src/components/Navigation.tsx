@@ -93,29 +93,10 @@ export default function Navigation() {
               <Link href="/appointments/my-events" className={linkClass('/appointments/my-events')}>Appointments</Link>
               {status !== 'authenticated' && (
                 <Link href="/auth/login" className={linkClass('/auth/login')}>Login</Link>
-<<<<<<< Updated upstream
               )}
               {/* <Link
                 href="/auth/signup"
                 className={`px-3 py-2 rounded-md font-bold ${pathname === '/auth/signup' ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'}`}
-=======
-              </>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="flex md:hidden items-center">
-            <button
-              onClick={() => { setIsMenuOpen(!isMenuOpen); setIsMobileProfileOpen(false); }}
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-[#29abe2] focus:outline-none"
-            >
-              <svg
-                className="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
->>>>>>> Stashed changes
               >
                 Sign Up
               </Link> */}
@@ -225,6 +206,7 @@ export default function Navigation() {
             ) : (
               <>
                 <Link href="/auth/login" className={linkClass('/auth/login', true)} onClick={() => setIsMenuOpen(false)}>Login</Link>
+                {/* <Link href="/auth/signup" className={`block w-full text-left px-3 py-2 rounded-md font-bold bg-green-500 hover:bg-green-600`} onClick={() => setIsMenuOpen(false)}>Sign Up</Link> */}
               </>
             )}
           </div>
