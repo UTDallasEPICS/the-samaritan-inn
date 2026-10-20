@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import { can, ROLES, type Role } from '@/lib/permissions';
 
@@ -77,6 +78,15 @@ export default function AdminUsersPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-primary mb-6 text-center">
             Manage Users
           </h1>
+
+          <div className="mb-4 flex justify-end">
+            <Link
+              href="/admin-users/create"
+              className="rounded bg-[#5cc26b] px-4 py-2 text-white hover:opacity-90"
+            >
+              Add resident
+            </Link>
+          </div>
 
           {error && (
             <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
