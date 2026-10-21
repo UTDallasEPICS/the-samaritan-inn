@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   const caseworkers = await prisma.user.findMany({
-    where: { role: { in: ['admin', 'caseworker'] } },
+    where: { role: { in: ['admin', 'caseworker', 'lead_lifecoach'] } },
     select: { id: true, name: true },
     orderBy: { name: 'asc' },
   });

@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
-import { can } from '@/lib/permissions';
+import { requestListWhere, withAssignedCaseworkerNames } from '@/lib/requestAccess';
 import type { NextRequest } from 'next/server';
 
 interface DayInput {
@@ -92,10 +92,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const schedules = await prisma.workSchedule.findMany({
-      where: can(session.role, 'VIEW_ALL_REQUESTS') ? undefined : { userId: session.id },
+      where: requestListWhere(session),
       orderBy: { submittedAt: 'desc' },
     });
-    return NextResponse.json(schedules);
+    return NextResponse.json(await withAssignedCaseworkerNames(schedules));
   } catch (error) {
     console.error('Error fetching work schedules:', error);
     return NextResponse.json(
