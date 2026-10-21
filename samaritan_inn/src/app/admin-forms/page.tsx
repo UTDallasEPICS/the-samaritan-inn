@@ -151,6 +151,7 @@ export default function AdminPassFormPage() {
                     <tr className="text-left border-b border-gray-200 text-gray-700">
                       <th className="py-3 px-4">Resident Name</th>
                       <th className="py-3 px-4">Form Type</th>
+                      <th className="py-3 px-4">Assigned To</th>
                       <th className="py-3 px-4">Submitted</th>
                       <th className="py-3 px-4">Status</th>
                       <th className="py-3 px-4">Actions</th>
@@ -161,6 +162,7 @@ export default function AdminPassFormPage() {
                       <tr key={`${f.formKey}-${f.id}`} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-3 px-4 text-gray-700">{f.name}</td>
                         <td className="py-3 px-4 text-gray-700">{f.formType}</td>
+                        <td className="py-3 px-4 text-gray-700">{f.assignedCaseworkerName ?? '—'}</td>
                         <td className="py-3 px-4 text-gray-700">
                           {new Date(f.submittedAt).toLocaleDateString()}
                         </td>

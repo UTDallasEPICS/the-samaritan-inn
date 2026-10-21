@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
-import { can } from '@/lib/permissions';
+import { requestListWhere, withAssignedCaseworkerNames } from '@/lib/requestAccess';
 import type { NextRequest } from 'next/server';
 
 export async function POST(req: Request) {
@@ -62,10 +62,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const requests = await prisma.passRequest.findMany({
-      where: can(session.role, 'VIEW_ALL_REQUESTS') ? undefined : { userId: session.id },
+      where: requestListWhere(session),
       orderBy: { submittedAt: 'desc' },
     });
-    return NextResponse.json(requests);
+    return NextResponse.json(await withAssignedCaseworkerNames(requests));
   } catch (error) {
     console.error('Error fetching pass requests:', error);
     return NextResponse.json({ error: 'Failed to fetch requests' }, { status: 500 });
