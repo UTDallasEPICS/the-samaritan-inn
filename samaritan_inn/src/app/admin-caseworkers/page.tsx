@@ -36,7 +36,7 @@ type DirectoryData = {
   caseworkers: DirectoryCaseworker[];
   assignments: Assignment[];
   residents: Person[];
-  /** Accounts with the caseworker role, which a profile can be linked to. */
+  /** Caseworker and admin accounts, which a profile can be linked to. */
   accounts: Person[];
 };
 
@@ -72,7 +72,7 @@ const FIELDS: {
   },
   {
     key: "bookingUrl",
-    label: "Microsoft Bookings link",
+    label: "Outlook / Microsoft Bookings link",
     placeholder: "https://bookings.cloud.microsoft/book/...",
     type: "url",
   },
@@ -325,10 +325,10 @@ export default function AdminCaseworkersPage() {
                     ))}
                 </select>
                 <span className="mt-1 block text-xs text-gray-500">
-                  The linked caseworker sees these details and their assigned
+                  The linked person sees these details and their assigned
                   residents on Appointments, and can edit their own phone,
-                  availability and Bookings link. Only accounts with the
-                  caseworker role (set on Manage Users) are listed.
+                  availability and Outlook / Bookings link. Only caseworker
+                  and admin accounts (set on Manage Users) are listed.
                 </span>
               </label>
 

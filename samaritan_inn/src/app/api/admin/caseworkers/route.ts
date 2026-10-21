@@ -6,6 +6,7 @@ import {
   checkLinkableAccount,
   getCaseworkerSource,
   isLinkedAccountViolation,
+  LINKABLE_ROLES,
   isUniqueViolation,
   parseCaseworkerInput,
 } from "@/lib/caseworker-directory";
@@ -13,7 +14,7 @@ import {
 /**
  Everything the /admin-caseworkers page needs in one call: the caseworker
  directory, every resident ↔ caseworker assignment, the residents that
-  can be assigned, and the caseworker login accounts profiles can be linked to.
+  can be assigned, and the caseworker/admin login accounts profiles can be linked to.
  */
 export async function GET(request: NextRequest) {
   const denied = await checkAdmin(request);
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
         orderBy: { name: "asc" },
       }),
       prisma.user.findMany({
-        where: { role: "caseworker" },
+        where: { role: { in: LINKABLE_ROLES } },
         select: { id: true, name: true, email: true },
         orderBy: { name: "asc" },
       }),

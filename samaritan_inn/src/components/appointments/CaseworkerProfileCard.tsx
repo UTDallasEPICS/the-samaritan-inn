@@ -38,7 +38,7 @@ const EDITABLE: {
 }[] = [
   {
     key: "bookingUrl",
-    label: "Microsoft Bookings link",
+    label: "Outlook / Microsoft Bookings link",
     placeholder: "https://bookings.cloud.microsoft/book/...",
     type: "url",
     validate: (value) => {
@@ -281,8 +281,8 @@ export default function CaseworkerProfileCard({
 
       {!profile.bookingUrl && (
         <p className="mt-4 rounded border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
-          Residents can&apos;t book with you until you add your Microsoft
-          Bookings link.
+          Residents can&apos;t book with you until you add your Outlook /
+          Microsoft Bookings link.
         </p>
       )}
     </div>

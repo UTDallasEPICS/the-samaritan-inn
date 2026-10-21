@@ -108,11 +108,10 @@ export function isLinkedAccountViolation(error: unknown) {
   );
 }
 
-/**
- * Error message when `userId` can't own a caseworker profile, or null when it
- * can. Only caseworker accounts are linkable, since only they get the
- * caseworker view on /appointments.
- */
+/** Roles whose accounts can own a caseworker profile (and edit it on /appointments). */
+export const LINKABLE_ROLES = ["caseworker", "admin"];
+
+/** Error message when `userId` can't own a caseworker profile, or null when it can. */
 export async function checkLinkableAccount(userId: string | null) {
   if (userId === null) return null;
   const user = await prisma.user.findUnique({
@@ -120,8 +119,8 @@ export async function checkLinkableAccount(userId: string | null) {
     select: { role: true },
   });
   if (!user) return "Login account not found.";
-  if (user.role !== "caseworker") {
-    return "Only accounts with the caseworker role can be linked. Change the role on Manage Users first.";
+  if (!LINKABLE_ROLES.includes(user.role)) {
+    return "Only caseworker or admin accounts can be linked. Change the role on Manage Users first.";
   }
   return null;
 }

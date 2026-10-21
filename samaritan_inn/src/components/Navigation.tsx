@@ -16,7 +16,10 @@ export default function Navigation() {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const canManageUsers = can(session?.user?.role, 'MANAGE_USERS');
-  const inProfileSection = pathname === '/profile' || pathname === '/admin-users';
+  const canManageCaseworkers = can(session?.user?.role, 'MANAGE_COACH_ACCOUNTS');
+  // Admin pages live in the Profile dropdown instead of the main nav.
+  const hasAdminMenu = canManageUsers || canManageCaseworkers;
+  const inProfileSection = ['/profile', '/admin-users', '/admin-caseworkers'].includes(pathname);
 
   // Close the profile dropdown on outside click or Escape
   useEffect(() => {
@@ -76,7 +79,7 @@ export default function Navigation() {
             <Link href="/appointments" className={linkClass('/appointments')}>Appointments</Link>
             {status === 'authenticated' ? (
               <>
-                {canManageUsers ? (
+                {hasAdminMenu ? (
                   <div className="relative" ref={profileMenuRef}>
                     <button
                       onClick={() => setIsProfileMenuOpen(open => !open)}
@@ -108,14 +111,26 @@ export default function Navigation() {
                         >
                           My Profile
                         </Link>
-                        <Link
-                          href="/admin-users"
-                          role="menuitem"
-                          onClick={() => setIsProfileMenuOpen(false)}
-                          className={`block px-4 py-2 font-bold text-[#00167c] hover:bg-gray-100 ${pathname === '/admin-users' ? 'bg-gray-100' : ''}`}
-                        >
-                          Manage Users
-                        </Link>
+                        {canManageUsers && (
+                          <Link
+                            href="/admin-users"
+                            role="menuitem"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                            className={`block px-4 py-2 font-bold text-[#00167c] hover:bg-gray-100 ${pathname === '/admin-users' ? 'bg-gray-100' : ''}`}
+                          >
+                            Manage Users
+                          </Link>
+                        )}
+                        {canManageCaseworkers && (
+                          <Link
+                            href="/admin-caseworkers"
+                            role="menuitem"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                            className={`block px-4 py-2 font-bold text-[#00167c] hover:bg-gray-100 ${pathname === '/admin-caseworkers' ? 'bg-gray-100' : ''}`}
+                          >
+                            Manage Caseworkers
+                          </Link>
+                        )}
                       </div>
                     )}
                   </div>
@@ -179,7 +194,7 @@ export default function Navigation() {
             <Link href="/user-pass-form" className={linkClass('/user-pass-form', true)} onClick={() => setIsMenuOpen(false)}>Pass</Link>
             {status === 'authenticated' ? (
               <>
-                {canManageUsers ? (
+                {hasAdminMenu ? (
                   <>
                     <button
                       onClick={() => setIsMobileProfileOpen(open => !open)}
@@ -200,7 +215,12 @@ export default function Navigation() {
                     {isMobileProfileOpen && (
                       <>
                         <Link href="/profile" className={`${linkClass('/profile', true)} pl-8`} onClick={() => setIsMenuOpen(false)}>My Profile</Link>
-                        <Link href="/admin-users" className={`${linkClass('/admin-users', true)} pl-8`} onClick={() => setIsMenuOpen(false)}>Manage Users</Link>
+                        {canManageUsers && (
+                          <Link href="/admin-users" className={`${linkClass('/admin-users', true)} pl-8`} onClick={() => setIsMenuOpen(false)}>Manage Users</Link>
+                        )}
+                        {canManageCaseworkers && (
+                          <Link href="/admin-caseworkers" className={`${linkClass('/admin-caseworkers', true)} pl-8`} onClick={() => setIsMenuOpen(false)}>Manage Caseworkers</Link>
+                        )}
                       </>
                     )}
                   </>
