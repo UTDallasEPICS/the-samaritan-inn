@@ -46,8 +46,8 @@ const AppointmentsPage = () => {
   const [caseworkerData, setCaseworkerData] = useState<CaseworkerData | null>(null);
   const [caseworkerError, setCaseworkerError] = useState<string | null>(null);
 
-  // ── Own caseworker profile + residents (caseworkers and admins, via /api/caseworkers/me) ──
-  const canHaveProfile = can(session?.user?.role, "EDIT_OWN_COACH_PROFILE");
+  // ── Caseworker's own profile + residents (caseworkers only, via /api/caseworkers/me) ──
+  const isCaseworker = can(session?.user?.role, "EDIT_OWN_COACH_PROFILE");
   const isAdmin = can(session?.user?.role, "MANAGE_COACH_ACCOUNTS");
   const [ownView, setOwnView] = useState<OwnCaseworkerView | null>(null);
   const [ownViewError, setOwnViewError] = useState<string | null>(null);
@@ -87,7 +87,7 @@ const AppointmentsPage = () => {
     if (status !== "authenticated") return;
     let cancelled = false;
 
-    if (canHaveProfile) {
+    if (isCaseworker) {
       getOwnCaseworkerView()
         .then((view) => {
           if (!cancelled) setOwnView(view);
@@ -101,10 +101,7 @@ const AppointmentsPage = () => {
             );
           }
         });
-    }
-
-    // Admins without a profile of their own keep the resident view below.
-    if (!canHaveProfile || isAdmin) {
+    } else {
       getCaseworkerData()
         .then((data) => {
           if (!cancelled) setCaseworkerData(data);
@@ -135,7 +132,7 @@ const AppointmentsPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [status, canHaveProfile, isAdmin]);
+  }, [status, isCaseworker]);
 
   // Close the dropdown on an outside click or the Escape key.
   useEffect(() => {
@@ -178,11 +175,6 @@ const AppointmentsPage = () => {
 
   const caseworkersLoading = !caseworkerData && !caseworkerError;
 
-  // Caseworkers always get their own view (it explains how to get linked).
-  // Admins only get it once an admin has linked a profile to their account.
-  const ownViewLoading = canHaveProfile && !ownView && !ownViewError;
-  const showOwnView = canHaveProfile && (!isAdmin || Boolean(ownView?.profile));
-
   return (
     <div className="flex min-h-screen flex-col">
       <Navigation />
@@ -196,7 +188,7 @@ const AppointmentsPage = () => {
               My Appointments
             </h1>
             <p className="mt-1 text-center text-gray-500">
-              {showOwnView
+              {isCaseworker
                 ? "Your booking details and the residents assigned to you."
                 : "Schedule a meeting with someone on your support team."}
             </p>
@@ -212,11 +204,7 @@ const AppointmentsPage = () => {
             )}
           </Card>
 
-          {isAdmin && ownViewLoading ? (
-            <Card>
-              <p className="text-gray-500">Loading…</p>
-            </Card>
-          ) : showOwnView ? (
+          {isCaseworker ? (
             <>
               {/* ── Caseworker: own profile ── */}
               <Card title="My Caseworker Profile">

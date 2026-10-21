@@ -65,7 +65,6 @@ const UNIVERSAL_PERMISSIONS: Permission[] = [
 
 // Admin's permissions on top of the universal set.
 const ADMIN_PERMISSIONS: Permission[] = [
-  'EDIT_OWN_COACH_PROFILE', // admins who meet with residents can have their own profile
   'MANAGE_ANNOUNCEMENTS',
   'VIEW_ALL_REQUESTS',
   'REVIEW_REQUESTS',
