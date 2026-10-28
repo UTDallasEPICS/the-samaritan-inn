@@ -100,7 +100,7 @@ export default function SidebarCalendar({
           <button
             type="button"
             onClick={() => setViewDate((d) => addMonths(d, -1))}
-            className="px-3 py-2 rounded-xl hover:bg-gray-100 focus:outline-none"
+            className="flex items-center justify-center w-10 h-10 rounded-lg text-xl text-gray-700 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0caebb]"
             aria-label="Previous month"
           >
             ‹
@@ -109,7 +109,7 @@ export default function SidebarCalendar({
           <button
             type="button"
             onClick={() => setViewDate((d) => addMonths(d, 1))}
-            className="px-3 py-2 rounded-xl hover:bg-gray-100 focus:outline-none"
+            className="flex items-center justify-center w-10 h-10 rounded-lg text-xl text-gray-700 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0caebb]"
             aria-label="Next month"
           >
             ›
@@ -141,9 +141,13 @@ export default function SidebarCalendar({
                   "relative h-10 rounded-xl flex items-center justify-center text-sm transition",
                   inCurrentMonth
                     ? "text-gray-900 hover:bg-gray-100"
-                    : "text-gray-400 hover:bg-gray-100",
-                  isSelected ? "ring-2 ring-black font-semibold" : "",
-                  isToday && !isSelected ? "border border-gray-300" : "",
+                    : "text-gray-400 hover:bg-gray-50",
+                  isSelected
+                    ? "bg-[#0caebb] text-white font-semibold ring-2 ring-[#0caebb]"
+                    : "",
+                  isToday && !isSelected
+                    ? "border border-[#0caebb] font-semibold"
+                    : "",
                 ].join(" ")}
                 aria-pressed={isSelected}
                 aria-current={isToday ? "date" : undefined}
@@ -151,7 +155,9 @@ export default function SidebarCalendar({
                 {d.getDate()}
                 {hasAnnouncements && (
                   <span
-                    className="absolute bottom-1 h-1.5 w-1.5 rounded-full bg-black"
+                    className={`absolute bottom-1 h-1.5 w-1.5 rounded-full ${
+                      isSelected ? "bg-white" : "bg-[#0caebb]"
+                    }`}
                     aria-hidden="true"
                     title={`${byDate.get(key)?.length} announcement(s)`}
                   />
@@ -169,14 +175,17 @@ export default function SidebarCalendar({
               setViewDate(new Date(t.getFullYear(), t.getMonth(), 1));
               handleSelect(t);
             }}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-400 text-gray-500 hover:bg-gray-50"
+            className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50"
           >
             Today
           </button>
           <button
             type="button"
-            onClick={() => setViewDate((d) => addMonths(d, 0))}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-400 text-gray-500 hover:bg-gray-50"
+            onClick={() => {
+              const now = new Date();
+              setViewDate(new Date(now.getFullYear(), now.getMonth(), 1));
+            }}
+            className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50"
           >
             This Month
           </button>
