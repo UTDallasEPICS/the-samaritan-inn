@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import LandingCalendar from '@/components/LandingCalendar';
+import BackgroundBubbles from '@/components/BackgroundBubbles';
+// import InFlowButton from '@/components/inFlowButton';
 
 // Define the announcement data returned by the API
 interface Announcement {
@@ -49,19 +51,79 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+
       <Navigation />
 
       <div className="flex-grow bg-gray-100 p-4 flex flex-col items-center">
 
+        <BackgroundBubbles />
+
         {/* Welcome Section */}
-        <div className="w-full max-w-4xl pt-4">
-          <div className="flex flex-col items-center text-center mb-16">
+        <div className="relative z-10 w-full max-w-4xl pt-4">
+          <div className="flex flex-col items-center text-center mb-2">
             <h1 className="text-5xl md:text-6xl font-bold text-[#00167c] mb-6">
               Welcome to The Samaritan Inn
             </h1>
             <p className="text-xl text-[#231f20] max-w-2xl">
               A safe place providing shelter, support, and hope for those in need.
             </p>
+          </div>
+
+          <div className="flex justify-center w-full my-2">
+            <button
+              type="button"
+              onClick={() => {
+                window.open(process.env.NEXT_PUBLIC_INFLOW_URL, '_blank');
+              }}
+              style={{
+                width: '270.5px',
+                height: '48px',
+                minWidth: 0,
+                padding: '3.5px 8.7px',
+                gap: '7px',
+                borderRadius: '4.4px',
+                boxSizing: 'border-box',
+              }}
+              className="
+              flex items-center justify-between
+              overflow-hidden
+              border-2 border-[#f9a51a]
+              bg-[#fff3df]
+              transition-colors duration-200
+              hover:bg-[#ffffff]
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-[#000000]
+              "
+            >
+              <span
+                style={{
+                  fontSize: '15.7px',
+                  lineHeight: 1,
+                }}
+                className="whitespace-nowrap font-semibold tracking-tight text-[#f9a51a]"
+              >
+                Navigate to inFlow
+              </span>
+
+              <span
+                style={{
+                  width: '38.4px',
+                  height: '38.4px',
+                  minWidth: '38.4px',
+                  borderRadius: '3.5px',
+                }}
+                className="flex shrink-0 items-center justify-center overflow-hidden bg-[#f9a51a]"
+              >
+                <img
+                  src="/inflow.png"
+                  alt="inFlow logo"
+                  width={38}
+                  height={38}
+                  className="h-full w-full object-contain"
+                />
+              </span>
+            </button>
           </div>
 
           {/* Quick Access Cards */}
@@ -150,7 +212,7 @@ const HomePage = () => {
         </div>
 
         {/* Calendar */}
-        <div className="w-full flex justify-center mt-8">
+        <div className="relative z-10 w-full flex justify-center mt-8">
           <div className="w-full max-w-4xl mx-auto">
             <LandingCalendar
               announcements={announcements.map(a => ({
