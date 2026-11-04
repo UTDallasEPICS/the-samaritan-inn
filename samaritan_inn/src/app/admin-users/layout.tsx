@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/authOptions';
+import { authOptions } from '@/lib/auth';
 import { can } from '@/lib/permissions';
 
 // Server-side guard for /admin-users and everything under it.

@@ -28,6 +28,10 @@ export default function PassFormPage() {
   const [activeForm, setActiveForm] = useState<FormType>(null);
   const [activityFeed, setActivityFeed] = useState<ActivityRow[]>([]);
 
+  useEffect(() => {
+    if (status === 'unauthenticated') router.replace('/auth/login');
+  }, [status, router]);
+
   //Redirects admin/caseworker to admin forms page
   useEffect(() => {
     if (status === 'authenticated' && can(session?.user?.role, 'VIEW_ALL_REQUESTS')) {
