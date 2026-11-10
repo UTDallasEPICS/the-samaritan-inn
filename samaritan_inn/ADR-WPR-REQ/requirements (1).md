@@ -26,9 +26,12 @@ Use the matrix below to track requirements throughout the project lifecycle.
 | REQ-F-09 | Inflow Page should accurately track stock and orders using the API. | Deprecated | 2026F | `samaritan_inn/src/app/inventory/page.tsx` |
 | REQ-F-10 | Caseworkers should have dedicated permissions. | Verified | 2026F | `permissions.ts`, lines 82–96: `CASEWORKER_PERMISSIONS` mapped in `ROLE_PERMISSIONS`. |
 | REQ-F-11 | Create a lead caseworker role (life-coach lead) that can see all pass forms. | Backlog | 2026F | `samaritan_inn/src/app/api/users` |
-| REQ-NF-01 | Residents can no longer sign themselves up. Admins create resident accounts and hand off credentials. | In Progress | 2026F | `the-samaritan-inn\samaritan_inn\src\app\admin-users\page.tsx` |
-| REQ-NF-02 | Residents can no longer sign themselves up. Admins create resident accounts and hand off credentials. | In Progress | 2026F | `samaritan_inn/src/lib/permissions.ts` |
+| REQ-F-12 | Admins create resident accounts; the server generates a temporary password that is shown once, along with the login URL, for the admin to give to the resident. | In Progress | 2026F | `samaritan_inn/src/app/api/admin/residents/route.ts`, `samaritan_inn/src/app/admin-users/create/page.tsx` |
+| REQ-F-13 | Developers can obtain an admin account: seed script for local/stage, `create-admin` script for prod. | In Progress | 2026F | `samaritan_inn/prisma/seed.js`, `samaritan_inn/prisma/create-admin.js` |
+| REQ-NF-01 | Residents can no longer sign themselves up. Admins create resident accounts and hand off credentials. | In Progress | 2026F | `samaritan_inn/src/app/api/admin/residents/route.ts`, `samaritan_inn/src/app/admin-users/layout.tsx`, `samaritan_inn/src/app/admin-users/create/page.tsx` |
+| REQ-NF-02 | Only admins (MANAGE_USERS permission) can view the user-management pages or call the account-creation API; non-admins are redirected or receive 403. | In Progress | 2026F | `samaritan_inn/src/lib/permissions.ts`, `samaritan_inn/src/app/admin-users/layout.tsx` |
 | REQ-NF-03 | Appointment page hardcoded data is replaced to be filled dynamically. | In Progress | 2026F | `samaritan_inn/src/app/appointments`, `https://github.com/UTDallasEPICS/the-samaritan-inn/issues/119` |
+| REQ-NF-04 | Required resident fields (name, email) are defined once and validated on both the form and the server. | In Progress | 2026F | `samaritan_inn/src/lib/residentValidation.ts` |
 
 ## 2. Change Log
 
@@ -36,6 +39,8 @@ Track major changes, additions, or deprecations to the project scope.
 
 | Date       | Requirement ID | Change Description                                                                   | Author      | Approved By |
 | ---------- | -------------- | ------------------------------------------------------------------------------------ | ----------- | ----------- |
-| 2026-XX-XX | REQ-F/NF-\*    | placeholder change                                                                   | @author     | —           |
-| 2026-XX-XX | REQ-F/NF-\*    | placeholder change                                                                   | @author     | —           |
-| 2026-XX-XX | REQ-F/NF-\*    | placeholder change                                                                   | @author     | —           |
+| 2026-10-21 | REQ-NF-01 | Removed public sign-up (signup page and `/api/register`); sign-up links removed from nav, login and profile pages | @your-github-handle | — |
+| 2026-10-21 | REQ-F-12 | Added admin-only resident creation API and form with server-generated temporary password | @your-github-handle | — |
+| 2026-10-21 | REQ-NF-02 | Added server-side admin guard on `/admin-users` and 401/403 checks on the creation API | @your-github-handle | — |
+| 2026-10-21 | REQ-NF-04 | Added shared resident field validation used by form and API | @your-github-handle | — |
+| 2026-10-21 | REQ-F-13 | Added `create-admin` script for bootstrapping an admin on prod | @your-github-handle | — |

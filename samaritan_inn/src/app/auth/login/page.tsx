@@ -3,7 +3,6 @@
 import React, { FormEvent, Suspense, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 
 const Login = () => {
@@ -82,12 +81,6 @@ const Login = () => {
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
-            <p className="text-center text-black">
-              New User?{' '}
-              <Link href="/auth/signup" className="text-blue-500 hover:underline">
-                Create an account
-              </Link>
-            </p>
           </form>
         </div>
       </div>
