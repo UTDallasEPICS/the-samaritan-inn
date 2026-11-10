@@ -148,6 +148,7 @@ export default function PendingFormsPage() {
                         </div>
                       )}
                     </th>
+                    <th className="py-3 px-4">Assigned To</th>
                     <th className="py-3 px-4">
                       <button
                         type="button"
@@ -172,6 +173,7 @@ export default function PendingFormsPage() {
                     <tr key={`${f.formKey}-${f.id}`} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4 text-gray-700">{f.name}</td>
                       <td className="py-3 px-4 text-gray-700">{f.formType}</td>
+                      <td className="py-3 px-4 text-gray-700">{f.assignedCaseworkerName ?? '—'}</td>
                       <td className="py-3 px-4 text-gray-700">
                         {new Date(f.submittedAt).toLocaleDateString()}
                       </td>

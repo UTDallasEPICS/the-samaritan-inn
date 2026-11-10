@@ -1,15 +1,23 @@
-export type Role = 'resident' | 'admin' | 'caseworker';
+export type Role = 'resident' | 'admin' | 'caseworker' | 'lead_lifecoach';
 
-export const ROLES: Role[] = ['resident', 'admin', 'caseworker'];
+export const ROLES: Role[] = ['resident', 'admin', 'caseworker', 'lead_lifecoach'];
+
+export const ROLE_LABELS: Record<Role, string> = {
+  resident: 'Resident',
+  admin: 'Admin',
+  caseworker: 'Caseworker',
+  lead_lifecoach: 'Lead Lifecoach',
+};
 
 export type Permission =
   //Already enforced in the project
-  | 'MANAGE_ANNOUNCEMENTS' // create/edit/delete announcements
-  | 'VIEW_ALL_REQUESTS' // see all residents' pass/curfew/work-schedule requests 
-  | 'REVIEW_REQUESTS' // approve/deny those requests
-  | 'MANAGE_USERS' // add/edit/disable other users' accounts and change their roles (admin only)
+  | 'MANAGE_ANNOUNCEMENTS' //create/edit/delete announcements
+  | 'VIEW_ALL_REQUESTS' //see all residents' pass/curfew/work-schedule requests 
+  | 'VIEW_ALL_CASEWORKER_REQUESTS' //see requests assigned to every caseworker
+  | 'REVIEW_REQUESTS' //approve/deny those requests
+  | 'MANAGE_USERS' //add/edit/disable other users' accounts and change their roles (admin only)
 
-  // Universal: every role gets these
+  //Universal: every role gets these
   | 'VIEW_OWN_PROFILE'
   | 'VIEW_ANNOUNCEMENTS'
   | 'VIEW_CLASSES'
@@ -25,8 +33,8 @@ export type Permission =
 
 // --- NOT YET IMPLEMENTED ---
 //
-// These permissions were discussed as a team, but the related features
-// do not exist in the project yet. They are defined here for future use.
+//These permissions were discussed as a team, but the related features
+//do not exist in the project yet. They are defined here for future use.
 //
 // - VIEW_ALL_APPOINTMENTS: No staff view for all residents' appointments yet.
 // - EDIT_REQUESTS / DELETE_REQUESTS: Request APIs currently support submitting
@@ -61,10 +69,11 @@ const UNIVERSAL_PERMISSIONS: Permission[] = [
   'ACCESS_INFLOW',
 ];
 
-// Admin's permissions on top of the universal set.
+//Admin's permissions on top of the universal set.
 const ADMIN_PERMISSIONS: Permission[] = [
   'MANAGE_ANNOUNCEMENTS',
   'VIEW_ALL_REQUESTS',
+  'VIEW_ALL_CASEWORKER_REQUESTS',
   'REVIEW_REQUESTS',
   'MANAGE_USERS',
   'VIEW_ALL_APPOINTMENTS',
@@ -78,7 +87,7 @@ const ADMIN_PERMISSIONS: Permission[] = [
   'MANAGE_INFLOW_PAGE',
 ];
 
-// Caseworker's permissions on top of the universal set. 
+//Caseworker's permissions on top of the universal set. 
 const CASEWORKER_PERMISSIONS: Permission[] = [
   'MANAGE_ANNOUNCEMENTS',
   'VIEW_ALL_REQUESTS',
@@ -89,10 +98,17 @@ const CASEWORKER_PERMISSIONS: Permission[] = [
   'VIEW_RESIDENT_PROFILES',
 ];
 
+//Lead Lifecoach's permissions on top of the caseworker set.
+const LEAD_LIFECOACH_PERMISSIONS: Permission[] = [
+  ...CASEWORKER_PERMISSIONS,
+  'VIEW_ALL_CASEWORKER_REQUESTS',
+];
+
 const ROLE_PERMISSIONS: Record<Role, Set<Permission>> = {
   resident: new Set(UNIVERSAL_PERMISSIONS),
   admin: new Set([...UNIVERSAL_PERMISSIONS, ...ADMIN_PERMISSIONS]),
   caseworker: new Set([...UNIVERSAL_PERMISSIONS, ...CASEWORKER_PERMISSIONS]),
+  lead_lifecoach: new Set([...UNIVERSAL_PERMISSIONS, ...LEAD_LIFECOACH_PERMISSIONS]),
 };
 
 export function isRole(value: unknown): value is Role {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
-import { can, ROLES, type Role } from '@/lib/permissions';
+import { can, ROLES, ROLE_LABELS, type Role } from '@/lib/permissions';
 
 interface ManagedUser {
   id: string;
@@ -112,7 +112,7 @@ export default function AdminUsersPage() {
                         >
                           {ROLES.map(role => (
                             <option key={role} value={role}>
-                              {role}
+                              {ROLE_LABELS[role]}
                             </option>
                           ))}
                         </select>
