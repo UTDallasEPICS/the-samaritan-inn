@@ -16,10 +16,10 @@ export default function Navigation() {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const canManageUsers = can(session?.user?.role, 'MANAGE_USERS');
-  const canManageCaseworkers = can(session?.user?.role, 'MANAGE_COACH_ACCOUNTS');
+  const canManageCoaches = can(session?.user?.role, 'MANAGE_COACH_ACCOUNTS');
   // Admin pages live in the Profile dropdown instead of the main nav.
-  const hasAdminMenu = canManageUsers || canManageCaseworkers;
-  const inProfileSection = ['/profile', '/admin-users', '/admin-caseworkers'].includes(pathname);
+  const hasAdminMenu = canManageUsers || canManageCoaches;
+  const inProfileSection = ['/profile', '/admin-users', '/admin-empowerment-coaches'].includes(pathname);
 
   // Close the profile dropdown on outside click or Escape
   useEffect(() => {
@@ -45,6 +45,13 @@ export default function Navigation() {
   // Helper to apply active styling to nav links
   const linkClass = (path: string, mobile = false) =>
     `${mobile ? 'block w-full' : ''} px-3 py-2 rounded-md font-bold hover:bg-[#29abe2] ${pathname === path ? 'bg-[#29abe2]' : ''}`;
+
+  // "Coaches" (the Empowerment Coaches page) replaces "Appointments" in the
+  // menu, and stays highlighted on My Appointments, which is linked from there.
+  const coachesLinkClass = (mobile = false) =>
+    pathname.startsWith('/appointments')
+      ? linkClass(pathname, mobile)
+      : linkClass('/empowerment-coaches', mobile);
 
   const handleLogoutConfirm = () => {
     setShowLogoutConfirm(false);
@@ -76,7 +83,7 @@ export default function Navigation() {
             <Link href="/resources" className={linkClass('/resources')}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form')}>Pass</Link>
-            <Link href="/appointments" className={linkClass('/appointments')}>Appointments</Link>
+            <Link href="/empowerment-coaches" className={coachesLinkClass()}>Coaches</Link>
             {status === 'authenticated' ? (
               <>
                 {hasAdminMenu ? (
@@ -121,14 +128,14 @@ export default function Navigation() {
                             Manage Users
                           </Link>
                         )}
-                        {canManageCaseworkers && (
+                        {canManageCoaches && (
                           <Link
-                            href="/admin-caseworkers"
+                            href="/admin-empowerment-coaches"
                             role="menuitem"
                             onClick={() => setIsProfileMenuOpen(false)}
-                            className={`block px-4 py-2 font-bold text-[#00167c] hover:bg-gray-100 ${pathname === '/admin-caseworkers' ? 'bg-gray-100' : ''}`}
+                            className={`block px-4 py-2 font-bold text-[#00167c] hover:bg-gray-100 ${pathname === '/admin-empowerment-coaches' ? 'bg-gray-100' : ''}`}
                           >
-                            Manage Caseworkers
+                            Manage Coaches
                           </Link>
                         )}
                       </div>
@@ -190,7 +197,7 @@ export default function Navigation() {
             <Link href="/classes" className={linkClass('/classes', true)} onClick={() => setIsMenuOpen(false)}>Classes</Link>
             <Link href="/resources" className={linkClass('/resources', true)} onClick={() => setIsMenuOpen(false)}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements', true)} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
-            <Link href="/appointments" className={linkClass('/appointments', true)} onClick={() => setIsMenuOpen(false)}>Appointments</Link>
+            <Link href="/empowerment-coaches" className={coachesLinkClass(true)} onClick={() => setIsMenuOpen(false)}>Coaches</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form', true)} onClick={() => setIsMenuOpen(false)}>Pass</Link>
             {status === 'authenticated' ? (
               <>
@@ -218,8 +225,8 @@ export default function Navigation() {
                         {canManageUsers && (
                           <Link href="/admin-users" className={`${linkClass('/admin-users', true)} pl-8`} onClick={() => setIsMenuOpen(false)}>Manage Users</Link>
                         )}
-                        {canManageCaseworkers && (
-                          <Link href="/admin-caseworkers" className={`${linkClass('/admin-caseworkers', true)} pl-8`} onClick={() => setIsMenuOpen(false)}>Manage Caseworkers</Link>
+                        {canManageCoaches && (
+                          <Link href="/admin-empowerment-coaches" className={`${linkClass('/admin-empowerment-coaches', true)} pl-8`} onClick={() => setIsMenuOpen(false)}>Manage Coaches</Link>
                         )}
                       </>
                     )}

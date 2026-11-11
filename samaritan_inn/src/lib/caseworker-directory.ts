@@ -1,7 +1,13 @@
 /**
- * Server-only caseworker directory: caseworkers that staff manage inside the
- * app (/admin-caseworkers), each with a Microsoft Bookings link residents are
- * sent to when they book.
+ * Server-only Empowerment Coach directory: coaches that staff manage inside
+ * the app (/admin-empowerment-coaches), each with an Outlook / Microsoft
+ * Bookings link residents are sent to when they book. In code they're still
+ * called "caseworkers" (the Caseworker model and the "caseworker" role); only
+ * the text people see says "Empowerment Coach".
+ *
+ * Residents aren't assigned to a coach: every logged-in user sees the full
+ * list on /empowerment-coaches and picks their coach there. The old
+ * CaseworkerAssignment table is kept in the database but no longer used.
  *
  * Only used when CASEWORKER_SOURCE="local". When the variable is unset or set
  * to anything else, the app keeps reading caseworkers from Salesforce
@@ -43,45 +49,39 @@ export const caseworkerSelect = {
   bookingUrl: true,
 } satisfies Prisma.CaseworkerSelect;
 
-/** Admin view also shows which login account owns each profile. */
+/**
+ * Admin view also shows which login account owns each profile, and when it
+ * last changed so an admin edit can't overwrite a newer caseworker edit.
+ */
 export const adminCaseworkerSelect = {
   ...caseworkerSelect,
+  updatedAt: true,
   user: { select: { id: true, name: true, email: true } },
 } satisfies Prisma.CaseworkerSelect;
 
 /**
- * Same response shape as the Salesforce branch of GET /api/caseworkers, plus
- * `source` so the page knows booking happens on Microsoft Bookings.
+ * Every coach in the directory, for /empowerment-coaches. Same response shape
+ * as the Salesforce branch of GET /api/caseworkers, plus `source` so the page
+ * knows booking happens on Microsoft Bookings. Coaches without a Bookings link
+ * are listed too; the page shows that they can't be booked yet.
  */
-export async function getLocalCaseworkerData(residentId: string) {
-  const [assignments, caseworkers] = await Promise.all([
-    prisma.caseworkerAssignment.findMany({
-      where: { residentId },
-      select: { caseworkerEmail: true },
-    }),
-    prisma.caseworker.findMany({
-      select: caseworkerSelect,
-      orderBy: { name: "asc" },
-    }),
-  ]);
-
-  const assigned = new Set(
-    assignments.map((a) => a.caseworkerEmail.trim().toLowerCase())
-  );
+export async function getLocalCaseworkerData() {
+  const coaches = await prisma.caseworker.findMany({
+    select: caseworkerSelect,
+    orderBy: { name: "asc" },
+  });
 
   return {
     source: "local" as const,
-    myCaseworkers: caseworkers.filter((cw) => assigned.has(cw.email)),
-    // Only caseworkers with a Bookings link can actually be booked.
-    bookableCaseworkers: caseworkers.filter((cw) => cw.bookingUrl),
-    // Each caseworker carries their own `availability` text instead.
+    coaches,
+    // Each coach carries their own `availability` text instead.
     bookingHours: "",
   };
 }
 
 // ── Admin API helpers ─────────────────────────────────────────────────────────
 
-/** Returns a JSON error response unless the user can manage caseworkers, or null when allowed. */
+/** Returns a JSON error response unless the user can manage coaches, or null when allowed. */
 export async function checkAdmin(request: NextRequest) {
   const session = await getServerSessionInfo(request);
   if (!session) {
@@ -109,10 +109,10 @@ export function isLinkedAccountViolation(error: unknown) {
 }
 
 /**
- * Error message when `userId` can't own a caseworker profile, or null when it
- * can. Only caseworker accounts are linkable, since only they get the
- * caseworker view on /appointments. Admins manage everyone's profile on
- * /admin-caseworkers instead.
+ * Error message when `userId` can't own a coach profile, or null when it can.
+ * Only accounts with the "caseworker" role (shown as Empowerment Coach) are
+ * linkable, since only they get the coach view on /appointments. Admins manage
+ * everyone's profile on /admin-empowerment-coaches instead.
  */
 export async function checkLinkableAccount(userId: string | null) {
   if (userId === null) return null;
@@ -122,16 +122,78 @@ export async function checkLinkableAccount(userId: string | null) {
   });
   if (!user) return "Login account not found.";
   if (user.role !== "caseworker") {
-    return "Only accounts with the caseworker role can be linked. Change the role on Manage Users first.";
+    return "Only accounts with the Empowerment Coach role can be linked. Change the role on Manage Users first.";
   }
   return null;
 }
 
-// ── Caseworker's own view ─────────────────────────────────────────────────────
+// ── Coach's own view ──────────────────────────────────────────────────────────
+
+/** Thrown by connectOwnProfile; its message is shown to the coach. */
+export class ProfileConnectError extends Error {}
 
 /**
- * The logged-in caseworker's profile and their assigned residents, or null
- * when no profile is linked to this account yet.
+ * Returns the id of the coach profile owned by `userId`, linking or creating
+ * one the first time a coach saves their own details:
+ * 1. a profile already linked to this account is used as is;
+ * 2. otherwise an unlinked profile with the account's email (one an admin
+ *    added before the coach had an account) is linked to this account;
+ * 3. otherwise a new profile is created from the account's name and email.
+ * Title and room stay empty for an admin to fill in on /admin-empowerment-coaches.
+ */
+export async function connectOwnProfile(userId: string) {
+  const linked = await prisma.caseworker.findUnique({
+    where: { userId },
+    select: { id: true },
+  });
+  if (linked) return linked.id;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, email: true },
+  });
+  if (!user) throw new ProfileConnectError("Login account not found.");
+
+  // Profile emails are stored lowercase (see parseCaseworkerInput).
+  const email = user.email.trim().toLowerCase();
+  const sameEmail = await prisma.caseworker.findUnique({
+    where: { email },
+    select: { id: true, userId: true },
+  });
+
+  if (sameEmail) {
+    if (sameEmail.userId) {
+      throw new ProfileConnectError(
+        "The Empowerment Coach profile with your email belongs to another account. Ask an admin."
+      );
+    }
+    await prisma.caseworker.update({
+      where: { id: sameEmail.id },
+      data: { userId },
+    });
+    return sameEmail.id;
+  }
+
+  try {
+    const created = await prisma.caseworker.create({
+      data: { name: user.name, email, userId },
+      select: { id: true },
+    });
+    return created.id;
+  } catch (error) {
+    // Another request linked or created it at the same moment.
+    if (isUniqueViolation(error)) {
+      throw new ProfileConnectError(
+        "Your Empowerment Coach profile was just set up. Please try again."
+      );
+    }
+    throw error;
+  }
+}
+
+/**
+ * The logged-in coach's own profile, or null when no profile is linked to this
+ * account yet.
  */
 export async function getOwnCaseworkerView(userId: string) {
   const profile = await prisma.caseworker.findUnique({
@@ -139,64 +201,7 @@ export async function getOwnCaseworkerView(userId: string) {
     select: caseworkerSelect,
   });
   if (!profile) return null;
-
-  const assignments = await prisma.caseworkerAssignment.findMany({
-    where: { caseworkerEmail: profile.email },
-    orderBy: { resident: { name: "asc" } },
-    select: {
-      createdAt: true,
-      resident: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          createdAt: true,
-          // Latest work schedule carries the resident's room and employment.
-          WorkSchedule: {
-            orderBy: { submittedAt: "desc" },
-            take: 1,
-            select: {
-              room: true,
-              employmentStatus: true,
-              employerName: true,
-              submittedAt: true,
-            },
-          },
-          _count: {
-            select: {
-              PassRequest: { where: { status: "PENDING" } },
-              ExtendedCurfewRequest: { where: { status: "PENDING" } },
-              WorkSchedule: { where: { status: "PENDING" } },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  return {
-    source: getCaseworkerSource(),
-    profile,
-    residents: assignments.map(({ createdAt, resident }) => {
-      const latest = resident.WorkSchedule[0] ?? null;
-      const pending = resident._count;
-      return {
-        id: resident.id,
-        name: resident.name,
-        email: resident.email,
-        joinedAt: resident.createdAt,
-        assignedAt: createdAt,
-        room: latest?.room ?? null,
-        employmentStatus: latest?.employmentStatus ?? null,
-        employerName: latest?.employerName ?? null,
-        workScheduleUpdatedAt: latest?.submittedAt ?? null,
-        pendingRequests:
-          pending.PassRequest +
-          pending.ExtendedCurfewRequest +
-          pending.WorkSchedule,
-      };
-    }),
-  };
+  return { source: getCaseworkerSource(), profile };
 }
 
 // ── Input validation ──────────────────────────────────────────────────────────

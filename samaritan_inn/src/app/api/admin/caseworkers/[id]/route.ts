@@ -32,10 +32,27 @@ export async function PUT(
 
   const existing = await prisma.caseworker.findUnique({
     where: { id },
-    select: { email: true },
+    select: { updatedAt: true },
   });
   if (!existing) {
-    return NextResponse.json({ error: "Caseworker not found." }, { status: 404 });
+    return NextResponse.json({ error: "Empowerment Coach not found." }, { status: 404 });
+  }
+
+  // The admin form sends back the updatedAt it loaded. If the coach changed
+  // their own details since (e.g. their Bookings link on the Profile
+  // tab), saving would overwrite that change, so ask the admin to reload.
+  const expectedUpdatedAt = (body as { expectedUpdatedAt?: unknown }).expectedUpdatedAt;
+  if (
+    typeof expectedUpdatedAt === "string" &&
+    existing.updatedAt.getTime() !== Date.parse(expectedUpdatedAt)
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "This Empowerment Coach was changed since you opened it. Reload the page to see the latest details.",
+      },
+      { status: 409 }
+    );
   }
 
   const accountError = await checkLinkableAccount(parsed.data.userId);
@@ -44,25 +61,16 @@ export async function PUT(
   }
 
   try {
-    const caseworker = await prisma.$transaction(async (tx) => {
-      // Assignments are linked by email, so they follow an email change.
-      if (existing.email !== parsed.data.email) {
-        await tx.caseworkerAssignment.updateMany({
-          where: { caseworkerEmail: existing.email },
-          data: { caseworkerEmail: parsed.data.email },
-        });
-      }
-      return tx.caseworker.update({
-        where: { id },
-        data: parsed.data,
-        select: adminCaseworkerSelect,
-      });
+    const caseworker = await prisma.caseworker.update({
+      where: { id },
+      data: parsed.data,
+      select: adminCaseworkerSelect,
     });
     return NextResponse.json(caseworker);
   } catch (error) {
     if (isLinkedAccountViolation(error)) {
       return NextResponse.json(
-        { error: "That login account is already linked to another caseworker." },
+        { error: "That login account is already linked to another Empowerment Coach." },
         { status: 409 }
       );
     }
@@ -70,20 +78,20 @@ export async function PUT(
       return NextResponse.json(
         {
           error:
-            "That email is already used by another caseworker or assignment.",
+            "That email is already used by another Empowerment Coach.",
         },
         { status: 409 }
       );
     }
     console.error("admin caseworkers PUT error:", error);
     return NextResponse.json(
-      { error: "Unable to save caseworker." },
+      { error: "Unable to save Empowerment Coach." },
       { status: 500 }
     );
   }
 }
 
-/** Removes the caseworker and their resident assignments together. */
+/** Removes the coach from the directory. Their linked login account is kept. */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -95,24 +103,19 @@ export async function DELETE(
 
   const existing = await prisma.caseworker.findUnique({
     where: { id },
-    select: { email: true },
+    select: { id: true },
   });
   if (!existing) {
-    return NextResponse.json({ error: "Caseworker not found." }, { status: 404 });
+    return NextResponse.json({ error: "Empowerment Coach not found." }, { status: 404 });
   }
 
   try {
-    await prisma.$transaction([
-      prisma.caseworkerAssignment.deleteMany({
-        where: { caseworkerEmail: existing.email },
-      }),
-      prisma.caseworker.delete({ where: { id } }),
-    ]);
+    await prisma.caseworker.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("admin caseworkers DELETE error:", error);
     return NextResponse.json(
-      { error: "Unable to delete caseworker." },
+      { error: "Unable to delete Empowerment Coach." },
       { status: 500 }
     );
   }

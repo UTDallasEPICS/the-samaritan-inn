@@ -4,11 +4,13 @@ import { can } from "@/lib/permissions";
 import { getServerSessionInfo } from "@/lib/getServerSessionInfo";
 import {
   caseworkerSelect,
+  connectOwnProfile,
   getOwnCaseworkerView,
   parseCaseworkerSelfInput,
+  ProfileConnectError,
 } from "@/lib/caseworker-directory";
 
-/** Returns the caseworker's user id, or a JSON error response. */
+/** Returns the coach's user id, or a JSON error response. */
 async function requireCaseworker(request: NextRequest) {
   const session = await getServerSessionInfo(request);
   if (!session) {
@@ -21,8 +23,9 @@ async function requireCaseworker(request: NextRequest) {
 }
 
 /**
- * The logged-in caseworker's profile and assigned residents. `profile` is null
- * until an admin links this account to a caseworker on /admin-caseworkers.
+ * The logged-in Empowerment Coach's own profile. `profile` is null until the
+ * coach first saves their details (see PATCH) or an admin links this account
+ * on /admin-empowerment-coaches.
  */
 export async function GET(request: NextRequest) {
   const userId = await requireCaseworker(request);
@@ -30,17 +33,21 @@ export async function GET(request: NextRequest) {
 
   try {
     const view = await getOwnCaseworkerView(userId);
-    return NextResponse.json(view ?? { profile: null, residents: [] });
+    return NextResponse.json(view ?? { profile: null });
   } catch (error) {
     console.error("caseworkers/me GET error:", error);
     return NextResponse.json(
-      { error: "Unable to load your caseworker profile." },
+      { error: "Unable to load your Empowerment Coach profile." },
       { status: 500 }
     );
   }
 }
 
-/** Updates only the fields a caseworker may edit themselves. */
+/**
+ * Updates only the fields a coach may edit themselves. Used by both the
+ * Profile tab and the /appointments card, so they always save the same link.
+ * The first save links or creates the coach's profile automatically.
+ */
 export async function PATCH(request: NextRequest) {
   const userId = await requireCaseworker(request);
   if (typeof userId !== "string") return userId;
@@ -58,19 +65,16 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
+    const id = await connectOwnProfile(userId);
     const profile = await prisma.caseworker.update({
-      where: { userId },
+      where: { id },
       data: parsed.data,
       select: caseworkerSelect,
     });
     return NextResponse.json(profile);
   } catch (error) {
-    // P2025: no profile is linked to this account.
-    if ((error as { code?: string })?.code === "P2025") {
-      return NextResponse.json(
-        { error: "Your account isn't linked to a caseworker profile yet." },
-        { status: 404 }
-      );
+    if (error instanceof ProfileConnectError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
     }
     console.error("caseworkers/me PATCH error:", error);
     return NextResponse.json(

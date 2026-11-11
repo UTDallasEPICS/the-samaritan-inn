@@ -72,7 +72,7 @@ export default function UpcomingAppointmentRow({
             />
           ) : (
             <p className="text-sm text-gray-500">
-              Caseworker details are unavailable right now.
+              Empowerment Coach details are unavailable right now.
             </p>
           )}
 

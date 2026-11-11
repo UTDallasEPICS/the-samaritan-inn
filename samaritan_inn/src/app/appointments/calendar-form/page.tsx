@@ -12,7 +12,7 @@ const BOOKABLE_DURATIONS = [30, 60];
 const CalendarForm = () => {
   const { status } = useSession();
   const router = useRouter();
-  // The Appointments page links here with ?ownerId=<caseworker> preselected.
+  // The Empowerment Coaches page links here with ?ownerId=<coach> preselected.
   const requestedOwnerId = useSearchParams().get('ownerId');
 
   const [form, setForm] = useState({
@@ -45,14 +45,14 @@ const CalendarForm = () => {
     getCaseworkerData()
       .then((data) => {
         if (cancelled) return;
-        const bookable = data.bookableCaseworkers;
+        const bookable = data.coaches;
         setCaseworkers(bookable);
         const requested = bookable.find((cw) => cw.id === requestedOwnerId);
         setSelectedOwnerId((requested ?? bookable[0])?.id ?? '');
       })
       .catch((err) => {
         if (!cancelled) {
-          setCaseworkerError(err instanceof Error ? err.message : 'Unable to load caseworkers.');
+          setCaseworkerError(err instanceof Error ? err.message : 'Unable to load Empowerment Coaches.');
         }
       });
 
@@ -164,7 +164,7 @@ const CalendarForm = () => {
 
   const handleSubmit = async () => {
     if (!form.title || !selectedOwnerId || !selectedStart || !selectedDuration) {
-      setError('Please enter a reason, choose a caseworker, select a start time, and choose a duration.');
+      setError('Please enter a reason, choose an Empowerment Coach, select a start time, and choose a duration.');
       return;
     }
 
@@ -212,10 +212,10 @@ const CalendarForm = () => {
               {caseworkerError}
             </div>
           ) : caseworkers === null ? (
-            <p className="text-sm text-gray-500">Loading caseworkers…</p>
+            <p className="text-sm text-gray-500">Loading Empowerment Coaches…</p>
           ) : caseworkers.length === 0 ? (
             <p className="text-sm text-gray-500">
-              No caseworkers are available to book right now. Please check with the front desk.
+              No Empowerment Coaches are available to book right now. Please check with the front desk.
             </p>
           ) : (
             <>
@@ -230,10 +230,10 @@ const CalendarForm = () => {
                 required
               />
 
-              {/* Caseworker Selector */}
+              {/* Empowerment Coach selector */}
               <div className="mt-6 p-4 bg-white rounded-lg shadow-md border-2 border-primary">
                 <label htmlFor="caseworker" className="block text-sm font-semibold mb-2 text-primary">
-                  Caseworker <span className="text-red-400">*</span>
+                  Empowerment Coach <span className="text-red-400">*</span>
                 </label>
                 <select
                   id="caseworker"

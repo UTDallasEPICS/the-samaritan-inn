@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Only the configured caseworkers can be booked — never an arbitrary
     // Salesforce user id sent by the browser.
     if (!ownerId || !isBookableCaseworker(ownerId)) {
-      throw new ApiError(400, "Please choose one of the available caseworkers.");
+      throw new ApiError(400, "Please choose one of the available Empowerment Coaches.");
     }
 
     const interval = {

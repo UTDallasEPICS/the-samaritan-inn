@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     }
 
     if (!ownerId || !isBookableCaseworker(ownerId)) {
-      throw new ApiError(400, "Please choose one of the available caseworkers.");
+      throw new ApiError(400, "Please choose one of the available Empowerment Coaches.");
     }
 
     if (!isDateWithinBookingWindow(date)) {

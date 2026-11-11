@@ -8,10 +8,11 @@ import Navigation from "@/components/Navigation";
 import { can } from "@/lib/permissions";
 
 /**
- * Admin-only caseworker directory (used when CASEWORKER_SOURCE="local").
- * Staff add caseworkers with their contact details and Microsoft Bookings link,
- * then assign residents to them. Residents see their assigned caseworkers on
- * /appointments and book through the Bookings link.
+ * Admin-only Empowerment Coach directory (used when CASEWORKER_SOURCE="local").
+ * Admins add coaches with their contact details and Outlook / Microsoft
+ * Bookings link. Every logged-in user sees all coaches on /empowerment-coaches
+ * and books through those links; residents aren't assigned to a coach.
+ * In code a coach is still a "caseworker" (Caseworker model, /api/admin/caseworkers).
  */
 
 type Person = { id: string; name: string; email: string };
@@ -27,20 +28,19 @@ type DirectoryCaseworker = {
   bookingUrl: string | null;
   /** Login account that owns this profile, if linked. */
   user: Person | null;
+  /** ISO timestamp; sent back on save so a newer coach edit isn't overwritten. */
+  updatedAt: string;
 };
 
-type Assignment = { id: string; caseworkerEmail: string; resident: Person };
 
 type DirectoryData = {
   source: "local" | "salesforce";
   caseworkers: DirectoryCaseworker[];
-  assignments: Assignment[];
-  residents: Person[];
-  /** Accounts with the caseworker role, which a profile can be linked to. */
+  /** Accounts with the Empowerment Coach role, which a profile can be linked to. */
   accounts: Person[];
 };
 
-type FormFields = Omit<DirectoryCaseworker, "id" | "user">;
+type FormFields = Omit<DirectoryCaseworker, "id" | "user" | "updatedAt">;
 
 const EMPTY_FORM: Record<keyof FormFields | "userId", string> = {
   name: "",
@@ -62,7 +62,7 @@ const FIELDS: {
 }[] = [
   { key: "name", label: "Name", required: true },
   { key: "email", label: "Email", required: true, type: "email" },
-  { key: "title", label: "Title", placeholder: "Case Worker" },
+  { key: "title", label: "Title", placeholder: "Empowerment Coach" },
   { key: "phone", label: "Phone", type: "tel" },
   { key: "room", label: "Room", placeholder: "Office B-204" },
   {
@@ -106,7 +106,7 @@ async function readError(res: Response, fallback: string) {
   }
 }
 
-export default function AdminCaseworkersPage() {
+export default function AdminEmpowermentCoachesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const isAdmin = can(session?.user?.role, "MANAGE_COACH_ACCOUNTS");
@@ -116,12 +116,12 @@ export default function AdminCaseworkersPage() {
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
+  /** updatedAt of the coach being edited, as loaded. */
+  const [editingUpdatedAt, setEditingUpdatedAt] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [actionError, setActionError] = useState<string | null>(null);
-  /** Resident picked in each caseworker's "Assign resident" select. */
-  const [pendingResident, setPendingResident] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/auth/login");
@@ -134,13 +134,13 @@ export default function AdminCaseworkersPage() {
     try {
       const res = await fetch("/api/admin/caseworkers");
       if (!res.ok) {
-        throw new Error(await readError(res, "Unable to load caseworkers."));
+        throw new Error(await readError(res, "Unable to load Empowerment Coaches."));
       }
       setData(await res.json());
       setLoadError(null);
     } catch (error) {
       setLoadError(
-        error instanceof Error ? error.message : "Unable to load caseworkers."
+        error instanceof Error ? error.message : "Unable to load Empowerment Coaches."
       );
     }
   }, []);
@@ -154,11 +154,13 @@ export default function AdminCaseworkersPage() {
   const resetForm = () => {
     setForm(EMPTY_FORM);
     setEditingId(null);
+    setEditingUpdatedAt(null);
     setFormError(null);
   };
 
   const startEdit = (cw: DirectoryCaseworker) => {
     setEditingId(cw.id);
+    setEditingUpdatedAt(cw.updatedAt);
     setFormError(null);
     setForm({
       name: cw.name,
@@ -185,20 +187,22 @@ export default function AdminCaseworkersPage() {
       {
         method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(
+          editingId ? { ...form, expectedUpdatedAt: editingUpdatedAt } : form
+        ),
       }
     );
 
     setSaving(false);
     if (!res.ok) {
-      setFormError(await readError(res, "Unable to save caseworker."));
+      setFormError(await readError(res, "Unable to save Empowerment Coach."));
       return;
     }
     resetForm();
     load();
   };
 
-  /** Runs a delete/assign request, then reloads or shows its error. */
+  /** Runs a delete request, then reloads or shows its error. */
   const runAction = async (request: Promise<Response>, fallback: string) => {
     setActionError(null);
     const res = await request;
@@ -209,42 +213,14 @@ export default function AdminCaseworkersPage() {
     load();
   };
 
-  const deleteCaseworker = (cw: DirectoryCaseworker, assignedCount: number) => {
-    const extra =
-      assignedCount > 0
-        ? ` Their ${assignedCount} resident assignment(s) will also be removed.`
-        : "";
-    if (!window.confirm(`Delete ${cw.name}?${extra}`)) return;
+  const deleteCaseworker = (cw: DirectoryCaseworker) => {
+    if (!window.confirm(`Delete ${cw.name}? Residents will no longer see them on Empowerment Coaches.`)) return;
     if (editingId === cw.id) resetForm();
     runAction(
       fetch(`/api/admin/caseworkers/${encodeURIComponent(cw.id)}`, {
         method: "DELETE",
       }),
-      "Unable to delete caseworker."
-    );
-  };
-
-  const assignResident = (caseworkerId: string) => {
-    const residentId = pendingResident[caseworkerId];
-    if (!residentId) return;
-    setPendingResident((prev) => ({ ...prev, [caseworkerId]: "" }));
-    runAction(
-      fetch("/api/admin/caseworker-assignments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ residentId, caseworkerId }),
-      }),
-      "Unable to assign resident."
-    );
-  };
-
-  const removeAssignment = (assignment: Assignment) => {
-    runAction(
-      fetch(
-        `/api/admin/caseworker-assignments/${encodeURIComponent(assignment.id)}`,
-        { method: "DELETE" }
-      ),
-      "Unable to remove assignment."
+      "Unable to delete Empowerment Coach."
     );
   };
 
@@ -256,25 +232,26 @@ export default function AdminCaseworkersPage() {
         <div className="mx-auto w-full max-w-4xl space-y-4">
           <Card>
             <h1 className="text-center text-3xl font-bold text-black">
-              Manage Caseworkers
+              Manage Empowerment Coaches
             </h1>
             <p className="mt-1 text-center text-gray-500">
-              Residents see their assigned caseworkers on the{" "}
-              <Link href="/appointments" className="text-blue-600 hover:underline">
-                Appointments
+              Every coach added here is listed on the{" "}
+              <Link href="/empowerment-coaches" className="text-blue-600 hover:underline">
+                Empowerment Coaches
               </Link>{" "}
-              page and book through each caseworker&apos;s Microsoft Bookings link.
+              page, where residents find their coach and book through the
+              coach&apos;s Outlook / Microsoft Bookings link.
             </p>
             {data?.source === "salesforce" && (
               <p className="mt-4 rounded border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
-                Residents currently see caseworkers from Salesforce. Changes made
+                Residents currently see coaches from Salesforce. Changes made
                 here take effect once <code>CASEWORKER_SOURCE=&quot;local&quot;</code>{" "}
                 is set in <code>.env</code>.
               </p>
             )}
           </Card>
 
-          <Card title={editingId ? "Edit Caseworker" : "Add Caseworker"}>
+          <Card title={editingId ? "Edit Empowerment Coach" : "Add Empowerment Coach"}>
             <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
               {FIELDS.map((field) => (
                 <label
@@ -313,7 +290,7 @@ export default function AdminCaseworkersPage() {
                   {data?.accounts
                     .filter(
                       (account) =>
-                        // Hide accounts already linked to another caseworker.
+                        // Hide accounts already linked to another coach.
                         !data.caseworkers.some(
                           (cw) => cw.user?.id === account.id && cw.id !== editingId
                         )
@@ -325,10 +302,10 @@ export default function AdminCaseworkersPage() {
                     ))}
                 </select>
                 <span className="mt-1 block text-xs text-gray-500">
-                  The linked caseworker sees these details and their assigned
-                  residents on Appointments, and can edit their own phone,
-                  availability and Outlook / Bookings link. Only accounts with
-                  the caseworker role (set on Manage Users) are listed.
+                  The linked coach sees these details on My Appointments and can
+                  edit their own phone, availability and Outlook / Bookings
+                  link (also on their Profile tab). Only accounts with the
+                  Empowerment Coach role (set on Manage Users) are listed.
                 </span>
               </label>
 
@@ -342,7 +319,7 @@ export default function AdminCaseworkersPage() {
                   disabled={saving}
                   className="rounded bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-gray-300"
                 >
-                  {saving ? "Saving…" : editingId ? "Save Changes" : "Add Caseworker"}
+                  {saving ? "Saving…" : editingId ? "Save Changes" : "Add Empowerment Coach"}
                 </button>
                 {editingId && (
                   <button
@@ -357,26 +334,20 @@ export default function AdminCaseworkersPage() {
             </form>
           </Card>
 
-          <Card title="Caseworkers">
+          <Card title="Empowerment Coaches">
             {actionError && <p className="mb-3 text-red-600">{actionError}</p>}
 
             {loadError ? (
               <p className="text-red-600">{loadError}</p>
             ) : !data ? (
-              <p className="text-gray-500">Loading caseworkers…</p>
+              <p className="text-gray-500">Loading Empowerment Coaches…</p>
             ) : data.caseworkers.length === 0 ? (
               <p className="text-gray-500">
-                No caseworkers yet. Add one above.
+                No Empowerment Coaches yet. Add one above.
               </p>
             ) : (
               <div className="space-y-4">
                 {data.caseworkers.map((cw) => {
-                  const assigned = data.assignments.filter(
-                    (a) => a.caseworkerEmail.toLowerCase() === cw.email
-                  );
-                  const assignedIds = new Set(assigned.map((a) => a.resident.id));
-                  const available = data.residents.filter((r) => !assignedIds.has(r.id));
-
                   return (
                     <div key={cw.id} className="rounded-lg border-2 border-blue-600 bg-blue-50/40 p-4">
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -402,7 +373,7 @@ export default function AdminCaseworkersPage() {
                           ) : (
                             <p className="mt-1 text-yellow-700">
                               No booking link: residents can&apos;t book with
-                              this caseworker yet.
+                              this coach yet.
                             </p>
                           )}
                         </div>
@@ -417,7 +388,7 @@ export default function AdminCaseworkersPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => deleteCaseworker(cw, assigned.length)}
+                            onClick={() => deleteCaseworker(cw)}
                             className="rounded border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50"
                           >
                             Delete
@@ -425,64 +396,6 @@ export default function AdminCaseworkersPage() {
                         </div>
                       </div>
 
-                      <div className="mt-4 border-t border-gray-200 pt-3">
-                        <p className="mb-2 text-sm font-semibold text-gray-700">
-                          Assigned residents
-                        </p>
-                        {assigned.length === 0 ? (
-                          <p className="text-sm text-gray-500">None yet.</p>
-                        ) : (
-                          <ul className="flex flex-wrap gap-2">
-                            {assigned.map((a) => (
-                              <li
-                                key={a.id}
-                                className="flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm text-black"
-                              >
-                                {a.resident.name}
-                                <button
-                                  type="button"
-                                  onClick={() => removeAssignment(a)}
-                                  aria-label={`Unassign ${a.resident.name}`}
-                                  className="text-gray-500 hover:text-red-600"
-                                >
-                                  ×
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-
-                        {available.length > 0 && (
-                          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                            <select
-                              value={pendingResident[cw.id] ?? ""}
-                              onChange={(e) =>
-                                setPendingResident((prev) => ({
-                                  ...prev,
-                                  [cw.id]: e.target.value,
-                                }))
-                              }
-                              aria-label={`Assign a resident to ${cw.name}`}
-                              className="rounded border border-gray-300 px-3 py-2 text-sm text-black sm:flex-grow"
-                            >
-                              <option value="">Choose a resident…</option>
-                              {available.map((r) => (
-                                <option key={r.id} value={r.id}>
-                                  {r.name} ({r.email})
-                                </option>
-                              ))}
-                            </select>
-                            <button
-                              type="button"
-                              onClick={() => assignResident(cw.id)}
-                              disabled={!pendingResident[cw.id]}
-                              className="rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:bg-gray-300"
-                            >
-                              Assign
-                            </button>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   );
                 })}

@@ -1,5 +1,6 @@
 /**
- * Data layer for the Appointments page (browser side).
+ * Data layer for the Appointments and Empowerment Coaches pages (browser side).
+ * Empowerment Coaches are still called "caseworkers" in code.
  *
  * Every value here comes from the app's API routes, which read real data:
  * caseworker details from Salesforce (via src/lib/caseworkers.ts) and
@@ -27,12 +28,11 @@ export type Caseworker = {
 export type CaseworkerData = {
   /** "local" = in-app directory + Bookings links; absent = Salesforce. */
   source?: "local";
-  /** Caseworker(s) assigned to the logged-in resident. */
-  myCaseworkers: Caseworker[];
-  /** Everyone the resident is allowed to book with. */
-  bookableCaseworkers: Caseworker[];
+  /** Every Empowerment Coach residents can find on /empowerment-coaches. In
+   *  local mode this includes coaches who haven't added a Bookings link yet. */
+  coaches: Caseworker[];
   /** e.g. "Every day, 9:00 AM – 5:00 PM (Central Time)". Empty in local
-   *  mode, where each caseworker has their own `availability` instead. */
+   *  mode, where each coach has their own `availability` instead. */
   bookingHours: string;
 };
 
@@ -63,7 +63,7 @@ async function readError(res: Response, fallback: string) {
 export async function getCaseworkerData(): Promise<CaseworkerData> {
   const res = await fetch("/api/caseworkers");
   if (!res.ok) {
-    throw new Error(await readError(res, "Unable to load caseworker information."));
+    throw new Error(await readError(res, "Unable to load Empowerment Coaches."));
   }
   return res.json();
 }
@@ -95,33 +95,16 @@ export async function cancelAppointment(id: string): Promise<void> {
   }
 }
 
-// ── Caseworker's own view (GET/PATCH /api/caseworkers/me) ─────────────────────
-
-/** One resident assigned to the logged-in caseworker. Dates are ISO strings. */
-export type AssignedResident = {
-  id: string;
-  name: string;
-  email: string;
-  joinedAt: string;
-  assignedAt: string;
-  /** From the resident's latest work schedule; null if they haven't sent one. */
-  room: string | null;
-  employmentStatus: string | null;
-  employerName: string | null;
-  workScheduleUpdatedAt: string | null;
-  /** Pending pass, curfew and work-schedule requests combined. */
-  pendingRequests: number;
-};
+// ── Coach's own view (GET/PATCH /api/caseworkers/me) ──────────────────────────
 
 export type OwnCaseworkerView = {
   /** Where residents currently book; absent when no profile is linked. */
   source?: "local" | "salesforce";
-  /** Null until an admin links this account to a caseworker profile. */
+  /** Null until the coach first saves their link or an admin links their account. */
   profile: Required<Caseworker> | null;
-  residents: AssignedResident[];
 };
 
-/** The fields a caseworker may edit on their own profile. */
+/** The fields a coach may edit on their own profile. */
 export type CaseworkerSelfEdit = {
   phone: string;
   availability: string;
@@ -131,12 +114,12 @@ export type CaseworkerSelfEdit = {
 export async function getOwnCaseworkerView(): Promise<OwnCaseworkerView> {
   const res = await fetch("/api/caseworkers/me");
   if (!res.ok) {
-    throw new Error(await readError(res, "Unable to load your caseworker profile."));
+    throw new Error(await readError(res, "Unable to load your Empowerment Coach profile."));
   }
   return res.json();
 }
 
-/** Saves one or more of the caseworker's editable fields and returns the updated profile. */
+/** Saves one or more of the coach's editable fields and returns the updated profile. */
 export async function updateOwnCaseworkerProfile(
   fields: Partial<CaseworkerSelfEdit>
 ): Promise<Required<Caseworker>> {
