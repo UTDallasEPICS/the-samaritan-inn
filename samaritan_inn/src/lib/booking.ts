@@ -9,6 +9,23 @@ export const MAX_ACTIVE_APPOINTMENTS_PER_USER = 7;
 const BUSINESS_DAY_START_HOUR = 9;
 const BUSINESS_DAY_END_HOUR = 17;
 const SLOT_INCREMENT_MINUTES = 30;
+
+function formatHour(hour24: number) {
+  const suffix = hour24 < 12 ? "AM" : "PM";
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+  return `${hour12}:00 ${suffix}`;
+}
+
+/**
+ * Human-readable booking hours, built from the same constants that enforce
+ * them, so the hours shown to residents can never drift from the real rules.
+ * There is no weekday restriction in the booking rules, hence "Every day".
+ */
+export function getBookingHoursLabel() {
+  return `Every day, ${formatHour(BUSINESS_DAY_START_HOUR)} – ${formatHour(
+    BUSINESS_DAY_END_HOUR
+  )} (Central Time)`;
+}
 const SAME_DAY_LEAD_TIME_MS = 5 * 60 * 60 * 1000;
 const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 

@@ -59,10 +59,17 @@ export default function AdminUsersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole }),
       });
-      if (!res.ok) throw new Error();
-    } catch {
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(typeof body?.error === 'string' ? body.error : undefined);
+      }
+    } catch (err) {
       setUsers(previous);
-      setError('Failed to update role. Please try again.');
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : 'Failed to update role. Please try again.'
+      );
     } finally {
       setSavingId(null);
     }
@@ -99,26 +106,34 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map(u => (
-                    <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 text-gray-700">{u.name}</td>
-                      <td className="py-3 px-4 text-gray-700">{u.email}</td>
-                      <td className="py-3 px-4">
-                        <select
-                          value={u.role}
-                          disabled={savingId === u.id}
-                          onChange={e => handleRoleChange(u.id, e.target.value as Role)}
-                          className="border border-gray-300 rounded px-2 py-1 text-gray-700 disabled:opacity-50"
-                        >
-                          {ROLES.map(role => (
-                            <option key={role} value={role}>
-                              {ROLE_LABELS[role]}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
+                  {users.map(u => {
+                    // Admins can't change their own role (the API refuses too).
+                    const isSelf = u.id === session?.user?.id;
+                    return (
+                      <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-4 text-gray-700">
+                          {u.name}
+                          {isSelf && <span className="ml-2 text-xs text-gray-400">(you)</span>}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">{u.email}</td>
+                        <td className="py-3 px-4">
+                          <select
+                            value={u.role}
+                            disabled={isSelf || savingId === u.id}
+                            title={isSelf ? "You can't change your own role" : undefined}
+                            onChange={e => handleRoleChange(u.id, e.target.value as Role)}
+                            className="border border-gray-300 rounded px-2 py-1 text-gray-700 disabled:opacity-50"
+                          >
+                            {ROLES.map(role => (
+                              <option key={role} value={role}>
+                                {ROLE_LABELS[role]}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
