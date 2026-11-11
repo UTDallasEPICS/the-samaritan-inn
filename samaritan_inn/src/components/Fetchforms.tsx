@@ -10,6 +10,7 @@ export interface PassForm {
   name: string;
   submittedAt: string;
   status: string;
+  assignedCaseworkerName: string | null;
 }
 
 interface FetchFormsProps {
@@ -24,6 +25,7 @@ interface RawForm {
   residentName?: string | null;
   submittedAt: string;
   status?: string | null;
+  assignedCaseworkerName?: string | null;
 }
 
 export default function Fetchforms({ setForms, setLoading, setError, refreshKey = 0 }: FetchFormsProps) {
@@ -66,6 +68,7 @@ export default function Fetchforms({ setForms, setLoading, setError, refreshKey 
             name: r.residentName ?? '—',
             submittedAt: r.submittedAt,
             status: (r.status ?? 'PENDING').toUpperCase(),
+            assignedCaseworkerName: r.assignedCaseworkerName ?? null,
           })),
           ...passes.map(r => ({
             id: r.id,
@@ -74,6 +77,7 @@ export default function Fetchforms({ setForms, setLoading, setError, refreshKey 
             name: r.residentName ?? '—',
             submittedAt: r.submittedAt,
             status: (r.status ?? 'PENDING').toUpperCase(),
+            assignedCaseworkerName: r.assignedCaseworkerName ?? null,
           })),
           ...workSchedule.map(r => ({
             id: r.id,
@@ -82,6 +86,7 @@ export default function Fetchforms({ setForms, setLoading, setError, refreshKey 
             name: r.residentName ?? '—',
             submittedAt: r.submittedAt,
             status: (r.status ?? 'PENDING').toUpperCase(),
+            assignedCaseworkerName: r.assignedCaseworkerName ?? null,
           })),
         ];
 
