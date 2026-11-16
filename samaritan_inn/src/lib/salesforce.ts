@@ -1,7 +1,11 @@
 import { getDayBounds } from "@/lib/booking";
 
 const SALESFORCE_API_VERSION = "v59.0";
+const WORK_SCHEDULE_API_VERSION = "v65.0";
 const SALESFORCE_ID_PATTERN = /^[a-zA-Z0-9]{15,18}$/;
+const TOKEN_CACHE_FALLBACK_MS = 5 * 60 * 1000;
+
+let cachedSalesforceToken: { accessToken: string; expiresAt: number } | null = null;
 
 export type SalesforceEventRecord = {
   Id?: string;
@@ -10,6 +14,20 @@ export type SalesforceEventRecord = {
   Subject?: string;
   Description?: string | null;
   Location?: string | null;
+};
+
+type SalesforceWorkScheduleInput = {
+  weekOf: Date;
+  employerName: string | null;
+  employerLocation: string | null;
+  estimatedTravelTime: string;
+  transportation: string;
+  commentsNotes: string | null;
+  days: {
+    dayOfWeek: string;
+    startTime: string | null;
+    endTime: string | null;
+  }[];
 };
 
 export class SalesforceError extends Error {
@@ -33,6 +51,14 @@ function getRequiredEnv(name: string) {
   return value;
 }
 
+function getSalesforceLoginUrl() {
+  return (process.env.SF_DOMAIN_URL || getRequiredEnv("SF_LOGIN_URL")).replace(/\/+$/, "");
+}
+
+function getSalesforceInstanceUrl() {
+  return (process.env.SF_INSTANCE_URL || getRequiredEnv("SF_DOMAIN_URL")).replace(/\/+$/, "");
+}
+
 export function isValidSalesforceId(value: string) {
   return SALESFORCE_ID_PATTERN.test(value);
 }
@@ -48,8 +74,12 @@ export function resolveSalesforceOwnerId(ownerId?: string | null) {
 }
 
 export async function getSalesforceToken() {
+  if (cachedSalesforceToken && cachedSalesforceToken.expiresAt > Date.now()) {
+    return cachedSalesforceToken.accessToken;
+  }
+
   const response = await fetch(
-    `${getRequiredEnv("SF_LOGIN_URL")}/services/oauth2/token`,
+    `${getSalesforceLoginUrl()}/services/oauth2/token`,
     {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -71,7 +101,16 @@ export async function getSalesforceToken() {
     );
   }
 
-  return data.access_token as string;
+  const expiresInMs = Number(data.expires_in) * 1000;
+  const cacheDuration = Number.isFinite(expiresInMs) && expiresInMs > 30_000
+    ? expiresInMs - 30_000
+    : TOKEN_CACHE_FALLBACK_MS;
+  cachedSalesforceToken = {
+    accessToken: data.access_token as string,
+    expiresAt: Date.now() + cacheDuration,
+  };
+
+  return cachedSalesforceToken.accessToken;
 }
 
 async function salesforceRequest<T>(
@@ -80,7 +119,7 @@ async function salesforceRequest<T>(
 ): Promise<T> {
   const token = await getSalesforceToken();
   const response = await fetch(
-    `${getRequiredEnv("SF_INSTANCE_URL")}${path}`,
+    `${getSalesforceInstanceUrl()}${path}`,
     {
       ...init,
       headers: {
@@ -195,4 +234,133 @@ export async function deleteSalesforceEvent(eventId: string) {
     `/services/data/${SALESFORCE_API_VERSION}/sobjects/Event/${eventId}`,
     { method: "DELETE" }
   );
+}
+
+const WORK_SCHEDULE_DAYS = {
+  MON: { name: "Monday", shortName: "Mon", weekday: 1 },
+  TUE: { name: "Tuesday", shortName: "Tue", weekday: 2 },
+  WED: { name: "Wednesday", shortName: "Wed", weekday: 3 },
+  THU: { name: "Thursday", shortName: "Thur", weekday: 4 },
+  FRI: { name: "Friday", shortName: "Fri", weekday: 5 },
+  SAT: { name: "Saturday", shortName: "Sat", weekday: 6 },
+  SUN: { name: "Sunday", shortName: "Sun", weekday: 0 },
+} as const;
+
+const SALESFORCE_TRANSPORTATION: Record<string, string> = {
+  WALK: "Walk",
+  BIKE: "Bike",
+  OWN_CAR: "Own Vehicle",
+  RIDE: "Rides",
+};
+
+function formatScheduleTime(value: string) {
+  const match = /^(?:([01]\d|2[0-3])):([0-5]\d)$/.exec(value);
+  if (!match) {
+    throw new Error(`Invalid work schedule time: ${value}`);
+  }
+
+  const hour = Number(match[1]);
+  const displayHour = hour % 12 || 12;
+  const displayTime = `${displayHour}:${match[2]} ${hour < 12 ? "AM" : "PM"}`;
+
+  return { displayTime, hour, minute: match[2] };
+}
+
+function firstOccurrenceOnOrAfter(date: Date, weekday: number) {
+  const dateOnly = date.toISOString().slice(0, 10);
+  const [year, month, day] = dateOnly.split("-").map(Number);
+  const anchor = new Date(Date.UTC(year, month - 1, day));
+  const dayOffset = (weekday - anchor.getUTCDay() + 7) % 7;
+  anchor.setUTCDate(anchor.getUTCDate() + dayOffset);
+  return anchor.toISOString().slice(0, 10);
+}
+
+export async function createSalesforceWorkSchedule(
+  schedule: SalesforceWorkScheduleInput,
+  contactId: string
+) {
+  if (!isValidSalesforceId(contactId)) {
+    throw new Error("Invalid Salesforce Contact ID.");
+  }
+
+  const transportation = SALESFORCE_TRANSPORTATION[schedule.transportation];
+  if (!transportation) {
+    throw new Error(`Unsupported Salesforce transportation value: ${schedule.transportation}`);
+  }
+
+  const payload: Record<string, string | boolean> = {
+    Contact__c: contactId,
+    First_Day__c: schedule.weekOf.toISOString().slice(0, 10),
+    Frequency__c: "Weekly",
+    Transportation__c: transportation,
+  };
+
+  if (schedule.employerName) payload.Employer_s__c = schedule.employerName;
+  if (schedule.employerLocation) payload.Employer_Location__c = schedule.employerLocation;
+  if (schedule.estimatedTravelTime) payload.Travel_Time__c = schedule.estimatedTravelTime;
+  if (schedule.commentsNotes?.trim()) payload.Comments__c = schedule.commentsNotes.trim();
+
+  for (const day of schedule.days) {
+    const mapping = WORK_SCHEDULE_DAYS[day.dayOfWeek as keyof typeof WORK_SCHEDULE_DAYS];
+    if (!mapping) {
+      throw new Error(`Unsupported work schedule day: ${day.dayOfWeek}`);
+    }
+
+    const startTime = day.startTime?.trim() || null;
+    const endTime = day.endTime?.trim() || null;
+    if (Boolean(startTime) !== Boolean(endTime)) {
+      throw new Error(`${mapping.name} requires both a start and end time.`);
+    }
+
+    const isScheduled = Boolean(startTime && endTime);
+    payload[`${mapping.name}__c`] = isScheduled;
+    if (!isScheduled) continue;
+
+    const start = formatScheduleTime(startTime!);
+    const end = formatScheduleTime(endTime!);
+    const workDate = firstOccurrenceOnOrAfter(schedule.weekOf, mapping.weekday);
+    payload[`${mapping.name}_Hours__c`] = `${start.displayTime} to ${end.displayTime}`;
+    payload[`${mapping.shortName}_Start__c`] = `${workDate}T${start.hour.toString().padStart(2, "0")}:${start.minute}:00-06:00`;
+    payload[`${mapping.shortName}_End__c`] = `${workDate}T${end.hour.toString().padStart(2, "0")}:${end.minute}:00-06:00`;
+  }
+
+  const fields = Object.keys(payload);
+  const query = `SELECT Id, ${fields.join(", ")} FROM Work_Schedule__c
+    WHERE Contact__c = '${contactId}'
+    AND First_Day__c = ${payload.First_Day__c}
+    AND Frequency__c = 'Weekly'`;
+  const existingRecords = await salesforceRequest<{
+    records?: Record<string, unknown>[];
+  }>(`/services/data/${WORK_SCHEDULE_API_VERSION}/query?q=${encodeURIComponent(query)}`);
+  const existingRecord = existingRecords.records?.find(record =>
+    Object.entries(payload).every(([field, expected]) => {
+      const actual = record[field];
+      if (
+        typeof expected === "string" &&
+        (field.endsWith("_Start__c") || field.endsWith("_End__c"))
+      ) {
+        return typeof actual === "string" && Date.parse(actual) === Date.parse(expected);
+      }
+      return actual === expected;
+    })
+  );
+
+  if (typeof existingRecord?.Id === "string") {
+    return existingRecord.Id;
+  }
+
+  const data = await salesforceRequest<{ id?: string }>(
+    `/services/data/${WORK_SCHEDULE_API_VERSION}/sobjects/Work_Schedule__c`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!data?.id) {
+    throw new SalesforceError("Salesforce did not return a new work schedule id.", 502, data);
+  }
+
+  return data.id;
 }

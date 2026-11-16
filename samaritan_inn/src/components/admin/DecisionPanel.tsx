@@ -26,6 +26,7 @@ export default function DecisionPanel({
 }: DecisionPanelProps) {
   const { data: session } = useSession();
   const isLocked = currentStatus !== 'PENDING';
+  const canRetrySalesforceSync = formType === 'work-schedule' && currentStatus === 'APPROVED';
   const [decision, setDecision] = useState<'APPROVED' | 'DENIED' | ''>(
     isLocked ? (currentStatus as 'APPROVED' | 'DENIED') : ''
   );
@@ -50,10 +51,13 @@ export default function DecisionPanel({
           adminName: session?.user?.name ?? null,
         }),
       });
-      if (!res.ok) throw new Error('Update failed');
+      const responseBody = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(responseBody.detail || responseBody.error || 'Update failed');
+      }
       onSubmitted();
-    } catch {
-      setError('Failed to save decision. Please try again.');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save decision. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -105,13 +109,17 @@ export default function DecisionPanel({
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {!isLocked && (
+      {(!isLocked || canRetrySalesforceSync) && (
         <button
           onClick={handleSubmit}
           disabled={submitting}
           className="w-full bg-primary text-white font-semibold py-2 rounded hover:opacity-90 disabled:opacity-50 transition"
         >
-          {submitting ? 'Saving…' : 'Submit Decision'}
+          {submitting
+            ? 'Saving…'
+            : canRetrySalesforceSync
+              ? 'Retry Salesforce Sync'
+              : 'Submit Decision'}
         </button>
       )}
     </div>
