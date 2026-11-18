@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerUserId } from "@/lib/getServerUserId";
-import { deleteSalesforceEvent, SalesforceError } from "@/lib/salesforce";
-import { deleteScheduledEventMirror } from "@/lib/scheduled-events";
+import { prisma } from "@/lib/db/prisma";
+import { getServerUserId } from "@/lib/auth/getServerUserId";
+import { deleteSalesforceEvent, SalesforceError } from "@/lib/salesforce/salesforce";
+import { deleteScheduledEventMirror } from "@/lib/appointments/scheduled-events";
 
 export async function DELETE(
   request: NextRequest,

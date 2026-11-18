@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   getOwnCaseworkerView,
   type Caseworker,
-} from "@/lib/appointments-data";
+} from "@/lib/appointments/appointments-data";
 import EditableProfileField, {
   editableField,
 } from "@/components/appointments/EditableProfileField";

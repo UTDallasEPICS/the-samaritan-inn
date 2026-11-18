@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
-import { can } from '@/lib/permissions';
-import type { ServerSessionInfo } from '@/lib/getServerSessionInfo';
+import { prisma } from '@/lib/db/prisma';
+import { can } from '@/lib/auth/permissions';
+import type { ServerSessionInfo } from '@/lib/auth/getServerSessionInfo';
 
 // Which pass/curfew/work-schedule requests a user may list:
 // - admin / lead lifecoach: every request

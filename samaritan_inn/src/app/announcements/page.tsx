@@ -12,7 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import SidebarCalendar from "@/components/SidebarCalendar";
-import { can } from '@/lib/permissions';
+import { can } from '@/lib/auth/permissions';
 
 
 interface Announcement {

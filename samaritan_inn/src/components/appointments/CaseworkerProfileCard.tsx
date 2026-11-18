@@ -1,6 +1,6 @@
 "use client";
 
-import type { Caseworker } from "@/lib/appointments-data";
+import type { Caseworker } from "@/lib/appointments/appointments-data";
 import EditableProfileField, { EDITABLE_FIELDS, FieldLabel } from "./EditableProfileField";
 import PersonRow from "./PersonRow";
 

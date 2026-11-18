@@ -4,7 +4,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import BookingLinkSection from '@/components/profile/BookingLinkSection';
-import { can, isRole, ROLE_LABELS } from '@/lib/permissions';
+import { can, isRole, ROLE_LABELS } from '@/lib/auth/permissions';
 
 export default function Profile() {
   const { data: session, status } = useSession();

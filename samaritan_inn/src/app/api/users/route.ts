@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { NextResponse } from 'next/server';
-import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
-import { can } from '@/lib/permissions';
+import { getServerSessionInfo } from '@/lib/auth/getServerSessionInfo';
+import { can } from '@/lib/auth/permissions';
 import type { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {

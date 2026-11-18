@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import CalendlyLinkSetting from '@/components/classes/CalendlyLinkSetting';
-import { can } from '@/lib/permissions';
+import { can } from '@/lib/auth/permissions';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
-import { can } from '@/lib/permissions';
+import { prisma } from '@/lib/db/prisma';
+import { getServerSessionInfo } from '@/lib/auth/getServerSessionInfo';
+import { can } from '@/lib/auth/permissions';
 import type { NextRequest } from 'next/server';
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

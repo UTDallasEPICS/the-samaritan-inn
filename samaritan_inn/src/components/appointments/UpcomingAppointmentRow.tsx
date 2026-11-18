@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   cancelAppointment,
   type UpcomingAppointment,
-} from "@/lib/appointments-data";
+} from "@/lib/appointments/appointments-data";
 import PersonRow from "./PersonRow";
 
 /**

@@ -5,13 +5,13 @@ import {
   updateOwnCaseworkerProfile,
   type Caseworker,
   type CaseworkerSelfEdit,
-} from "@/lib/appointments-data";
+} from "@/lib/appointments/appointments-data";
 import {
   FIELD_MAX_LENGTH,
   checkAvailability,
   checkBookingUrl,
   checkPhone,
-} from "@/lib/caseworker-fields";
+} from "@/lib/coaches/caseworker-fields";
 
 /**
   One coach-editable profile field: a white textbox with its own

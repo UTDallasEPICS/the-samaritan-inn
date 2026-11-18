@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerUserId } from "@/lib/getServerUserId";
-import { getBookingHoursLabel } from "@/lib/booking";
-import { SalesforceError } from "@/lib/salesforce";
+import { getServerUserId } from "@/lib/auth/getServerUserId";
+import { getBookingHoursLabel } from "@/lib/appointments/booking";
+import { SalesforceError } from "@/lib/salesforce/salesforce";
 import {
   getCaseworkerProfiles,
   getConfiguredCaseworkerOwnerIds,
-} from "@/lib/caseworkers";
+} from "@/lib/salesforce/caseworkers";
 import {
   getCaseworkerSource,
   getLocalCaseworkerData,
-} from "@/lib/caseworker-directory";
+} from "@/lib/coaches/caseworker-directory";
 
 /**
  * Every Empowerment Coach, for the /empowerment-coaches page. Any logged-in

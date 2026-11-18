@@ -1,6 +1,6 @@
 import "next-auth";
 import { DefaultSession } from "next-auth";
-import type { Role } from "@/lib/permissions";
+import type { Role } from "@/lib/auth/permissions";
 
 declare module "next-auth" {
   interface Session {

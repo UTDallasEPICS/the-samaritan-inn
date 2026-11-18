@@ -5,14 +5,14 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
-import { can } from "@/lib/permissions";
+import { can } from "@/lib/auth/permissions";
 import SectionCard from "@/components/appointments/SectionCard";
 import CaseworkerCard from "@/components/appointments/CaseworkerCard";
 import {
   getCaseworkerData,
   type Caseworker,
   type CaseworkerData,
-} from "@/lib/appointments-data";
+} from "@/lib/appointments/appointments-data";
 
 /**
  * Every Empowerment Coach, for any logged-in user. Residents aren't assigned

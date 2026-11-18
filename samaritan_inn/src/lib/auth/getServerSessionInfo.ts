@@ -1,5 +1,5 @@
 import { getToken } from 'next-auth/jwt';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import type { NextRequest } from 'next/server';
 
 export type ServerSessionInfo = { id: string; role: string };
