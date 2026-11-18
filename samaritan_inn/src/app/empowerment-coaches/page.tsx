@@ -122,7 +122,7 @@ export default function EmpowermentCoachesPage() {
                     {coaches.map((coach) => (
                       <li key={coach.id}>
                         <CaseworkerCard caseworker={coach} bookingHours={data.bookingHours}>
-                          <BookAction coach={coach} local={data.source === "local"} />
+                          <BookAction coach={coach} />
                         </CaseworkerCard>
                       </li>
                     ))}
@@ -137,8 +137,8 @@ export default function EmpowermentCoachesPage() {
   );
 }
 
-/** The Book button for one coach, depending on how they can be booked. */
-function BookAction({ coach, local }: { coach: Caseworker; local: boolean }) {
+/** The Book button for one coach: their Outlook Bookings link, when they have one. */
+function BookAction({ coach }: { coach: Caseworker }) {
   const button =
     "block w-full rounded bg-blue-600 py-3 text-center font-bold text-white hover:bg-blue-700 sm:inline-block sm:w-auto sm:px-6";
 
@@ -151,18 +151,6 @@ function BookAction({ coach, local }: { coach: Caseworker; local: boolean }) {
         </a>
         <span className="text-sm text-gray-500">Opens Bookings in a new tab.</span>
       </div>
-    );
-  }
-
-  if (!local) {
-    // Salesforce mode: book through the in-app time picker.
-    return (
-      <Link
-        href={`/appointments/calendar-form?ownerId=${encodeURIComponent(coach.id)}`}
-        className={button}
-      >
-        Book an Appointment
-      </Link>
     );
   }
 

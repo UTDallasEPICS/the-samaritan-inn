@@ -148,7 +148,7 @@ const HomePage = () => {
                 View and schedule appointments!
               </p>
               <Link
-                href="/appointments/my-events"
+                href="/appointments"
                 className="inline-block bg-[#0caebb] text-white py-2 px-6 rounded-md hover:bg-[#29abe2] transition duration-300"
               >
                 View

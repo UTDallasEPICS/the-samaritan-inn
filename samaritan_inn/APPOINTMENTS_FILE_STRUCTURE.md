@@ -83,13 +83,27 @@ src/
 
 Import paths were updated to match (`@/lib/appointments/...`, `@/components/appointments/...`).
 
-## Old (unused) appointments files
+## Old (retired) appointments files, prefixed `old-`
 
-Appointments-related files that nothing uses are kept but prefixed `old-`:
+Appointments are now booked through each coach's **Outlook / Microsoft Bookings** link (`CASEWORKER_SOURCE="local"`). The earlier in-app booking flow (pick a time, save it in our database and Salesforce) is retired. Its files are kept but renamed with an `old-` prefix. Next.js only serves files named exactly `page.tsx` / `route.ts`, so the renamed pages and routes are no longer served (404).
 
-- `src/app/api/get-calendar/old-route.ts`: an early Salesforce calendar fetch. No page, component or API calls it. Next.js only serves a file named exactly `route.ts`, so renaming it to `old-route.ts` stops `/api/get-calendar` from being served. It also prints the Salesforce token to the server log (`console.log`), another reason to retire it.
+| Renamed file | What it was |
+|---|---|
+| `app/appointments/calendar-form/old-page.tsx` | in-app booking form (coach, date, time, length) |
+| `app/appointments/my-events/old-page.tsx` | earlier appointments page |
+| `app/api/(appointments)/get-available-slots/old-route.ts` | open time slots for the booking form |
+| `app/api/(appointments)/submit-event/old-route.ts` | saved a booking |
+| `app/api/(appointments)/my-events/old-route.ts`, `[id]/old-route.ts` | listed and cancelled a resident's bookings |
+| `app/api/get-calendar/old-route.ts` | early Salesforce calendar fetch (it also logged the Salesforce token) |
+| `app/appointments/_components/old-UpcomingAppointmentRow.tsx` | row in the old "Upcoming Appointments" list |
+| `lib/appointments/old-scheduled-events.ts` | mirrored bookings into our database (only used by the old routes) |
 
-Every other appointments file (components, `lib/appointments/*`, pages and API routes) is imported or linked somewhere.
+Small changes made with the retirement:
+- The landing page's Appointments card now links to `/appointments` (it linked to the old `my-events` page).
+- The resident "Upcoming Appointments" section was removed from `/appointments`.
+- The Book button on `/empowerment-coaches` now only shows the coach's Outlook Bookings link, or a "not set up yet" message. The Salesforce time-picker branch was removed.
+
+Still live and deliberately kept: `lib/appointments/booking.ts`, `caseworkers.ts` and `lib/salesforce.ts` (the coaches API can still read coaches from Salesforce when `CASEWORKER_SOURCE` is not `"local"`). `getUpcomingAppointments` / `cancelAppointment` in `appointments-data.ts` are now unused and can be deleted later.
 
 ## 4. Deliberately not moved (not appointment-specific)
 

@@ -15,7 +15,7 @@ import {
   resolveSalesforceOwnerId,
   SalesforceError,
 } from "@/lib/salesforce";
-import { deleteScheduledEventMirror, syncScheduledEvent } from "@/lib/appointments/scheduled-events";
+import { deleteScheduledEventMirror, syncScheduledEvent } from "@/lib/appointments/old-scheduled-events";
 import { getCaseworkerProfiles, isBookableCaseworker } from "@/lib/appointments/caseworkers";
 
 function errorResponse(message: string, status: number) {
