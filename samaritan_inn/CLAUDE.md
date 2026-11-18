@@ -39,6 +39,8 @@ Never commit `.env` or `prisma/dev.db` (both are gitignored).
 
 ## Project Structure
 
+Appointment-related code is grouped under `appointments/` folders (see `APPOINTMENTS_FILE_STRUCTURE.md` for what moved from `main`). The tree below is the older general layout.
+
 ```
 samaritan_inn/
 ├── src/
@@ -75,11 +77,11 @@ samaritan_inn/
 
 ## Auth & Roles
 
-Three roles stored on `User.role`: `"resident"`, `"staff"`, `"admin"`.
+Four roles stored on `User.role`: `"resident"`, `"admin"`, `"caseworker"` (shown to users as "Empowerment Coach"), `"lead_lifecoach"`. The role-to-permission map is in `src/lib/permissions.ts`.
 
 ```ts
 // Server components / API routes
-import { requireAuth, requireAdmin, getCurrentUser } from "@/lib/auth/auth";
+import { requireAuth, requireAdmin, getCurrentUser } from "@/lib/auth";
 
 const user = await requireAuth();   // redirects to /login if unauthenticated
 const user = await requireAdmin();  // redirects to /unauthorized if not admin
@@ -130,13 +132,13 @@ Enums: `FormStatus` (PENDING / APPROVED / DENIED), `EmploymentStatus`, `Transpor
 
 ### API Routes
 - Named exports: `GET`, `POST`, `PUT`, `DELETE`
-- Import Prisma from `@/lib/db/prisma`
+- Import Prisma from `@/lib/prisma`
 - Always validate inputs and return `NextResponse.json()`
 
 ```ts
-import { prisma } from '@/lib/db/prisma';
+import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/auth/auth';
+import { requireAdmin } from '@/lib/auth';
 
 export async function GET() {
   const user = await requireAdmin();
@@ -161,11 +163,11 @@ export async function GET() {
 | Feature | Status | Notes |
 |---|---|---|
 | Login / Signup | Done | bcrypt hashing, JWT sessions |
-| Role-based access | Done | `requireAuth`, `requireAdmin` in `src/lib/auth/auth.ts` |
+| Role-based access | Done | `requireAuth`, `requireAdmin` in `src/lib/auth.ts` |
 | Announcements | Done | Staff creates, all users view |
 | Events | Done | Create/view events |
 | Schedule/Calendar | Done | Personal appointments |
-| Navigation | Done | Role-aware nav in `src/components/shared/Navigation.tsx` |
+| Navigation | Done | Role-aware nav in `src/components/Navigation.tsx` |
 | Extended Curfew Form | In progress | UI component + DB + API done; admin review UI pending |
 | Pass Request Form | In progress | UI component + DB + API done; admin review UI pending |
 | Work Schedule Form | In progress | UI component + DB + API done; admin review UI pending |
@@ -202,7 +204,7 @@ export async function GET() {
 
 - Read existing components and API routes before generating new ones — patterns are established.
 - Never modify `prisma/schema.prisma` without also running `pnpm exec prisma migrate dev`.
-- Use `@/lib/db/prisma` for the Prisma client, never instantiate a new `PrismaClient` directly.
+- Use `@/lib/prisma` for the Prisma client, never instantiate a new `PrismaClient` directly.
 - Use Tailwind color tokens (`primary`, `secondary`, `light`) — do not hardcode hex values.
 - Keep API route handlers thin; put reusable logic in `src/lib/`.
-- The `requireAdmin()` function uses `user.role !== "admin"` — `staff` role does NOT have admin access unless explicitly elevated.
+- `requireAdmin()` checks the `VIEW_ALL_REQUESTS` permission, so admins and coaches both pass it. For admin-only or other specific access, use `requirePermission("<PERMISSION>")` (see `src/lib/permissions.ts`).

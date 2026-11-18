@@ -1,0 +1,409 @@
+"use client";
+
+import React, { useCallback, useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Navigation from "@/components/Navigation";
+import { can } from "@/lib/permissions";
+
+/**
+ * Admin-only Empowerment Coach directory (used when CASEWORKER_SOURCE="local").
+ * Admins add coaches with their contact details and Outlook / Microsoft
+ * Bookings link. Every logged-in user sees all coaches on /empowerment-coaches
+ * and books through those links; residents aren't assigned to a coach.
+ * In code a coach is still a "caseworker" (Caseworker model, /api/admin/caseworkers).
+ */
+
+type Person = { id: string; name: string; email: string };
+
+type DirectoryCaseworker = {
+  id: string;
+  name: string;
+  title: string | null;
+  email: string;
+  phone: string | null;
+  room: string | null;
+  availability: string | null;
+  bookingUrl: string | null;
+  /** Login account that owns this profile, if linked. */
+  user: Person | null;
+  /** ISO timestamp; sent back on save so a newer coach edit isn't overwritten. */
+  updatedAt: string;
+};
+
+
+type DirectoryData = {
+  source: "local" | "salesforce";
+  caseworkers: DirectoryCaseworker[];
+  /** Accounts with the Empowerment Coach role, which a profile can be linked to. */
+  accounts: Person[];
+};
+
+type FormFields = Omit<DirectoryCaseworker, "id" | "user" | "updatedAt">;
+
+const EMPTY_FORM: Record<keyof FormFields | "userId", string> = {
+  name: "",
+  title: "",
+  email: "",
+  phone: "",
+  room: "",
+  availability: "",
+  bookingUrl: "",
+  userId: "",
+};
+
+const FIELDS: {
+  key: keyof FormFields;
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+  type?: string;
+}[] = [
+  { key: "name", label: "Name", required: true },
+  { key: "email", label: "Email", required: true, type: "email" },
+  { key: "title", label: "Title", placeholder: "Empowerment Coach" },
+  { key: "phone", label: "Phone", type: "tel" },
+  { key: "room", label: "Room", placeholder: "Office B-204" },
+  {
+    key: "availability",
+    label: "Availability",
+    placeholder: "Mon–Fri, 9:00 AM – 5:00 PM",
+  },
+  {
+    key: "bookingUrl",
+    label: "Outlook / Microsoft Bookings link",
+    placeholder: "https://bookings.cloud.microsoft/book/...",
+    type: "url",
+  },
+];
+
+/** Same white rounded card as the Appointments page. */
+function Card({
+  title,
+  children,
+}: {
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="w-full rounded-lg bg-white p-6 shadow-md">
+      {title && (
+        <h2 className="mb-4 text-2xl font-bold text-black">{title}</h2>
+      )}
+      {children}
+    </section>
+  );
+}
+
+/** Reads the API's `{ error }` message when there is one. */
+async function readError(res: Response, fallback: string) {
+  try {
+    const body = await res.json();
+    return typeof body?.error === "string" ? body.error : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export default function AdminEmpowermentCoachesPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const isAdmin = can(session?.user?.role, "MANAGE_COACH_ACCOUNTS");
+
+  const [data, setData] = useState<DirectoryData | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  /** updatedAt of the coach being edited, as loaded. */
+  const [editingUpdatedAt, setEditingUpdatedAt] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (status === "unauthenticated") router.replace("/auth/login");
+    else if (status === "authenticated" && !isAdmin) {
+      router.replace("/auth/unauthorized");
+    }
+  }, [status, isAdmin, router]);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/caseworkers");
+      if (!res.ok) {
+        throw new Error(await readError(res, "Unable to load Empowerment Coaches."));
+      }
+      setData(await res.json());
+      setLoadError(null);
+    } catch (error) {
+      setLoadError(
+        error instanceof Error ? error.message : "Unable to load Empowerment Coaches."
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (status === "authenticated" && isAdmin) load();
+  }, [status, isAdmin, load]);
+
+  if (status !== "authenticated" || !isAdmin) return null;
+
+  const resetForm = () => {
+    setForm(EMPTY_FORM);
+    setEditingId(null);
+    setEditingUpdatedAt(null);
+    setFormError(null);
+  };
+
+  const startEdit = (cw: DirectoryCaseworker) => {
+    setEditingId(cw.id);
+    setEditingUpdatedAt(cw.updatedAt);
+    setFormError(null);
+    setForm({
+      name: cw.name,
+      email: cw.email,
+      title: cw.title ?? "",
+      phone: cw.phone ?? "",
+      room: cw.room ?? "",
+      availability: cw.availability ?? "",
+      bookingUrl: cw.bookingUrl ?? "",
+      userId: cw.user?.id ?? "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    setFormError(null);
+
+    const res = await fetch(
+      editingId
+        ? `/api/admin/caseworkers/${encodeURIComponent(editingId)}`
+        : "/api/admin/caseworkers",
+      {
+        method: editingId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          editingId ? { ...form, expectedUpdatedAt: editingUpdatedAt } : form
+        ),
+      }
+    );
+
+    setSaving(false);
+    if (!res.ok) {
+      setFormError(await readError(res, "Unable to save Empowerment Coach."));
+      return;
+    }
+    resetForm();
+    load();
+  };
+
+  /** Runs a delete request, then reloads or shows its error. */
+  const runAction = async (request: Promise<Response>, fallback: string) => {
+    setActionError(null);
+    const res = await request;
+    if (!res.ok) {
+      setActionError(await readError(res, fallback));
+      return;
+    }
+    load();
+  };
+
+  const deleteCaseworker = (cw: DirectoryCaseworker) => {
+    if (!window.confirm(`Delete ${cw.name}? Residents will no longer see them on Empowerment Coaches.`)) return;
+    if (editingId === cw.id) resetForm();
+    runAction(
+      fetch(`/api/admin/caseworkers/${encodeURIComponent(cw.id)}`, {
+        method: "DELETE",
+      }),
+      "Unable to delete Empowerment Coach."
+    );
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navigation />
+
+      <main className="flex-grow bg-gray-100 px-4 py-6">
+        <div className="mx-auto w-full max-w-4xl space-y-4">
+          <Card>
+            <h1 className="text-center text-3xl font-bold text-black">
+              Manage Empowerment Coaches
+            </h1>
+            <p className="mt-1 text-center text-gray-500">
+              Every coach added here is listed on the{" "}
+              <Link href="/empowerment-coaches" className="text-blue-600 hover:underline">
+                Empowerment Coaches
+              </Link>{" "}
+              page, where residents find their coach and book through the
+              coach&apos;s Outlook / Microsoft Bookings link.
+            </p>
+            {data?.source === "salesforce" && (
+              <p className="mt-4 rounded border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
+                Residents currently see coaches from Salesforce. Changes made
+                here take effect once <code>CASEWORKER_SOURCE=&quot;local&quot;</code>{" "}
+                is set in <code>.env</code>.
+              </p>
+            )}
+          </Card>
+
+          <Card title={editingId ? "Edit Empowerment Coach" : "Add Empowerment Coach"}>
+            <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+              {FIELDS.map((field) => (
+                <label
+                  key={field.key}
+                  className={`block ${field.key === "bookingUrl" ? "md:col-span-2" : ""}`}
+                >
+                  <span className="mb-1 block text-sm font-semibold text-gray-700">
+                    {field.label}
+                    {field.required && <span className="text-red-600"> *</span>}
+                  </span>
+                  <input
+                    type={field.type ?? "text"}
+                    required={field.required}
+                    value={form[field.key]}
+                    placeholder={field.placeholder}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, [field.key]: e.target.value }))
+                    }
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-black"
+                  />
+                </label>
+              ))}
+
+              <label className="block md:col-span-2">
+                <span className="mb-1 block text-sm font-semibold text-gray-700">
+                  Login account
+                </span>
+                <select
+                  value={form.userId}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, userId: e.target.value }))
+                  }
+                  className="w-full rounded border border-gray-300 px-3 py-2 text-black"
+                >
+                  <option value="">Not linked</option>
+                  {data?.accounts
+                    .filter(
+                      (account) =>
+                        // Hide accounts already linked to another coach.
+                        !data.caseworkers.some(
+                          (cw) => cw.user?.id === account.id && cw.id !== editingId
+                        )
+                    )
+                    .map((account) => (
+                      <option key={account.id} value={account.id}>
+                        {account.name} ({account.email})
+                      </option>
+                    ))}
+                </select>
+                <span className="mt-1 block text-xs text-gray-500">
+                  The linked coach sees these details on My Appointments and can
+                  edit their own phone, availability and Outlook / Bookings
+                  link (also on their Profile tab). Only accounts with the
+                  Empowerment Coach role (set on Manage Users) are listed.
+                </span>
+              </label>
+
+              {formError && (
+                <p className="text-red-600 md:col-span-2">{formError}</p>
+              )}
+
+              <div className="flex gap-3 md:col-span-2">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="rounded bg-blue-600 px-5 py-2 font-bold text-white hover:bg-blue-700 disabled:bg-gray-300"
+                >
+                  {saving ? "Saving…" : editingId ? "Save Changes" : "Add Empowerment Coach"}
+                </button>
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="rounded border border-gray-300 px-5 py-2 text-black hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+          </Card>
+
+          <Card title="Empowerment Coaches">
+            {actionError && <p className="mb-3 text-red-600">{actionError}</p>}
+
+            {loadError ? (
+              <p className="text-red-600">{loadError}</p>
+            ) : !data ? (
+              <p className="text-gray-500">Loading Empowerment Coaches…</p>
+            ) : data.caseworkers.length === 0 ? (
+              <p className="text-gray-500">
+                No Empowerment Coaches yet. Add one above.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {data.caseworkers.map((cw) => {
+                  return (
+                    <div key={cw.id} className="rounded-lg border-2 border-blue-600 bg-blue-50/40 p-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="min-w-0 text-sm text-gray-700">
+                          <p className="text-lg font-bold text-black">{cw.name}</p>
+                          {cw.title && <p className="text-gray-500">{cw.title}</p>}
+                          <p className="mt-1">{cw.email}</p>
+                          {cw.phone && <p>{cw.phone}</p>}
+                          {cw.room && <p>Room: {cw.room}</p>}
+                          {cw.availability && <p>{cw.availability}</p>}
+                          <p className={cw.user ? "" : "text-gray-500"}>
+                            Login: {cw.user ? cw.user.email : "not linked"}
+                          </p>
+                          {cw.bookingUrl ? (
+                            <a
+                              href={cw.bookingUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1 inline-block break-all text-blue-600 hover:underline"
+                            >
+                              Bookings page ↗
+                            </a>
+                          ) : (
+                            <p className="mt-1 text-yellow-700">
+                              No booking link: residents can&apos;t book with
+                              this coach yet.
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => startEdit(cw)}
+                            className="rounded border border-gray-300 px-3 py-1 text-sm text-black hover:bg-gray-50"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteCaseworker(cw)}
+                            className="rounded border border-red-300 px-3 py-1 text-sm text-red-700 hover:bg-red-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+}

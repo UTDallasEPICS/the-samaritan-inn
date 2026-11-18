@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth/auth";
+import { getCurrentUser } from "@/lib/auth";
 import {
   ApiError,
   buildAvailableSlots,
@@ -12,8 +12,8 @@ import {
   fetchSalesforceEventsForOwnerOnDate,
   resolveSalesforceOwnerId,
   SalesforceError,
-} from "@/lib/salesforce/salesforce";
-import { isBookableCaseworker } from "@/lib/salesforce/caseworkers";
+} from "@/lib/salesforce";
+import { isBookableCaseworker } from "@/lib/appointments/caseworkers";
 
 function errorResponse(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });

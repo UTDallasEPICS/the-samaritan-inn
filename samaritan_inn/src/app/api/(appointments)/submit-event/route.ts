@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerUserId } from "@/lib/auth/getServerUserId";
+import { getServerUserId } from "@/lib/getServerUserId";
 import {
   ApiError,
   finalizeAppointmentReservation,
@@ -14,9 +14,9 @@ import {
   fetchSalesforceEventsForOwnerOnDate,
   resolveSalesforceOwnerId,
   SalesforceError,
-} from "@/lib/salesforce/salesforce";
+} from "@/lib/salesforce";
 import { deleteScheduledEventMirror, syncScheduledEvent } from "@/lib/appointments/scheduled-events";
-import { getCaseworkerProfiles, isBookableCaseworker } from "@/lib/salesforce/caseworkers";
+import { getCaseworkerProfiles, isBookableCaseworker } from "@/lib/appointments/caseworkers";
 
 function errorResponse(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });

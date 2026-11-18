@@ -22,7 +22,7 @@ The central NextAuth configuration file that handles authentication requests.
 // Configuration for NextAuth with credential provider and JWT session
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/prisma";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
@@ -45,7 +45,7 @@ TypeScript definitions to extend NextAuth's default types with custom properties
 
 ### Authentication Utilities
 
-#### `src/lib/auth/auth.ts`
+#### `src/lib/auth.ts`
 
 Utility functions for server-side authentication checks and user access.
 
@@ -101,7 +101,7 @@ export default function AuthProvider({ children }) {
 }
 ```
 
-#### `src/components/shared/Navigation.tsx`
+#### `src/components/Navigation.tsx`
 
 Navigation bar with dynamic content based on authentication status.
 
