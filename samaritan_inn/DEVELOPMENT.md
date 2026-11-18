@@ -92,6 +92,26 @@ const role = session?.user?.role;
 
 Note: the current pass form API routes (`src/app/api/pass/*/route.ts`) use `userId` from the request body rather than `requireAuth()`. Future routes should enforce auth via `requireAuth()` at the top of the handler.
 
+
+### Accounts and admin tools
+
+- `pnpm seed`: demo accounts for local/stage (`admin@example.com` / `admin123`, `caseworker1@example.com` / `caseworker123`, `resident1@example.com` / `resident123`). Never run it on prod; the passwords are public.
+- `ADMIN_EMAIL=... ADMIN_PASSWORD='12+ chars' pnpm create-admin`: create or reset an admin on any environment (the only way to get the first admin on prod).
+- Add Resident: `/admin-users/create` (page) → `POST /api/admin-users/create` (API), using `components/AddResidentForm.tsx`.
+- Manage Users (`/admin-users`) shows whether each user has confirmed their email (`GET /api/admin-users/email-status`) and can resend the setup email (`POST /api/admin-users/[id]/setup-email`).
+- On Manage Users, an admin can't change their own role (the dropdown is disabled), so the site keeps at least one admin.
+- Roles are re-read from the database on every API request, so a role change takes effect on the server immediately; the changed user's menus update after they log in again.
+- `/api/login`, `/api/get-calendar`, `/api/register` and the `/auth/signup` page are no longer used and return 404; their original code is kept, commented out, in those files.
+
+### Testing login, sign-up and password reset
+
+```bash
+pnpm seed            # once, so the demo accounts exist
+pnpm dev             # in one terminal
+pnpm test:auth       # in another; BASE_URL defaults to http://localhost:3000
+```
+
+`tests/auth.e2e.mjs` covers access control, admin account creation, temporary-password login, the setup and reset links (expired, reused, wrong account, concurrent use), email confirmation, resending, and role changes. It creates throwaway `auth-test-*@example.com` users and deletes them afterwards. Run it against local or stage only, never prod.
 ---
 
 ## Database / Prisma Workflow
@@ -206,3 +226,18 @@ export async function GET() {
 - Use Tailwind color tokens (`primary`, `secondary`, `light`) — do not hardcode hex values.
 - Keep API route handlers thin; put reusable logic in `src/lib/`.
 - The `requireAdmin()` function uses `user.role !== "admin"` — `staff` role does NOT have admin access unless explicitly elevated.
+
+### Password reset and account-setup emails
+
+"Forgot password?" on the login page (`/auth/forgot-password` → `POST /api/forgot-password`) emails a one-hour link to `/auth/reset-password` (→ `POST /api/reset-password`). When an admin creates a resident, the same mechanism emails a 72-hour "set your password" link, alongside the temporary password shown on screen. Tokens are random, stored hashed in NextAuth's `VerificationToken` table, single-use (redeemed atomically), and one live link per account. The forgot endpoint gives the same response whether or not the email exists, sends mail without awaiting it (so timing doesn't reveal accounts either), and ignores repeat requests for the same email within 60 seconds (in-memory, per server process). Setting a password from an emailed link records `User.emailVerified` (first time only). Logging in afterwards is the normal NextAuth credentials login; the login page lowercases the email first, since accounts are stored lowercase.
+
+Mail is sent with nodemailer over SMTP. Add to `.env` (and to the stage/prod environment):
+```
+SMTP_HOST="smtp.example.com"
+SMTP_PORT="587"
+SMTP_SECURE="false"       # "true" for port 465
+SMTP_USER="..."
+SMTP_PASSWORD="..."
+MAIL_FROM="The Samaritan Inn <no-reply@example.com>"
+```
+`NEXTAUTH_URL` must be the public site URL, since it is used to build the links. If `SMTP_HOST` is unset, nothing is sent. In local development the email (with its link) is printed to the terminal instead, which is how to test without an email account. On a deployed server (`NODE_ENV=production`) only "not sent" is logged, never the link, because anyone with log access could use it.

@@ -10,6 +10,7 @@ const Login = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get('registered');
+  const passwordReset = searchParams.get('reset');
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +24,8 @@ const Login = () => {
 
     try {
       const response = await signIn('credentials', {
-        email,
+        // Accounts are stored with lowercase emails, so "Jane@…" should still log in.
+        email: email.trim().toLowerCase(),
         password,
         redirect: false,
       });
@@ -34,7 +36,7 @@ const Login = () => {
         router.push('/');
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred during login');
     } finally {
       setIsLoading(false);
@@ -57,6 +59,16 @@ const Login = () => {
             </div>
           )}
           
+          {passwordReset && (
+            <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+              <p>
+                {passwordReset === 'setup'
+                  ? 'Password created. Log in with your email and new password.'
+                  : 'Password updated. Please log in with your new password.'}
+              </p>
+            </div>
+          )}
+
           <form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
             <input
               type="email"
@@ -83,9 +95,8 @@ const Login = () => {
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
             <p className="text-center text-black">
-              New User?{' '}
-              <Link href="/auth/signup" className="text-blue-500 hover:underline">
-                Create an account
+              <Link href="/auth/forgot-password" className="text-blue-500 hover:underline">
+                Forgot password?
               </Link>
             </p>
           </form>

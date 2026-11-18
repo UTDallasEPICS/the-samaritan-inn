@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "node prisma/seed.js",
+    "create-admin": "node prisma/create-admin.js",
+    "test:auth": "node tests/auth.e2e.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.0",
@@ -20,6 +23,7 @@
     "date-fns": "^4.1.0",
     "next": "15.1.7",
     "next-auth": "^4.24.11",
+    "nodemailer": "^10.5.0",
     "react": "^19.0.0",
     "react-calendar": "^5.1.0",
     "react-dom": "^19.0.0"
@@ -28,6 +32,7 @@
     "@eslint/eslintrc": "^3",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
