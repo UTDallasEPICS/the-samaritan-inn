@@ -101,7 +101,7 @@ Note: the current pass form API routes (`src/app/api/pass/*/route.ts`) use `user
 - Manage Users (`/admin-users`) shows whether each user has confirmed their email (`GET /api/admin-users/email-status`) and can resend the setup email (`POST /api/admin-users/[id]/setup-email`).
 - On Manage Users, an admin can't change their own role (the dropdown is disabled), so the site keeps at least one admin.
 - Roles are re-read from the database on every API request, so a role change takes effect on the server immediately; the changed user's menus update after they log in again.
-- `/api/login` and `/api/get-calendar` are no longer used and return 404; their original code is kept, commented out, in those files.
+- `/api/login`, `/api/get-calendar`, `/api/register` and the `/auth/signup` page are no longer used and return 404; their original code is kept, commented out, in those files.
 
 ### Testing login, sign-up and password reset
 

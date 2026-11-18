@@ -97,6 +97,8 @@ async function main() {
   check('resident cannot see email-confirmed status (403)', (await request('GET', '/api/admin-users/email-status', { cookie: resident.cookie })).status, 403);
   check('old /api/login is hidden (404)', (await request('POST', '/api/login', { body: { email: 'admin@example.com', password: 'admin123' } })).status, 404);
   check('old /api/get-calendar is hidden (404)', (await request('GET', '/api/get-calendar')).status, 404);
+  check('old /api/register is hidden (404)', (await request('POST', '/api/register', { body: { name: 'X', email: someone.email, password: 'Whatever123' } })).status, 404);
+  check('old /auth/signup page is hidden (404)', (await fetch(BASE + '/auth/signup', { redirect: 'manual' })).status, 404);
   const page = await fetch(BASE + '/admin-users/create', { headers: { cookie: resident.cookie }, redirect: 'manual' });
   check('resident is redirected away from /admin-users/create', page.status >= 300 && page.status < 400, true);
 

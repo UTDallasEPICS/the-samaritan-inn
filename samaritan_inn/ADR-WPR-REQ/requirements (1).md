@@ -54,5 +54,5 @@ Track major changes, additions, or deprecations to the project scope.
 | 2026-11-18 | REQ-F-15 | Added account-setup email, email-confirmed status and resend button on Manage Users | Sanjana | — |
 | 2026-11-18 | REQ-F-16 | Added: real email delivery on stage/prod (needs SMTP settings from infra) | Sanjana | — |
 | 2026-11-18 | REQ-NF-05 | Admins can no longer change their own role on Manage Users | Sanjana | — |
-| 2026-11-18 | REQ-NF-06 | Matched main's structure; renamed my API routes and form after their pages; hid unused `/api/login` and `/api/get-calendar` (404, code kept) | Sanjana | — |
-| 2026-11-18 | REQ-F-12, REQ-F-13, REQ-NF-01, REQ-NF-02, REQ-NF-04 | Marked Verified: covered by `tests/auth.e2e.mjs` (48 checks passing) | Sanjana | — |
+| 2026-11-18 | REQ-NF-06 | Matched main's structure; renamed my API routes and form after their pages; hid unused `/api/login`, `/api/get-calendar`, `/api/register` and `/auth/signup` (404, code kept) | Sanjana | — |
+| 2026-11-18 | REQ-F-12, REQ-F-13, REQ-NF-01, REQ-NF-02, REQ-NF-04 | Marked Verified: covered by `tests/auth.e2e.mjs` (50 checks passing) | Sanjana | — |
