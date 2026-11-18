@@ -11,7 +11,7 @@ import {
   checkAvailability,
   checkBookingUrl,
   checkPhone,
-} from "@/lib/coaches/caseworker-fields";
+} from "@/lib/appointments/caseworker-fields";
 
 /**
   One coach-editable profile field: a white textbox with its own

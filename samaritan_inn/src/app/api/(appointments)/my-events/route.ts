@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
-import { getServerUserId } from "@/lib/auth/getServerUserId";
+import { prisma } from "@/lib/prisma";
+import { getServerUserId } from "@/lib/getServerUserId";
 import { syncScheduledEvent } from "@/lib/appointments/scheduled-events";
-import { findCaseworker, getCaseworkerProfiles } from "@/lib/salesforce/caseworkers";
+import { findCaseworker, getCaseworkerProfiles } from "@/lib/appointments/caseworkers";
 
 export async function GET(request: NextRequest) {
   const userId = await getServerUserId(request);

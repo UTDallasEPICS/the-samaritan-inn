@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { addMonths } from "date-fns";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/prisma";
 
 export const BOOKING_TIME_ZONE = "America/Chicago";
 export const BOOKABLE_DURATIONS = [30, 60] as const;
