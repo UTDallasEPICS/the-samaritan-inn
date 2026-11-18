@@ -1,27 +1,23 @@
 "use client";
 
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import { can } from "@/lib/permissions";
 import SectionCard from "@/components/appointments/SectionCard";
-import UpcomingAppointmentRow from "./_components/UpcomingAppointmentRow";
 import CaseworkerProfileCard from "./_components/CaseworkerProfileCard";
 import {
   getOwnCaseworkerView,
-  getUpcomingAppointments,
   type OwnCaseworkerView,
-  type UpcomingAppointment,
 } from "@/lib/appointments/appointments-data";
 
 /**
  * My Appointments (titled "My Information" for coaches, who see and edit their
- * own coach profile here; Upcoming Appointments is hidden for them for now).
- * Residents find and book their Empowerment Coach on
- * /empowerment-coaches (linked from here) and see their upcoming appointments.
- * Coaches see and edit their own coach profile instead of the booking link.
+ * own coach profile here). Residents find and book their Empowerment Coach on
+ * /empowerment-coaches (linked from here), through the coach's Outlook Bookings
+ * page. The old in-app "Upcoming Appointments" list was retired with that flow.
  */
 const AppointmentsPage = () => {
   const { data: session, status } = useSession();
@@ -33,10 +29,6 @@ const AppointmentsPage = () => {
   const [ownView, setOwnView] = useState<OwnCaseworkerView | null>(null);
   const [ownViewError, setOwnViewError] = useState<string | null>(null);
 
-  // ── Appointments (from our database, via /api/my-events) ──
-  const [upcoming, setUpcoming] = useState<UpcomingAppointment[] | null>(null);
-  const [upcomingError, setUpcomingError] = useState<string | null>(null);
-
   // Send logged-out visitors away, same as the Classes page.
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -44,19 +36,7 @@ const AppointmentsPage = () => {
     }
   }, [status, router]);
 
-  const loadUpcoming = useCallback(async () => {
-    try {
-      setUpcoming(await getUpcomingAppointments());
-      setUpcomingError(null);
-    } catch (error) {
-      setUpcomingError(
-        error instanceof Error ? error.message : "Unable to load your appointments."
-      );
-    }
-  }, []);
-
-  // Load once the session is confirmed. The coach profile and the
-  // appointments load independently, so one failing doesn't hide the other.
+  // Load the coach's own profile once the session is confirmed.
   useEffect(() => {
     if (status !== "authenticated") return;
     let cancelled = false;
@@ -72,21 +52,6 @@ const AppointmentsPage = () => {
               error instanceof Error
                 ? error.message
                 : "Unable to load your Empowerment Coach profile."
-            );
-          }
-        });
-    }
-
-    // Upcoming Appointments is hidden for coaches for now.
-    if (!isCoach) {
-      getUpcomingAppointments()
-        .then((appts) => {
-          if (!cancelled) setUpcoming(appts);
-        })
-        .catch((error) => {
-          if (!cancelled) {
-            setUpcomingError(
-              error instanceof Error ? error.message : "Unable to load your appointments."
             );
           }
         });
@@ -175,31 +140,6 @@ const AppointmentsPage = () => {
               >
                 Find an Empowerment Coach
               </Link>
-            </SectionCard>
-          )}
-
-          {/* ── Upcoming Appointments (residents only for now) ── */}
-          {!isCoach && (
-            <SectionCard title="Upcoming Appointments">
-              {upcomingError ? (
-                <p className="text-red-600">{upcomingError}</p>
-              ) : upcoming === null ? (
-                <p className="text-gray-500">Loading your appointments…</p>
-              ) : upcoming.length === 0 ? (
-                <p className="text-gray-500">
-                  You have no upcoming appointments. Schedule one above.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {upcoming.map((appt) => (
-                    <UpcomingAppointmentRow
-                      key={appt.id}
-                      appointment={appt}
-                      onCancelled={loadUpcoming}
-                    />
-                  ))}
-                </div>
-              )}
             </SectionCard>
           )}
         </div>

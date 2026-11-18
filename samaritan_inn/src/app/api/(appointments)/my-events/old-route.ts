@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUserId } from "@/lib/getServerUserId";
-import { syncScheduledEvent } from "@/lib/appointments/scheduled-events";
+import { syncScheduledEvent } from "@/lib/appointments/old-scheduled-events";
 import { findCaseworker, getCaseworkerProfiles } from "@/lib/appointments/caseworkers";
 
 export async function GET(request: NextRequest) {
