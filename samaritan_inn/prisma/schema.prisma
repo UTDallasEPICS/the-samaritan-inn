@@ -272,3 +272,12 @@ model WorkScheduleDay {
 
   @@unique([scheduleId, dayOfWeek])
 }
+
+/// Site-wide settings admins can change in the app, stored as key → value.
+/// Current keys: "classes.calendlyUrl" (the Calendly page shown on /classes;
+/// see src/lib/app-settings.ts).
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

@@ -18,6 +18,7 @@ export type Permission =
   | 'VIEW_ALL_CASEWORKER_REQUESTS' //see requests assigned to every caseworker
   | 'REVIEW_REQUESTS' //approve/deny those requests
   | 'MANAGE_USERS' //add/edit/disable other users' accounts and change their roles (admin only)
+  | 'MANAGE_CLASSES' //change the Calendly link shown on the Classes page (admin only)
   | 'EDIT_OWN_COACH_PROFILE' //edit own Bookings link, availability and phone (Profile tab and /appointments)
 
   //Universal: every role gets these
@@ -74,6 +75,7 @@ const UNIVERSAL_PERMISSIONS: Permission[] = [
 
 //Admin's permissions on top of the universal set.
 const ADMIN_PERMISSIONS: Permission[] = [
+  'MANAGE_CLASSES',
   'MANAGE_ANNOUNCEMENTS',
   'VIEW_ALL_REQUESTS',
   'VIEW_ALL_CASEWORKER_REQUESTS',

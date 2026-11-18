@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
+import CalendlyLinkSetting from '@/components/classes/CalendlyLinkSetting';
+import { can } from '@/lib/permissions';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -19,12 +21,15 @@ declare global {
   }
 }
 
-// 👉 Put your Calendly event link here
-const CALENDLY_URL = 'https://calendly.com/navi82singh00/new-meeting';
-
 export default function SchedulePage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
+  const canManageClasses = can(session?.user?.role, 'MANAGE_CLASSES');
+
+  // The Calendly link is stored in the database so admins can change it on
+  // this page (see CalendlyLinkSetting); null until it has loaded.
+  const [calendlyUrl, setCalendlyUrl] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
 
   // Redirect if unauthenticated
   useEffect(() => {
@@ -33,15 +38,29 @@ export default function SchedulePage() {
     }
   }, [status, router]);
 
-  // Load Calendly script and initialize inline widget
+  // Load the current Calendly link
   useEffect(() => {
     if (status !== 'authenticated') return;
+    fetch('/api/classes/calendly')
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data: { url: string }) => setCalendlyUrl(data.url))
+      .catch(() => setLinkError('Unable to load the class calendar. Please try again later.'));
+  }, [status]);
+
+  // Load Calendly script and initialize inline widget (again whenever an
+  // admin saves a new link)
+  useEffect(() => {
+    if (status !== 'authenticated' || !calendlyUrl) return;
 
     const initCalendly = () => {
       const container = document.getElementById('calendly-inline-widget');
       if (window.Calendly && container) {
+        container.innerHTML = '';
         window.Calendly.initInlineWidget({
-          url: CALENDLY_URL,
+          url: calendlyUrl,
           parentElement: container,
           prefill: {},
           utm: {},
@@ -75,7 +94,7 @@ export default function SchedulePage() {
         container.innerHTML = '';
       }
     };
-  }, [status]);
+  }, [status, calendlyUrl]);
 
   if (status === 'loading') return null;
 
@@ -87,6 +106,10 @@ export default function SchedulePage() {
         <div className="w-full max-w-5xl bg-white shadow-md rounded-md overflow-hidden">
           <div className="p-4 sm:p-8">
             <h1 className="text-2xl font-semibold mb-4 text-black">Classes</h1>
+            {canManageClasses && calendlyUrl && (
+              <CalendlyLinkSetting url={calendlyUrl} onSaved={setCalendlyUrl} />
+            )}
+            {linkError && <p className="text-red-600">{linkError}</p>}
           </div>
           <div
             id="calendly-inline-widget"
