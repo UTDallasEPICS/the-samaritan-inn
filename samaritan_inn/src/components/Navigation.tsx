@@ -46,8 +46,8 @@ export default function Navigation() {
   const linkClass = (path: string, mobile = false) =>
     `${mobile ? 'block w-full' : ''} px-3 py-2 rounded-md font-bold hover:bg-[#29abe2] ${pathname === path ? 'bg-[#29abe2]' : ''}`;
 
-  // "Coaches" (the Empowerment Coaches page) replaces "Appointments" in the
-  // menu, and stays highlighted on My Appointments, which is linked from there.
+  // The "Appointments" menu item links to the Empowerment Coaches page, and
+  // stays highlighted on My Appointments, which is linked from there.
   const coachesLinkClass = (mobile = false) =>
     pathname.startsWith('/appointments')
       ? linkClass(pathname, mobile)
@@ -83,7 +83,7 @@ export default function Navigation() {
             <Link href="/resources" className={linkClass('/resources')}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements')}>Announcements</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form')}>Pass</Link>
-            <Link href="/empowerment-coaches" className={coachesLinkClass()}>Coaches</Link>
+            <Link href="/empowerment-coaches" className={coachesLinkClass()}>Appointments</Link>
             {status === 'authenticated' ? (
               <>
                 {hasAdminMenu ? (
@@ -197,7 +197,7 @@ export default function Navigation() {
             <Link href="/classes" className={linkClass('/classes', true)} onClick={() => setIsMenuOpen(false)}>Classes</Link>
             <Link href="/resources" className={linkClass('/resources', true)} onClick={() => setIsMenuOpen(false)}>Resources</Link>
             <Link href="/announcements" className={linkClass('/announcements', true)} onClick={() => setIsMenuOpen(false)}>Announcements</Link>
-            <Link href="/empowerment-coaches" className={coachesLinkClass(true)} onClick={() => setIsMenuOpen(false)}>Coaches</Link>
+            <Link href="/empowerment-coaches" className={coachesLinkClass(true)} onClick={() => setIsMenuOpen(false)}>Appointments</Link>
             <Link href="/user-pass-form" className={linkClass('/user-pass-form', true)} onClick={() => setIsMenuOpen(false)}>Pass</Link>
             {status === 'authenticated' ? (
               <>
