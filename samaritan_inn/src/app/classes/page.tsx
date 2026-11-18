@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Navigation from '@/components/Navigation';
-import CalendlyLinkSetting from '@/components/classes/CalendlyLinkSetting';
+import Navigation from '@/components/shared/Navigation';
+import CalendlyLinkSetting from './_components/CalendlyLinkSetting';
 import { can } from '@/lib/auth/permissions';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';

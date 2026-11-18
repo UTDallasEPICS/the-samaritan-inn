@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import type { FormApiKey } from '@/components/admin/DecisionPanel';
+import type { FormApiKey } from './DecisionPanel';
 
 export interface PassForm {
   id: string;

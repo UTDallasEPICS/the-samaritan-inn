@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Navigation from '@/components/Navigation';
+import Navigation from '@/components/shared/Navigation';
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -11,7 +11,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import SidebarCalendar from "@/components/SidebarCalendar";
+import SidebarCalendar from "./_components/SidebarCalendar";
 import { can } from '@/lib/auth/permissions';
 
 

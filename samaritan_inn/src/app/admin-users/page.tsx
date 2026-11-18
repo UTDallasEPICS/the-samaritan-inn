@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Navigation from '@/components/Navigation';
+import Navigation from '@/components/shared/Navigation';
 import { can, ROLES, ROLE_LABELS, type Role } from '@/lib/auth/permissions';
 
 interface ManagedUser {

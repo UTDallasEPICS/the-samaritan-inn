@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Navigation from '@/components/Navigation';
+import Navigation from '@/components/shared/Navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import LandingCalendar from '@/components/LandingCalendar';
-import BackgroundBubbles from '@/components/BackgroundBubbles';
+import LandingCalendar from './_components/LandingCalendar';
+import BackgroundBubbles from './_components/BackgroundBubbles';
 // import InFlowButton from '@/components/inFlowButton';
 
 // Define the announcement data returned by the API

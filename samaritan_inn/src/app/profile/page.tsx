@@ -2,8 +2,8 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
-import Navigation from '@/components/Navigation';
-import BookingLinkSection from '@/components/profile/BookingLinkSection';
+import Navigation from '@/components/shared/Navigation';
+import BookingLinkSection from '@/components/appointments/BookingLinkSection';
 import { can, isRole, ROLE_LABELS } from '@/lib/auth/permissions';
 
 export default function Profile() {

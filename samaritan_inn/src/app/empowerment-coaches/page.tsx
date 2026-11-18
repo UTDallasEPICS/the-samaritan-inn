@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navigation from "@/components/Navigation";
+import Navigation from "@/components/shared/Navigation";
 import { can } from "@/lib/auth/permissions";
 import SectionCard from "@/components/appointments/SectionCard";
 import CaseworkerCard from "@/components/appointments/CaseworkerCard";
