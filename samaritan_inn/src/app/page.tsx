@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import Navigation from '@/components/shared/Navigation';
+import Navigation from '@/components/Navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';

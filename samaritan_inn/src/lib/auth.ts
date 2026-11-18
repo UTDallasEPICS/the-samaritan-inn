@@ -33,9 +33,8 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Emails are stored lowercase (see /api/admin/residents and /api/password/*).
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email.trim().toLowerCase() },
+          where: { email: credentials.email },
         });
 
         if (!user) {

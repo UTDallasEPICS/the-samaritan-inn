@@ -39,37 +39,27 @@ Never commit `.env` or `prisma/dev.db` (both are gitignored).
 
 ## Project Structure
 
-Pages and components are organized by user view. Folders in parentheses are Next.js
-route groups: they group files but are NOT part of the URL (`app/(admin)/admin-forms`
-is served at `/admin-forms`).
-
 ```
 samaritan_inn/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx              # Home (/), shared by every role
-│   │   ├── layout.tsx            # Root layout (font, SessionProvider)
-│   │   ├── (resident)/           # Resident view: pages every role can use
-│   │   │   ├── announcements/  classes/  resources/  profile/
-│   │   │   ├── appointments/     # calendar-form/, my-events/
-│   │   │   └── user-pass-form/   # submit pass / curfew / work-schedule forms
-│   │   ├── (admin)/              # Admin view: staff-only pages
-│   │   │   ├── admin-forms/      # review submitted forms (admin + caseworker)
-│   │   │   └── admin-users/      # manage accounts (admin only; layout.tsx guards it)
-│   │   ├── (auth)/auth/          # login, forgot-password, reset-password, unauthorized
-│   │   └── api/                  # API routes, grouped by the page that uses them (URLs unchanged)
-│   │       ├── (announcements)/  # announcements/, events/
-│   │       ├── (appointments)/   # my-events/, submit-event/, get-available-slots/
-│   │       ├── (user-pass-form)/ # pass/ (also used by admin-forms for review)
-│   │       ├── (admin-users)/    # admin/residents/, users/ (users/caseworkers + residents also feed the forms)
-│   │       ├── (auth)/           # auth/[...nextauth]/, password/
-│   │       └── health/           # deployment health check
-│   ├── components/
-│   │   ├── resident/             # Form components residents fill out
-│   │   │   ├── ExtendedCurfewForm.tsx  PassRequestForm.tsx  WorkScheduleForm.tsx
-│   │   │   └── CaseworkerSelect.tsx  ResidentSearch.tsx   # used by those forms
-│   │   ├── admin/                # Staff tools: review modals, DecisionPanel, Fetchforms, SignupForm
-│   │   ├── shared/               # Used by every view: Navigation, StatusBadge, SidebarCalendar
+│   │   ├── api/                  # API routes (one folder per resource)
+│   │   │   ├── auth/[...nextauth]/route.ts
+│   │   │   ├── announcements/route.ts
+│   │   │   ├── events/route.ts
+│   │   │   └── pass/
+│   │   │       ├── extended-curfew/route.ts
+│   │   │       ├── pass-request/route.ts
+│   │   │       └── work-schedule/route.ts
+│   │   ├── announcements/page.tsx
+│   │   ├── pass-form/page.tsx
+│   │   ├── schedule/page.tsx
+│   │   └── ...
+│   ├── components/               # Reusable React components (.tsx)
+│   │   ├── Navigation.tsx
+│   │   ├── ExtendedCurfewForm.tsx
+│   │   ├── PassRequestForm.tsx
+│   │   ├── WorkScheduleForm.tsx
 │   │   └── providers/SessionProvider.tsx
 │   ├── lib/
 │   │   ├── auth.ts               # requireAuth(), requireAdmin(), getCurrentUser()
@@ -100,14 +90,18 @@ const { data: session } = useSession();
 const role = session?.user?.role;
 ```
 
-Note: the current pass form API routes (`src/app/api/(user-pass-form)/pass/*/route.ts`) use `userId` from the request body rather than `requireAuth()`. Future routes should enforce auth via `requireAuth()` at the top of the handler.
+Note: the current pass form API routes (`src/app/api/pass/*/route.ts`) use `userId` from the request body rather than `requireAuth()`. Future routes should enforce auth via `requireAuth()` at the top of the handler.
+
 
 ### Accounts and admin tools
 
 - `pnpm seed`: demo accounts for local/stage (`admin@example.com` / `admin123`, `caseworker1@example.com` / `caseworker123`, `resident1@example.com` / `resident123`). Never run it on prod; the passwords are public.
 - `ADMIN_EMAIL=... ADMIN_PASSWORD='12+ chars' pnpm create-admin`: create or reset an admin on any environment (the only way to get the first admin on prod).
-- An admin cannot remove their own admin role, so the site always keeps at least one admin.
+- Add Resident: `/admin-users/create` (page) → `POST /api/admin-users/create` (API), using `components/AddResidentForm.tsx`.
+- Manage Users (`/admin-users`) shows whether each user has confirmed their email (`GET /api/admin-users/email-status`) and can resend the setup email (`POST /api/admin-users/[id]/setup-email`).
+- On Manage Users, an admin can't change their own role (the dropdown is disabled), so the site keeps at least one admin.
 - Roles are re-read from the database on every API request, so a role change takes effect on the server immediately; the changed user's menus update after they log in again.
+- `/api/login` and `/api/get-calendar` are no longer used and return 404; their original code is kept, commented out, in those files.
 
 ### Testing login, sign-up and password reset
 
@@ -118,7 +112,6 @@ pnpm test:auth       # in another; BASE_URL defaults to http://localhost:3000
 ```
 
 `tests/auth.e2e.mjs` covers access control, admin account creation, temporary-password login, the setup and reset links (expired, reused, wrong account, concurrent use), email confirmation, resending, and role changes. It creates throwaway `auth-test-*@example.com` users and deletes them afterwards. Run it against local or stage only, never prod.
-
 ---
 
 ## Database / Prisma Workflow
@@ -192,7 +185,7 @@ export async function GET() {
 | Announcements | Done | Staff creates, all users view |
 | Events | Done | Create/view events |
 | Schedule/Calendar | Done | Personal appointments |
-| Navigation | Done | Role-aware nav in `src/components/shared/Navigation.tsx` |
+| Navigation | Done | Role-aware nav in `src/components/Navigation.tsx` |
 | Extended Curfew Form | In progress | UI component + DB + API done; admin review UI pending |
 | Pass Request Form | In progress | UI component + DB + API done; admin review UI pending |
 | Work Schedule Form | In progress | UI component + DB + API done; admin review UI pending |
@@ -236,7 +229,7 @@ export async function GET() {
 
 ### Password reset and account-setup emails
 
-"Forgot password?" on the login page (`/auth/forgot-password`) emails a one-hour link to `/auth/reset-password`. When an admin creates a resident, the same mechanism emails a 72-hour "set your password" link, alongside the temporary password shown on screen. Tokens are random, stored hashed in NextAuth's `VerificationToken` table, single-use (redeemed atomically), and one live link per account. The forgot endpoint gives the same response whether or not the email exists, sends mail without awaiting it (so timing doesn't reveal accounts either), and ignores repeat requests for the same email within 60 seconds (in-memory, per server process). The password change goes through `POST /api/password/reset`; logging in afterwards is the normal NextAuth credentials login.
+"Forgot password?" on the login page (`/auth/forgot-password` → `POST /api/forgot-password`) emails a one-hour link to `/auth/reset-password` (→ `POST /api/reset-password`). When an admin creates a resident, the same mechanism emails a 72-hour "set your password" link, alongside the temporary password shown on screen. Tokens are random, stored hashed in NextAuth's `VerificationToken` table, single-use (redeemed atomically), and one live link per account. The forgot endpoint gives the same response whether or not the email exists, sends mail without awaiting it (so timing doesn't reveal accounts either), and ignores repeat requests for the same email within 60 seconds (in-memory, per server process). Setting a password from an emailed link records `User.emailVerified` (first time only). Logging in afterwards is the normal NextAuth credentials login; the login page lowercases the email first, since accounts are stored lowercase.
 
 Mail is sent with nodemailer over SMTP. Add to `.env` (and to the stage/prod environment):
 ```
