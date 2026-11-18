@@ -7,9 +7,9 @@ import { cookies } from "next/headers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
-import { can, isRole } from "@/lib/permissions";
-import type { Permission, Role } from "@/lib/permissions";
+import { prisma } from "@/lib/db/prisma";
+import { can, isRole } from "@/lib/auth/permissions";
+import type { Permission, Role } from "@/lib/auth/permissions";
 
 if (!process.env.NEXTAUTH_URL) {
   console.warn("Warning: NEXTAUTH_URL not set");

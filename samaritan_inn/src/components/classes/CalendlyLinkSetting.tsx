@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { checkCalendlyUrl } from "@/lib/calendly-url";
+import { checkCalendlyUrl } from "@/lib/settings/calendly-url";
 
 /**
   Admin-only control at the top of /classes for the Calendly link residents

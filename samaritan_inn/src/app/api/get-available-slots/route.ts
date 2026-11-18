@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth/auth";
 import {
   ApiError,
   buildAvailableSlots,
@@ -7,13 +7,13 @@ import {
   isDateWithinBookingWindow,
   SameDayActiveAppointmentError,
   TotalActiveAppointmentLimitError,
-} from "@/lib/booking";
+} from "@/lib/appointments/booking";
 import {
   fetchSalesforceEventsForOwnerOnDate,
   resolveSalesforceOwnerId,
   SalesforceError,
-} from "@/lib/salesforce";
-import { isBookableCaseworker } from "@/lib/caseworkers";
+} from "@/lib/salesforce/salesforce";
+import { isBookableCaseworker } from "@/lib/salesforce/caseworkers";
 
 function errorResponse(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });

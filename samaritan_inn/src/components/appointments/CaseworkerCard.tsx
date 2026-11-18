@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import type { Caseworker } from "@/lib/appointments-data";
+import type { Caseworker } from "@/lib/appointments/appointments-data";
 import PersonRow from "./PersonRow";
 
 /***

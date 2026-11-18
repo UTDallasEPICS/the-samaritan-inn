@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db/prisma";
 import {
   adminCaseworkerSelect,
   checkAdmin,
@@ -7,7 +7,7 @@ import {
   isLinkedAccountViolation,
   isUniqueViolation,
   parseCaseworkerInput,
-} from "@/lib/caseworker-directory";
+} from "@/lib/coaches/caseworker-directory";
 
 export async function PUT(
   request: NextRequest,

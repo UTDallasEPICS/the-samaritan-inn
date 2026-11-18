@@ -5,7 +5,7 @@ import Navigation from '@/components/Navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCaseworkerData, type Caseworker } from '@/lib/appointments-data';
+import { getCaseworkerData, type Caseworker } from '@/lib/appointments/appointments-data';
 
 const BOOKABLE_DURATIONS = [30, 60];
 

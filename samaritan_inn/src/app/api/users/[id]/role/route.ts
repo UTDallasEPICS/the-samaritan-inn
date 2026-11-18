@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { NextResponse } from 'next/server';
-import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
-import { can, isRole } from '@/lib/permissions';
+import { getServerSessionInfo } from '@/lib/auth/getServerSessionInfo';
+import { can, isRole } from '@/lib/auth/permissions';
 import type { NextRequest } from 'next/server';
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

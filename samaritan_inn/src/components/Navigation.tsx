@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { can } from '@/lib/permissions';
+import { can } from '@/lib/auth/permissions';
 
 export default function Navigation() {
   const { data: session, status } = useSession();

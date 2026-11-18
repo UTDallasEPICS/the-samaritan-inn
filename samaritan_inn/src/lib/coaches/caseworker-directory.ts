@@ -18,15 +18,15 @@
  */
 import { NextResponse, type NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
-import { can } from "@/lib/permissions";
-import { getServerSessionInfo } from "@/lib/getServerSessionInfo";
+import { prisma } from "@/lib/db/prisma";
+import { can } from "@/lib/auth/permissions";
+import { getServerSessionInfo } from "@/lib/auth/getServerSessionInfo";
 import {
   FIELD_MAX_LENGTH,
   checkAvailability,
   checkBookingUrl,
   checkPhone,
-} from "@/lib/caseworker-fields";
+} from "@/lib/coaches/caseworker-fields";
 
 export type CaseworkerSource = "local" | "salesforce";
 

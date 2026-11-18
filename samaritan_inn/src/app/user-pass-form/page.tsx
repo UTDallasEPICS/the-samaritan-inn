@@ -8,7 +8,7 @@ import WorkScheduleForm from '@/components/WorkScheduleForm';
 import ExtendedCurfewForm from '@/components/ExtendedCurfewForm';
 import PassRequestForm from '@/components/PassRequestForm';
 import StatusBadge from '@/components/StatusBadge';
-import { can } from '@/lib/permissions';
+import { can } from '@/lib/auth/permissions';
 
 type FormType = 'work-schedule' | 'extended-curfew' | 'pass-request' | null;
 

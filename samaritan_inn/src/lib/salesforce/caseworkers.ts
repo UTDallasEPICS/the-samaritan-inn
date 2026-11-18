@@ -8,7 +8,7 @@
  *
  * Do not import this from client components — it reads server-side secrets.
  */
-import { fetchSalesforceUsers, isValidSalesforceId } from "@/lib/salesforce";
+import { fetchSalesforceUsers, isValidSalesforceId } from "@/lib/salesforce/salesforce";
 
 export type CaseworkerProfile = {
   /** Salesforce User id; also the calendar "ownerId" used for booking. */

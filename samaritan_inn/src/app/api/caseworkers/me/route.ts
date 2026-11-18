@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { can } from "@/lib/permissions";
-import { getServerSessionInfo } from "@/lib/getServerSessionInfo";
+import { prisma } from "@/lib/db/prisma";
+import { can } from "@/lib/auth/permissions";
+import { getServerSessionInfo } from "@/lib/auth/getServerSessionInfo";
 import {
   caseworkerSelect,
   connectOwnProfile,
   getOwnCaseworkerView,
   parseCaseworkerSelfInput,
   ProfileConnectError,
-} from "@/lib/caseworker-directory";
+} from "@/lib/coaches/caseworker-directory";
 
 /** Returns the coach's user id, or a JSON error response. */
 async function requireCaseworker(request: NextRequest) {

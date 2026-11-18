@@ -14,7 +14,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
 import Badge from '@mui/material/Badge';
 import type { FormApiKey } from '@/components/admin/DecisionPanel';
-import { can } from '@/lib/permissions';
+import { can } from '@/lib/auth/permissions';
 
 type DetailTarget = { formKey: FormApiKey; id: string } | null;
 

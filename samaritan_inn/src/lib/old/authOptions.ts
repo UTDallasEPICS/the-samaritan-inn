@@ -1,10 +1,10 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db/prisma";
 import type { NextAuthOptions } from "next-auth";
-import { isRole } from "@/lib/permissions";
-import type { Role } from "@/lib/permissions";
+import { isRole } from "@/lib/auth/permissions";
+import type { Role } from "@/lib/auth/permissions";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,

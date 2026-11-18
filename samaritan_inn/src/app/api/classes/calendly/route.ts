@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { can } from "@/lib/permissions";
-import { getServerSessionInfo } from "@/lib/getServerSessionInfo";
-import { checkCalendlyUrl } from "@/lib/calendly-url";
-import { getCalendlyUrl, setCalendlyUrl } from "@/lib/app-settings";
+import { can } from "@/lib/auth/permissions";
+import { getServerSessionInfo } from "@/lib/auth/getServerSessionInfo";
+import { checkCalendlyUrl } from "@/lib/settings/calendly-url";
+import { getCalendlyUrl, setCalendlyUrl } from "@/lib/settings/app-settings";
 
 /** The Calendly link shown on /classes. Any logged-in user may read it. */
 export async function GET(request: NextRequest) {

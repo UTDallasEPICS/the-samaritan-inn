@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
-import { can } from "@/lib/permissions";
+import { can } from "@/lib/auth/permissions";
 
 /**
  * Admin-only Empowerment Coach directory (used when CASEWORKER_SOURCE="local").

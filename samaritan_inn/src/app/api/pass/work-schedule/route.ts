@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { NextResponse } from 'next/server';
-import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
-import { requestListWhere, withAssignedCaseworkerNames } from '@/lib/requestAccess';
+import { getServerSessionInfo } from '@/lib/auth/getServerSessionInfo';
+import { requestListWhere, withAssignedCaseworkerNames } from '@/lib/auth/requestAccess';
 import type { NextRequest } from 'next/server';
 
 interface DayInput {

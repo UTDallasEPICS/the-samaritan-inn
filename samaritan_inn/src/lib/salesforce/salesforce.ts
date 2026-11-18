@@ -1,4 +1,4 @@
-import { getDayBounds } from "@/lib/booking";
+import { getDayBounds } from "@/lib/appointments/booking";
 
 const SALESFORCE_API_VERSION = "v59.0";
 const SALESFORCE_ID_PATTERN = /^[a-zA-Z0-9]{15,18}$/;

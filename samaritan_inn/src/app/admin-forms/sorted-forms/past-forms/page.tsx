@@ -11,7 +11,7 @@ import PassRequestDetailModal from '@/components/admin/PassRequestDetailModal';
 import ExtendedCurfewDetailModal from '@/components/admin/ExtendedCurfewDetailModal';
 import WorkScheduleDetailModal from '@/components/admin/WorkScheduleDetailModal';
 import type { FormApiKey } from '@/components/admin/DecisionPanel';
-import { can } from '@/lib/permissions';
+import { can } from '@/lib/auth/permissions';
 
 type DetailTarget = { formKey: FormApiKey; id: string } | null;
 type SubmittedSort = 'desc' | 'asc';

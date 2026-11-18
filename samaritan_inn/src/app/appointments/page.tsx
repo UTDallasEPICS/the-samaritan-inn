@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
-import { can } from "@/lib/permissions";
+import { can } from "@/lib/auth/permissions";
 import SectionCard from "@/components/appointments/SectionCard";
 import UpcomingAppointmentRow from "@/components/appointments/UpcomingAppointmentRow";
 import CaseworkerProfileCard from "@/components/appointments/CaseworkerProfileCard";
@@ -14,7 +14,7 @@ import {
   getUpcomingAppointments,
   type OwnCaseworkerView,
   type UpcomingAppointment,
-} from "@/lib/appointments-data";
+} from "@/lib/appointments/appointments-data";
 
 /**
  * My Appointments (titled "My Information" for coaches, who see and edit their

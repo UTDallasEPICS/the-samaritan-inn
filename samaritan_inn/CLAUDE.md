@@ -79,7 +79,7 @@ Three roles stored on `User.role`: `"resident"`, `"staff"`, `"admin"`.
 
 ```ts
 // Server components / API routes
-import { requireAuth, requireAdmin, getCurrentUser } from "@/lib/auth";
+import { requireAuth, requireAdmin, getCurrentUser } from "@/lib/auth/auth";
 
 const user = await requireAuth();   // redirects to /login if unauthenticated
 const user = await requireAdmin();  // redirects to /unauthorized if not admin
@@ -130,13 +130,13 @@ Enums: `FormStatus` (PENDING / APPROVED / DENIED), `EmploymentStatus`, `Transpor
 
 ### API Routes
 - Named exports: `GET`, `POST`, `PUT`, `DELETE`
-- Import Prisma from `@/lib/prisma`
+- Import Prisma from `@/lib/db/prisma`
 - Always validate inputs and return `NextResponse.json()`
 
 ```ts
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db/prisma';
 import { NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth/auth';
 
 export async function GET() {
   const user = await requireAdmin();
@@ -161,7 +161,7 @@ export async function GET() {
 | Feature | Status | Notes |
 |---|---|---|
 | Login / Signup | Done | bcrypt hashing, JWT sessions |
-| Role-based access | Done | `requireAuth`, `requireAdmin` in `src/lib/auth.ts` |
+| Role-based access | Done | `requireAuth`, `requireAdmin` in `src/lib/auth/auth.ts` |
 | Announcements | Done | Staff creates, all users view |
 | Events | Done | Create/view events |
 | Schedule/Calendar | Done | Personal appointments |
@@ -202,7 +202,7 @@ export async function GET() {
 
 - Read existing components and API routes before generating new ones — patterns are established.
 - Never modify `prisma/schema.prisma` without also running `pnpm exec prisma migrate dev`.
-- Use `@/lib/prisma` for the Prisma client, never instantiate a new `PrismaClient` directly.
+- Use `@/lib/db/prisma` for the Prisma client, never instantiate a new `PrismaClient` directly.
 - Use Tailwind color tokens (`primary`, `secondary`, `light`) — do not hardcode hex values.
 - Keep API route handlers thin; put reusable logic in `src/lib/`.
 - The `requireAdmin()` function uses `user.role !== "admin"` — `staff` role does NOT have admin access unless explicitly elevated.
