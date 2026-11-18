@@ -101,7 +101,7 @@ export default function AuthProvider({ children }) {
 }
 ```
 
-#### `src/components/Navigation.tsx`
+#### `src/components/shared/Navigation.tsx`
 
 Navigation bar with dynamic content based on authentication status.
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Navigation from '@/components/Navigation';
+import Navigation from '@/components/shared/Navigation';
 
 const CALENDARS = [
   { label: 'Case Worker 1', ownerId: process.env.NEXT_PUBLIC_SF_OWNER_1! },

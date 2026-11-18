@@ -165,7 +165,7 @@ export async function GET() {
 | Announcements | Done | Staff creates, all users view |
 | Events | Done | Create/view events |
 | Schedule/Calendar | Done | Personal appointments |
-| Navigation | Done | Role-aware nav in `src/components/Navigation.tsx` |
+| Navigation | Done | Role-aware nav in `src/components/shared/Navigation.tsx` |
 | Extended Curfew Form | In progress | UI component + DB + API done; admin review UI pending |
 | Pass Request Form | In progress | UI component + DB + API done; admin review UI pending |
 | Work Schedule Form | In progress | UI component + DB + API done; admin review UI pending |

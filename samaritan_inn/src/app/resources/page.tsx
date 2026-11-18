@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Navigation from '@/components/Navigation';
+import Navigation from '@/components/shared/Navigation';
 import Link from 'next/link';
 
 const ResourcesPage = () => {

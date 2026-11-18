@@ -3,7 +3,7 @@
 import React, { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Navigation from '@/components/Navigation';
+import Navigation from '@/components/shared/Navigation';
 
 const Signup = () => {
   const router = useRouter();

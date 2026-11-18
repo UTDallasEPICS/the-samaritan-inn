@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Navigation from '@/components/Navigation';
-import WorkScheduleForm from '@/components/WorkScheduleForm';
-import ExtendedCurfewForm from '@/components/ExtendedCurfewForm';
-import PassRequestForm from '@/components/PassRequestForm';
-import StatusBadge from '@/components/StatusBadge';
+import Navigation from '@/components/shared/Navigation';
+import WorkScheduleForm from './_components/WorkScheduleForm';
+import ExtendedCurfewForm from './_components/ExtendedCurfewForm';
+import PassRequestForm from './_components/PassRequestForm';
+import StatusBadge from '@/components/shared/StatusBadge';
 import { can } from '@/lib/auth/permissions';
 
 type FormType = 'work-schedule' | 'extended-curfew' | 'pass-request' | null;

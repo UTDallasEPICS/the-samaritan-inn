@@ -4,7 +4,7 @@ import React, { FormEvent, Suspense, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Navigation from '@/components/Navigation';
+import Navigation from '@/components/shared/Navigation';
 
 const Login = () => {
   const router = useRouter();
