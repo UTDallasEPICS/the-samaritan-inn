@@ -1,117 +1,109 @@
-# Appointments File Structure: `main` vs this branch
+# Appointments File Structure
 
-Only the **appointments-related** files were reorganized. Everything else keeps the layout from `main`. No URLs changed (46 routes, identical to before), and no logic changed in the move.
+Only the **appointments-related** code was reorganized; everything else keeps the layout from `main`. No page URLs changed except that the retired booking flow (the `old-` files below) is no longer served.
+
+**How appointments work now:** a resident opens **Appointments** in the menu, which lists every Empowerment Coach on `/empowerment-coaches`, and books through the coach's **Outlook / Microsoft Bookings** link (turned on with `CASEWORKER_SOURCE="local"`). Admins manage the coaches, and coaches edit their own details and Bookings link. In code an Empowerment Coach is still called a "caseworker".
 
 ## Rules used
 
 1. Appointment-specific code lives under an `appointments` folder.
 2. Used by **one page** → in that page's `_components/` (a folder starting with `_` is never a route).
 3. Used by **several appointment pages** → `components/appointments/`.
-4. Generic/shared code (auth, Salesforce client, Navigation, permissions, Prisma) stays where `main` has it.
-5. API routes for appointments go in the route group `api/(appointments)/`. Folders in parentheses are labels only; they do **not** change the URL.
+4. Generic code (auth, Prisma, Navigation, permissions, Salesforce client) stays where `main` has it.
+5. API routes for appointments go in the route group `api/(appointments)/`. A folder in parentheses is just a label; it does not change the URL.
+6. Retired code is kept with an `old-` prefix. Next.js only serves files named exactly `page.tsx` or `route.ts`, so `old-page.tsx` / `old-route.ts` are no longer served (404).
 
-## 1. `main`'s layout (the relevant parts)
+## Folders
 
-```
-src/
-├── app/
-│   ├── appointments/
-│   │   ├── calendar-form/page.tsx
-│   │   └── my-events/page.tsx
-│   ├── profile/page.tsx
-│   └── api/
-│       ├── get-available-slots/route.ts
-│       ├── my-events/route.ts
-│       ├── submit-event/route.ts
-│       └── users/...
-├── components/                 # flat: Navigation, StatusBadge, forms, ...
-└── lib/                        # flat: auth, booking, permissions, prisma, salesforce, scheduled-events, ...
-```
-
-`main` has no `components/appointments/`, no coach pages and no caseworker directory. Those are the new work on this branch.
-
-## 2. This branch (appointments work, organized)
-
-```
-src/
-├── app/
-│   ├── appointments/
-│   │   ├── page.tsx                       # NEW: appointments page
-│   │   ├── calendar-form/page.tsx         # modified
-│   │   ├── my-events/page.tsx
-│   │   └── _components/                   # only used by appointments/page.tsx
-│   │       ├── CaseworkerProfileCard.tsx
-│   │       └── UpcomingAppointmentRow.tsx
-│   ├── empowerment-coaches/               # NEW: coach list (nav "Appointments")
-│   │   ├── page.tsx
-│   │   └── _components/CaseworkerCard.tsx
-│   ├── admin-empowerment-coaches/page.tsx # NEW: admin manages coaches
-│   └── api/
-│       └── (appointments)/                # URLs unchanged
-│           ├── get-available-slots/route.ts
-│           ├── submit-event/route.ts
-│           ├── my-events/                 # route.ts, [id]/route.ts
-│           ├── caseworkers/               # NEW: route.ts, me/route.ts
-│           └── admin/caseworkers/         # NEW: route.ts, [id]/route.ts
-├── components/
-│   └── appointments/                      # shared by several appointment pages
-│       ├── PersonRow.tsx
-│       ├── SectionCard.tsx
-│       ├── EditableProfileField.tsx
-│       └── BookingLinkSection.tsx         # used by profile page
-└── lib/
-    └── appointments/
-        ├── appointments-data.ts
-        ├── booking.ts
-        ├── scheduled-events.ts
-        ├── caseworkers.ts
-        ├── caseworker-directory.ts
-        └── caseworker-fields.ts
-```
-
-## 3. What moved (relative to `src/`)
-
-| Before | After |
+| Folder | What it holds |
 |---|---|
-| `lib/appointments-data`, `booking`, `scheduled-events`, `caseworkers`, `caseworker-directory`, `caseworker-fields` | `lib/appointments/` |
-| `components/profile/BookingLinkSection` | `components/appointments/BookingLinkSection` |
-| `components/appointments/UpcomingAppointmentRow`, `CaseworkerProfileCard` | `app/appointments/_components/` |
-| `components/appointments/CaseworkerCard` | `app/empowerment-coaches/_components/` |
-| `api/get-available-slots`, `submit-event`, `my-events/*`, `caseworkers/*` | `api/(appointments)/<same>` |
-| `api/admin/caseworkers/*` | `api/(appointments)/admin/caseworkers/*` |
-| `api/get-calendar/route.ts` (unused, no callers) | `api/get-calendar/old-route.ts` (renamed; no longer served) |
+| `src/app/appointments/` | The resident's "My Appointments" page and the coach's "My Information" page, at `/appointments`. |
+| `src/app/appointments/_components/` | Pieces used only by the appointments page (the coach's profile card), plus the retired upcoming-appointment row. |
+| `src/app/empowerment-coaches/` | The coach directory page at `/empowerment-coaches`, where residents find a coach and book through their Outlook link. |
+| `src/app/empowerment-coaches/_components/` | The coach card used only by the directory page. |
+| `src/app/admin-empowerment-coaches/` | The admin-only page for adding, editing and deleting coaches. |
+| `src/app/appointments/calendar-form/`, `my-events/` | Only retired `old-page.tsx` files from the earlier in-app booking flow. |
+| `src/app/api/(appointments)/` | The server routes behind the coach pages, grouped as one label without changing the `/api/...` URLs. |
+| `src/app/api/(appointments)/caseworkers/` | Routes that list coaches for everyone and let a coach read and update their own profile. |
+| `src/app/api/(appointments)/admin/caseworkers/` | Admin-only routes that create, update and delete coaches. |
+| `src/app/api/(appointments)/get-available-slots/`, `submit-event/`, `my-events/` | Only retired `old-route.ts` files from the earlier in-app booking flow. |
+| `src/components/appointments/` | Small building blocks shared by several appointment pages and the profile page. |
+| `src/lib/appointments/` | Appointment and coach logic with no screen of its own (data fetching, coach directory, validation, booking rules). |
 
-Import paths were updated to match (`@/lib/appointments/...`, `@/components/appointments/...`).
+## Files
 
-## Old (retired) appointments files, prefixed `old-`
+### Pages (`src/app/`)
 
-Appointments are now booked through each coach's **Outlook / Microsoft Bookings** link (`CASEWORKER_SOURCE="local"`). The earlier in-app booking flow (pick a time, save it in our database and Salesforce) is retired. Its files are kept but renamed with an `old-` prefix. Next.js only serves files named exactly `page.tsx` / `route.ts`, so the renamed pages and routes are no longer served (404).
-
-| Renamed file | What it was |
+| File | What it does |
 |---|---|
-| `app/appointments/calendar-form/old-page.tsx` | in-app booking form (coach, date, time, length) |
-| `app/appointments/my-events/old-page.tsx` | earlier appointments page |
-| `app/api/(appointments)/get-available-slots/old-route.ts` | open time slots for the booking form |
-| `app/api/(appointments)/submit-event/old-route.ts` | saved a booking |
-| `app/api/(appointments)/my-events/old-route.ts`, `[id]/old-route.ts` | listed and cancelled a resident's bookings |
-| `app/api/get-calendar/old-route.ts` | early Salesforce calendar fetch (it also logged the Salesforce token) |
-| `app/appointments/_components/old-UpcomingAppointmentRow.tsx` | row in the old "Upcoming Appointments" list |
-| `lib/appointments/old-scheduled-events.ts` | mirrored bookings into our database (only used by the old routes) |
+| `appointments/page.tsx` | Shows residents a "Find an Empowerment Coach" button and shows coaches their own editable profile ("My Information"). |
+| `empowerment-coaches/page.tsx` | Lists every Empowerment Coach with contact details and a Book button that opens their Outlook Bookings page. |
+| `admin-empowerment-coaches/page.tsx` | Lets admins manage the coach directory and each coach's Bookings link. |
+| `profile/page.tsx` | The user's profile page, which shows the Bookings link section to coaches (existing page, uses `BookingLinkSection`). |
 
-Small changes made with the retirement:
-- The landing page's Appointments card now links to `/appointments` (it linked to the old `my-events` page).
-- The resident "Upcoming Appointments" section was removed from `/appointments`.
-- The Book button on `/empowerment-coaches` now only shows the coach's Outlook Bookings link, or a "not set up yet" message. The Salesforce time-picker branch was removed.
+### Page components
 
-Still live and deliberately kept: `lib/appointments/booking.ts`, `caseworkers.ts` and `lib/salesforce.ts` (the coaches API can still read coaches from Salesforce when `CASEWORKER_SOURCE` is not `"local"`). `getUpcomingAppointments` / `cancelAppointment` in `appointments-data.ts` are now unused and can be deleted later.
+| File | What it does |
+|---|---|
+| `appointments/_components/CaseworkerProfileCard.tsx` | The coach's own profile card on `/appointments`, with admin-set fields locked and their own fields editable. |
+| `empowerment-coaches/_components/CaseworkerCard.tsx` | One coach's card in the directory (name, title, contact details, availability and the Book action). |
 
-## 4. Deliberately not moved (not appointment-specific)
+### Shared components (`src/components/appointments/`)
 
-- `lib/salesforce.ts` (generic Salesforce client), `lib/permissions.ts`, `lib/prisma.ts`, `lib/auth.ts`, session helpers
-- `components/Navigation.tsx`, `StatusBadge`, `providers/`, `classes/CalendlyLinkSetting.tsx`, `BackgroundBubbles.tsx`
-- Calendly (`lib/calendly-url.ts`, `lib/app-settings.ts`, `api/classes/calendly`) and the landing-page bubbles: separate features from appointments
-- Pages `empowerment-coaches/` and `admin-empowerment-coaches/` keep their URL-based locations, with no route group, to match `main`.
+| File | What it does |
+|---|---|
+| `PersonRow.tsx` | A generic person icon with a name and job title, used on coach cards. |
+| `SectionCard.tsx` | The white rounded card that every section of the appointment pages sits in. |
+| `EditableProfileField.tsx` | One text field that a coach can edit and save, with validation and a "Saved" message. |
+| `BookingLinkSection.tsx` | The box on the Profile page where a coach enters and saves their Outlook / Bookings link. |
 
-## 5. Other changes on this branch (logic, not file moves)
+### API routes (`src/app/api/(appointments)/`)
 
-Bubbles fix, Calendly link setting, "Appointments" nav label, caseworker directory, Prisma schema/migrations, permission changes, and the `Resources` → `resources` folder rename (to match the nav links).
+| File | What it does |
+|---|---|
+| `caseworkers/route.ts` | `GET` returns the list of coaches for any logged-in user. |
+| `caseworkers/me/route.ts` | `GET` returns, and `PATCH` updates, the logged-in coach's own profile. |
+| `admin/caseworkers/route.ts` | `GET` lists and `POST` creates coaches (admin only). |
+| `admin/caseworkers/[id]/route.ts` | `PUT` edits and `DELETE` removes one coach (admin only). |
+
+### Logic (`src/lib/appointments/`)
+
+| File | What it does |
+|---|---|
+| `appointments-data.ts` | The browser-side helpers the coach pages use to call the coach APIs (`getUpcomingAppointments` and `cancelAppointment` in it are now unused). |
+| `caseworker-directory.ts` | Server-side coach directory logic: reading and saving coaches, linking a user account, and choosing the data source. |
+| `caseworker-fields.ts` | Shared rules that check a coach's fields before saving, including that Bookings links must be Microsoft Bookings hosts. |
+| `caseworkers.ts` | Reads coaches from Salesforce, used only when `CASEWORKER_SOURCE` is not `"local"`. |
+| `booking.ts` | Booking-hours and time-slot rules; the coach list still uses it to show the booking hours. |
+
+### Retired files (kept with an `old-` prefix)
+
+These belonged to the earlier in-app booking flow (pick a time, save it in our database and Salesforce), which Outlook Bookings replaced.
+
+| File | What it was |
+|---|---|
+| `app/appointments/calendar-form/old-page.tsx` | The in-app booking form where a resident chose a coach, date, time and length. |
+| `app/appointments/my-events/old-page.tsx` | The earlier appointments page where a resident picked a case worker's calendar, booked a slot and saw their upcoming bookings. |
+| `app/appointments/_components/old-UpcomingAppointmentRow.tsx` | One row in the resident's old "Upcoming Appointments" list, with a cancel button. |
+| `app/api/(appointments)/get-available-slots/old-route.ts` | Returned the open time slots shown in the old booking form. |
+| `app/api/(appointments)/submit-event/old-route.ts` | Saved a new booking to our database and Salesforce. |
+| `app/api/(appointments)/my-events/old-route.ts` | Listed a resident's bookings. |
+| `app/api/(appointments)/my-events/[id]/old-route.ts` | Cancelled one booking. |
+| `app/api/get-calendar/old-route.ts` | An early Salesforce calendar fetch (it also logged the Salesforce token). |
+| `lib/appointments/old-scheduled-events.ts` | Mirrored bookings into our database; only the old routes used it. |
+
+## What stayed where `main` has it
+
+| Location | Why it didn't move |
+|---|---|
+| `lib/salesforce.ts` | The generic Salesforce client; appointments are just one user of it. |
+| `lib/permissions.ts`, `lib/prisma.ts`, `lib/auth.ts`, session helpers | Shared by the whole app. |
+| `components/Navigation.tsx` | The shared menu; its "Appointments" item links to `/empowerment-coaches`. |
+| `prisma/schema.prisma`, `prisma/migrations/` | The `Caseworker` tables and migrations for the coach directory (database, not appointments-only code). |
+| Calendly (`lib/calendly-url.ts`, `lib/app-settings.ts`, `api/classes/calendly`, `components/classes/`) and `components/BackgroundBubbles.tsx` | Separate features from appointments. |
+
+## Notes
+
+- Landing page: the Appointments card links to `/appointments`.
+- Deployed environments need `CASEWORKER_SOURCE="local"`; otherwise coaches without a Bookings link show "online booking isn't set up yet".
+- `booking.ts`, `caseworkers.ts` and `salesforce.ts` are kept because the coach list can still read from Salesforce when the setting isn't `"local"`.
