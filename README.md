@@ -123,7 +123,7 @@ the-samaritan-inn/
 │       └── route.md
 └── samaritan_inn/                     # The Next.js app
     ├── .env
-    ├── CLAUDE.md
+    ├── DEVELOPMENT.md
     ├── eslint.config.mjs
     ├── next.config.ts
     ├── package.json

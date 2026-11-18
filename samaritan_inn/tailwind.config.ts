@@ -18,7 +18,7 @@ export default {
       },
       fontFamily: {
         // `font-sans` → Montserrat everywhere
-        sans: ["Montserrat", "sans‑serif"],
+        sans: ["var(--font-montserrat)", "Montserrat", "sans-serif"],
       },
     },
   },

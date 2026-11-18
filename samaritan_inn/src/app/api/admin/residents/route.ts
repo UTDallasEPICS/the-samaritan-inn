@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
 import { can } from '@/lib/permissions';
 import { validateResident } from '@/lib/residentValidation';
+import { sendAccountSetupEmail } from '@/lib/passwordReset';
 import type { NextRequest } from 'next/server';
 
 // Skips look-alike characters (0/O, 1/l/I) so the password is easy to read out loud.
@@ -55,5 +56,9 @@ export async function POST(request: NextRequest) {
     select: { id: true, name: true, email: true },
   });
 
-  return NextResponse.json({ user, tempPassword }, { status: 201 });
+  // Email the resident a link to choose their own password. The account is already
+  // created, so a mail failure is reported to the admin instead of failing the request.
+  const emailSent = await sendAccountSetupEmail(user.email, user.name);
+
+  return NextResponse.json({ user, tempPassword, emailSent }, { status: 201 });
 }

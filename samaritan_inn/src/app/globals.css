@@ -1,28 +1,19 @@
 /* globals.css */
 
-/* 1) Import Montserrat from Google */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
-
-/* 2) Tailwind’s base reset */
+/* 1) Tailwind’s base reset. Montserrat is loaded with next/font in app/layout.tsx. */
 @tailwind base;
 
-/* 3) CSS variables for light/dark mode */
+/* 2) Colors. The app is light-only: pages use white cards with no dark: variants, so
+   switching the text color for OS dark mode made un-styled text white on white. */
 :root {
   --background: #c7c8ca;
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-/* 4) Apply Montserrat and global defaults in the base layer */
+/* 3) Apply Montserrat and global defaults in the base layer */
 @layer base {
   html, body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-montserrat), 'Montserrat', sans-serif;
     margin: 0;
     padding: 0;
     color: var(--foreground);
@@ -30,6 +21,6 @@
   }
 }
 
-/* 5) Tailwind’s component and utility layers */
+/* 4) Tailwind’s component and utility layers */
 @tailwind components;
 @tailwind utilities;
