@@ -39,6 +39,8 @@ Never commit `.env` or `prisma/dev.db` (both are gitignored).
 
 ## Project Structure
 
+Appointment-related code is grouped under `appointments/` folders (see `APPOINTMENTS_FILE_STRUCTURE.md` for what moved from `main`). The tree below is the older general layout.
+
 ```
 samaritan_inn/
 ├── src/
@@ -75,7 +77,7 @@ samaritan_inn/
 
 ## Auth & Roles
 
-Three roles stored on `User.role`: `"resident"`, `"staff"`, `"admin"`.
+Four roles stored on `User.role`: `"resident"`, `"admin"`, `"caseworker"` (shown to users as "Empowerment Coach"), `"lead_lifecoach"`. The role-to-permission map is in `src/lib/permissions.ts`.
 
 ```ts
 // Server components / API routes
@@ -205,4 +207,4 @@ export async function GET() {
 - Use `@/lib/prisma` for the Prisma client, never instantiate a new `PrismaClient` directly.
 - Use Tailwind color tokens (`primary`, `secondary`, `light`) — do not hardcode hex values.
 - Keep API route handlers thin; put reusable logic in `src/lib/`.
-- The `requireAdmin()` function uses `user.role !== "admin"` — `staff` role does NOT have admin access unless explicitly elevated.
+- `requireAdmin()` checks the `VIEW_ALL_REQUESTS` permission, so admins and coaches both pass it. For admin-only or other specific access, use `requirePermission("<PERMISSION>")` (see `src/lib/permissions.ts`).

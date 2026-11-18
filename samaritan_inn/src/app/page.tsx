@@ -54,7 +54,8 @@ const HomePage = () => {
 
       <Navigation />
 
-      <div className="flex-grow bg-gray-100 p-4 flex flex-col items-center">
+      {/* relative: BackgroundBubbles fills this section, not just the first screen of the window */}
+      <div className="relative flex-grow bg-gray-100 p-4 flex flex-col items-center">
 
         <BackgroundBubbles />
 
@@ -147,7 +148,7 @@ const HomePage = () => {
                 View and schedule appointments!
               </p>
               <Link
-                href="/appointments/my-events"
+                href="/appointments"
                 className="inline-block bg-[#0caebb] text-white py-2 px-6 rounded-md hover:bg-[#29abe2] transition duration-300"
               >
                 View
