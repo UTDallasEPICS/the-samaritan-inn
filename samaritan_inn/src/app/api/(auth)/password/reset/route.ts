@@ -44,5 +44,11 @@ export async function POST(request: Request) {
   if (count === 0) {
     return NextResponse.json({ error: 'Invalid or expired link' }, { status: 400 });
   }
+  // Redeeming an emailed link proves the user controls this inbox. Record the first
+  // time that happens so admins can see who has confirmed their email.
+  await prisma.user.updateMany({
+    where: { email, emailVerified: null },
+    data: { emailVerified: new Date() },
+  });
   return NextResponse.json({ ok: true });
 }

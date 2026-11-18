@@ -27,9 +27,12 @@ async function createResetToken(email: string, ttlMinutes: number): Promise<stri
   return token;
 }
 
-function resetUrl(token: string, email: string): string {
+// `setup` only changes the page's wording ("Create your password" for a new account);
+// the token is what authorizes the change, so a tampered flag grants nothing.
+function resetUrl(token: string, email: string, setup = false): string {
   const base = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '');
-  return `${base}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+  const url = `${base}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+  return setup ? `${url}&setup=1` : url;
 }
 
 // Per-email cooldown so the forgot-password form can't be used to flood a resident's
@@ -69,8 +72,8 @@ export async function sendAccountSetupEmail(email: string, name: string): Promis
     text:
       `Hi ${name},\n\n` +
       `An account was created for you at The Samaritan Inn.\n\n` +
-      `Set your own password here (the link works for ${INVITE_TTL_MINUTES / 60} hours):\n` +
-      `${resetUrl(token, email)}\n\n` +
+      `Create your own password here (the link works for ${INVITE_TTL_MINUTES / 60} hours):\n` +
+      `${resetUrl(token, email, true)}\n\n` +
       `You can also log in with the temporary password your case worker gave you, ` +
       `but please choose your own as soon as you can.`,
   });

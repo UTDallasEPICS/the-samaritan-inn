@@ -10,6 +10,8 @@ const ResetPassword = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
   const email = searchParams.get('email') ?? '';
+  // Links from the "account is ready" email: the resident is creating a password, not resetting one.
+  const isSetup = searchParams.get('setup') === '1';
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -39,7 +41,7 @@ const ResetPassword = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Something went wrong');
 
-      router.push('/auth/login?reset=true');
+      router.push(`/auth/login?reset=${isSetup ? 'setup' : 'true'}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -56,7 +58,9 @@ const ResetPassword = () => {
 
       <div className="flex-grow flex items-center justify-center bg-gray-100 p-4">
         <div className="w-full max-w-md p-6 bg-white shadow-md rounded-md">
-          <h1 className="text-2xl font-bold mb-4 text-center text-black">Choose a new password</h1>
+          <h1 className="text-2xl font-bold mb-4 text-center text-black">
+            {isSetup ? 'Create your password' : 'Choose a new password'}
+          </h1>
 
           {!token || !email ? (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -70,7 +74,11 @@ const ResetPassword = () => {
             </div>
           ) : (
             <form className="flex flex-col gap-y-4" onSubmit={handleSubmit}>
-              <p className="text-sm text-gray-600">Setting a new password for {email}.</p>
+              <p className="text-sm text-gray-600">
+                {isSetup
+                  ? `Welcome! Create a password for ${email}. You'll use it to log in from now on.`
+                  : `Setting a new password for ${email}.`}
+              </p>
               <input
                 type="password"
                 placeholder="New password"
@@ -105,7 +113,7 @@ const ResetPassword = () => {
                 disabled={isLoading}
                 className="bg-[#29abe2] text-white py-2 rounded hover:bg-[#64bee3] disabled:bg-[#64bee3]"
               >
-                {isLoading ? 'Saving...' : 'Save new password'}
+                {isLoading ? 'Saving...' : isSetup ? 'Create password' : 'Save new password'}
               </button>
             </form>
           )}

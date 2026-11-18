@@ -12,6 +12,7 @@ interface ManagedUser {
   name: string;
   email: string;
   role: Role;
+  emailVerified: string | null; // set the first time they create/reset a password from an emailed link
 }
 
 export default function AdminUsersPage() {
@@ -22,6 +23,8 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const canManageUsers = can(session?.user?.role, 'MANAGE_USERS');
 
@@ -60,12 +63,35 @@ export default function AdminUsersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole }),
       });
-      if (!res.ok) throw new Error();
-    } catch {
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error);
+      }
+    } catch (err) {
       setUsers(previous);
-      setError('Failed to update role. Please try again.');
+      setError(err instanceof Error && err.message ? err.message : 'Failed to update role. Please try again.');
     } finally {
       setSavingId(null);
+    }
+  };
+
+  const resendSetupEmail = async (user: ManagedUser) => {
+    setSendingId(user.id);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/users/${user.id}/setup-email`, { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error);
+      if (data.emailSent) {
+        setNotice(`Setup email sent to ${user.email}. The new link works for 72 hours; earlier links no longer work.`);
+      } else {
+        setError(`Couldn't send email to ${user.email}. Check the email settings, or give them their temporary password.`);
+      }
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : 'Failed to send setup email.');
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -93,6 +119,11 @@ export default function AdminUsersPage() {
               {error}
             </div>
           )}
+          {notice && (
+            <div role="status" className="mb-4 rounded-md border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-900">
+              {notice}
+            </div>
+          )}
 
           <div className="bg-white rounded-md shadow overflow-hidden">
             {loading ? (
@@ -106,6 +137,7 @@ export default function AdminUsersPage() {
                     <th className="py-3 px-4">Name</th>
                     <th className="py-3 px-4">Email</th>
                     <th className="py-3 px-4">Role</th>
+                    <th className="py-3 px-4">Email confirmed</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -126,6 +158,24 @@ export default function AdminUsersPage() {
                             </option>
                           ))}
                         </select>
+                      </td>
+                      <td className="py-3 px-4">
+                        {u.emailVerified ? (
+                          <span className="text-green-800">
+                            Yes, {new Date(u.emailVerified).toLocaleDateString()}
+                          </span>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-gray-600">Not yet</span>
+                            <button
+                              onClick={() => resendSetupEmail(u)}
+                              disabled={sendingId === u.id}
+                              className="rounded border border-gray-400 px-2 py-1 text-xs font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-50"
+                            >
+                              {sendingId === u.id ? 'Sending…' : 'Resend setup email'}
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}

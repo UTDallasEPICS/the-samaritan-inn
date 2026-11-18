@@ -60,7 +60,11 @@ const Login = () => {
           
           {passwordReset && (
             <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-              <p>Password updated. Please log in with your new password.</p>
+              <p>
+                {passwordReset === 'setup'
+                  ? 'Password created. Log in with your email and new password.'
+                  : 'Password updated. Please log in with your new password.'}
+              </p>
             </div>
           )}
 

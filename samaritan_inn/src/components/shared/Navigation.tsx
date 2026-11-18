@@ -94,12 +94,6 @@ export default function Navigation() {
               {status !== 'authenticated' && (
                 <Link href="/auth/login" className={linkClass('/auth/login')}>Login</Link>
               )}
-              {/* <Link
-                href="/auth/signup"
-                className={`px-3 py-2 rounded-md font-bold ${pathname === '/auth/signup' ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600'}`}
-              >
-                Sign Up
-              </Link> */}
             </div>
 
             {/* Mobile menu button */}
@@ -206,7 +200,6 @@ export default function Navigation() {
             ) : (
               <>
                 <Link href="/auth/login" className={linkClass('/auth/login', true)} onClick={() => setIsMenuOpen(false)}>Login</Link>
-                {/* <Link href="/auth/signup" className={`block w-full text-left px-3 py-2 rounded-md font-bold bg-green-500 hover:bg-green-600`} onClick={() => setIsMenuOpen(false)}>Sign Up</Link> */}
               </>
             )}
           </div>

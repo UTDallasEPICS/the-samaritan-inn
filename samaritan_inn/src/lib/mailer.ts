@@ -11,7 +11,13 @@ export function isMailConfigured(): boolean {
 
 export async function sendMail({ to, subject, text }: Mail): Promise<boolean> {
   if (!isMailConfigured()) {
-    console.warn(`[mailer] SMTP_HOST not set; not sending. To: ${to}\n${subject}\n${text}`);
+    // Only print the message (which may contain a password link) in local development.
+    // On a deployed server, anyone who can read the logs could use that link.
+    if (process.env.NODE_ENV === 'production') {
+      console.warn(`[mailer] SMTP_HOST not set; email to ${to} ("${subject}") was not sent.`);
+    } else {
+      console.warn(`[mailer] SMTP_HOST not set; not sending. To: ${to}\n${subject}\n${text}`);
+    }
     return false;
   }
 
