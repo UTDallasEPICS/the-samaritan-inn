@@ -1,11 +1,18 @@
+import { createPrivateKey, createSign } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { getDayBounds } from "@/lib/booking";
 
 const SALESFORCE_API_VERSION = "v59.0";
 const WORK_SCHEDULE_API_VERSION = "v65.0";
 const SALESFORCE_ID_PATTERN = /^[a-zA-Z0-9]{15,18}$/;
 const TOKEN_CACHE_FALLBACK_MS = 5 * 60 * 1000;
+const JWT_TOKEN_CACHE_FALLBACK_MS = 5 * 60 * 1000;
 
 let cachedSalesforceToken: { accessToken: string; expiresAt: number } | null = null;
+const cachedSalesforceJwtSessions = new Map<
+  string,
+  { accessToken: string; instanceUrl: string; expiresAt: number }
+>();
 
 export type SalesforceEventRecord = {
   Id?: string;
@@ -57,6 +64,19 @@ function getSalesforceLoginUrl() {
 
 function getSalesforceInstanceUrl() {
   return (process.env.SF_INSTANCE_URL || getRequiredEnv("SF_DOMAIN_URL")).replace(/\/+$/, "");
+}
+
+function getAllowedSalesforceJwtUsernames() {
+  return new Set(
+    (process.env.SF_JWT_ALLOWED_USERNAMES || "")
+      .split(",")
+      .map(username => username.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+export function isAllowedSalesforceJwtUsername(username: string) {
+  return getAllowedSalesforceJwtUsernames().has(username.trim().toLowerCase());
 }
 
 export function isValidSalesforceId(value: string) {
@@ -129,6 +149,10 @@ async function salesforceRequest<T>(
     }
   );
 
+  return readSalesforceResponse<T>(response);
+}
+
+async function readSalesforceResponse<T>(response: Response): Promise<T> {
   if (response.status === 204) {
     return null as T;
   }
@@ -167,6 +191,99 @@ async function salesforceRequest<T>(
   }
 
   return data as T;
+}
+
+function encodeJwtPart(value: Record<string, string | number>) {
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
+}
+
+async function getSalesforceJwtSession(username: string) {
+  const resolvedUsername = username.trim();
+  const normalizedUsername = resolvedUsername.toLowerCase();
+  if (!isAllowedSalesforceJwtUsername(resolvedUsername)) {
+    throw new Error("Assigned caseworker Salesforce username is not in SF_JWT_ALLOWED_USERNAMES.");
+  }
+
+  const cachedSession = cachedSalesforceJwtSessions.get(normalizedUsername);
+  if (cachedSession && cachedSession.expiresAt > Date.now()) {
+    return cachedSession;
+  }
+
+  const privateKey = createPrivateKey({
+    key: await readFile(getRequiredEnv("SF_JWT_PRIVATE_KEY_PATH")),
+    passphrase: getRequiredEnv("SF_JWT_PRIVATE_KEY_PASSPHRASE"),
+  });
+  const unsignedAssertion = [
+    encodeJwtPart({ alg: "RS256", typ: "JWT" }),
+    encodeJwtPart({
+      iss: getRequiredEnv("SF_CLIENT_ID"),
+      sub: resolvedUsername,
+      aud: getRequiredEnv("SF_JWT_AUDIENCE"),
+      exp: Math.floor(Date.now() / 1000) + 180,
+    }),
+  ].join(".");
+  const signer = createSign("RSA-SHA256");
+  signer.update(unsignedAssertion);
+  signer.end();
+  const assertion = `${unsignedAssertion}.${signer.sign(privateKey).toString("base64url")}`;
+
+  const response = await fetch(
+    `${getSalesforceLoginUrl()}/services/oauth2/token`,
+    {
+      method: "POST",
+      cache: "no-store",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion,
+      }),
+    }
+  );
+  const data = await response.json().catch(() => null);
+
+  if (
+    !response.ok ||
+    typeof data?.access_token !== "string" ||
+    typeof data?.instance_url !== "string"
+  ) {
+    const detail = data?.error_description || data?.error || "No access token returned.";
+    throw new SalesforceError(
+      `Salesforce JWT authentication failed: ${detail}`,
+      response.status,
+      data
+    );
+  }
+
+  const expiresInMs = Number(data.expires_in) * 1000;
+  const cacheDuration = Number.isFinite(expiresInMs) && expiresInMs > 30_000
+    ? expiresInMs - 30_000
+    : JWT_TOKEN_CACHE_FALLBACK_MS;
+  const session = {
+    accessToken: data.access_token as string,
+    instanceUrl: data.instance_url.replace(/\/+$/, ""),
+    expiresAt: Date.now() + cacheDuration,
+  };
+  cachedSalesforceJwtSessions.set(normalizedUsername, session);
+
+  return session;
+}
+
+async function salesforceWorkScheduleRequest<T>(
+  username: string,
+  path: string,
+  init?: RequestInit
+): Promise<T> {
+  const session = await getSalesforceJwtSession(username);
+  const response = await fetch(`${session.instanceUrl}${path}`, {
+    ...init,
+    cache: "no-store",
+    headers: {
+      Authorization: `Bearer ${session.accessToken}`,
+      ...(init?.headers ?? {}),
+    },
+  });
+
+  return readSalesforceResponse<T>(response);
 }
 
 export async function fetchSalesforceEventsForOwnerOnDate(
@@ -275,9 +392,18 @@ function firstOccurrenceOnOrAfter(date: Date, weekday: number) {
   return anchor.toISOString().slice(0, 10);
 }
 
+function formatSalesforceTravelTime(value: string) {
+  const formatted = value.trim().replace(/\bminutes?\b/gi, "min");
+  if (formatted.length > 10) {
+    throw new Error("Estimated travel time must be 10 characters or fewer for Salesforce (for example, '400 min').");
+  }
+  return formatted;
+}
+
 export async function createSalesforceWorkSchedule(
   schedule: SalesforceWorkScheduleInput,
-  contactId: string
+  contactId: string,
+  salesforceUsername: string
 ) {
   if (!isValidSalesforceId(contactId)) {
     throw new Error("Invalid Salesforce Contact ID.");
@@ -297,7 +423,9 @@ export async function createSalesforceWorkSchedule(
 
   if (schedule.employerName) payload.Employer_s__c = schedule.employerName;
   if (schedule.employerLocation) payload.Employer_Location__c = schedule.employerLocation;
-  if (schedule.estimatedTravelTime) payload.Travel_Time__c = schedule.estimatedTravelTime;
+  if (schedule.estimatedTravelTime.trim()) {
+    payload.Travel_Time__c = formatSalesforceTravelTime(schedule.estimatedTravelTime);
+  }
   if (schedule.commentsNotes?.trim()) payload.Comments__c = schedule.commentsNotes.trim();
 
   for (const day of schedule.days) {
@@ -329,9 +457,12 @@ export async function createSalesforceWorkSchedule(
     WHERE Contact__c = '${contactId}'
     AND First_Day__c = ${payload.First_Day__c}
     AND Frequency__c = 'Weekly'`;
-  const existingRecords = await salesforceRequest<{
+  const existingRecords = await salesforceWorkScheduleRequest<{
     records?: Record<string, unknown>[];
-  }>(`/services/data/${WORK_SCHEDULE_API_VERSION}/query?q=${encodeURIComponent(query)}`);
+  }>(
+    salesforceUsername,
+    `/services/data/${WORK_SCHEDULE_API_VERSION}/query?q=${encodeURIComponent(query)}`
+  );
   const existingRecord = existingRecords.records?.find(record =>
     Object.entries(payload).every(([field, expected]) => {
       const actual = record[field];
@@ -349,7 +480,8 @@ export async function createSalesforceWorkSchedule(
     return existingRecord.Id;
   }
 
-  const data = await salesforceRequest<{ id?: string }>(
+  const data = await salesforceWorkScheduleRequest<{ id?: string }>(
+    salesforceUsername,
     `/services/data/${WORK_SCHEDULE_API_VERSION}/sobjects/Work_Schedule__c`,
     {
       method: "POST",

@@ -44,6 +44,8 @@ next-env.d.ts
 prisma/**/*.db
 prisma/**/*.db-journal
 
+# salesforce
+server.key
 
 # pnpm
 /.pnpm-store

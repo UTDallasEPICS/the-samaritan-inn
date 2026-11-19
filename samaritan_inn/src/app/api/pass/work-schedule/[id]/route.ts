@@ -2,7 +2,11 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
 import { can } from '@/lib/permissions';
-import { createSalesforceWorkSchedule, isValidSalesforceId } from '@/lib/salesforce';
+import {
+  createSalesforceWorkSchedule,
+  isAllowedSalesforceJwtUsername,
+  isValidSalesforceId,
+} from '@/lib/salesforce';
 import type { NextRequest } from 'next/server';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -40,6 +44,46 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
     const shouldSyncToSalesforce = status === 'APPROVED';
+    let salesforceContactId: string | null = null;
+    let salesforceUsername: string | null = null;
+
+    if (shouldSyncToSalesforce) {
+      salesforceContactId = process.env.SF_TEST_CONTACT_ID ?? null;
+      if (!salesforceContactId || !isValidSalesforceId(salesforceContactId)) {
+        return NextResponse.json(
+          { error: 'Salesforce Contact configuration is missing or invalid.' },
+          { status: 500 }
+        );
+      }
+
+      if (!existing.assignedCaseworkerId) {
+        return NextResponse.json(
+          { error: 'Assign a caseworker before approving this work schedule.' },
+          { status: 400 }
+        );
+      }
+
+      const assignedCaseworker = await prisma.user.findUnique({
+        where: { id: existing.assignedCaseworkerId },
+        select: { email: true, role: true },
+      });
+      if (
+        !assignedCaseworker ||
+        !['admin', 'caseworker', 'lead_lifecoach'].includes(assignedCaseworker.role)
+      ) {
+        return NextResponse.json(
+          { error: 'The assigned caseworker could not be resolved to an eligible Prisma user.' },
+          { status: 400 }
+        );
+      }
+      if (!isAllowedSalesforceJwtUsername(assignedCaseworker.email)) {
+        return NextResponse.json(
+          { error: 'The assigned caseworker Salesforce username is not in the JWT allowlist.' },
+          { status: 400 }
+        );
+      }
+      salesforceUsername = assignedCaseworker.email;
+    }
 
     const updated = await prisma.workSchedule.update({
       where: { id },
@@ -52,14 +96,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     });
 
     if (shouldSyncToSalesforce) {
-      const contactId = process.env.SF_TEST_CONTACT_ID;
-      if (!contactId || !isValidSalesforceId(contactId)) {
-        return NextResponse.json(
-          { error: 'Approval was saved, but Salesforce Contact configuration is missing or invalid.' },
-          { status: 500 }
-        );
-      }
-
       try {
         const savedSchedule = await prisma.workSchedule.findUnique({
           where: { id },
@@ -68,7 +104,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         if (!savedSchedule) {
           throw new Error('Approved work schedule could not be reloaded from Prisma.');
         }
-        await createSalesforceWorkSchedule(savedSchedule, contactId);
+        if (!salesforceContactId || !salesforceUsername) {
+          throw new Error('Salesforce caseworker configuration could not be resolved.');
+        }
+        await createSalesforceWorkSchedule(
+          savedSchedule,
+          salesforceContactId,
+          salesforceUsername
+        );
       } catch (error) {
         console.error('Approved work schedule Salesforce sync failed:', error);
         return NextResponse.json(
