@@ -147,6 +147,59 @@ export async function fetchSalesforceEventsForOwnerOnDate(
   return data.records ?? [];
 }
 
+export type SalesforceUserRecord = {
+  Id: string;
+  Name: string;
+  Email: string | null;
+  Phone: string | null;
+  MobilePhone: string | null;
+  Title: string | null;
+};
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// SOQL string literals escape backslashes and single quotes with a backslash.
+function escapeSoqlString(value: string) {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+/**
+ * Active Salesforce users matching any of the given ids or emails.
+ * Inputs are validated/escaped before being placed in the query.
+ */
+export async function fetchSalesforceUsers(options: {
+  ids?: string[];
+  emails?: string[];
+}) {
+  const ids = (options.ids ?? []).filter(isValidSalesforceId);
+  const emails = (options.emails ?? [])
+    .map((email) => email.trim())
+    .filter((email) => EMAIL_PATTERN.test(email));
+
+  const conditions: string[] = [];
+  if (ids.length > 0) {
+    conditions.push(`Id IN (${ids.map((id) => `'${id}'`).join(", ")})`);
+  }
+  if (emails.length > 0) {
+    conditions.push(
+      `Email IN (${emails.map((email) => `'${escapeSoqlString(email)}'`).join(", ")})`
+    );
+  }
+
+  if (conditions.length === 0) {
+    return [];
+  }
+
+  const query = `SELECT Id, Name, Email, Phone, MobilePhone, Title FROM User
+    WHERE IsActive = true AND (${conditions.join(" OR ")})`;
+
+  const data = await salesforceRequest<{ records?: SalesforceUserRecord[] }>(
+    `/services/data/${SALESFORCE_API_VERSION}/query?q=${encodeURIComponent(query)}`
+  );
+
+  return data.records ?? [];
+}
+
 type CreateSalesforceEventInput = {
   title: string;
   startDate: string;
