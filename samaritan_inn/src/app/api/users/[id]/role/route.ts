@@ -21,6 +21,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 
+    // An admin who changes their own role loses access to this page at once,
+    // so another admin has to do it. This also means the last admin can never
+    // be demoted: whoever demotes an admin is an admin too.
+    if (id === session.id) {
+      return NextResponse.json(
+        { error: "You can't change your own role. Ask another admin." },
+        { status: 403 }
+      );
+    }
+
     const updated = await prisma.user.update({
       where: { id },
       data: { role },
