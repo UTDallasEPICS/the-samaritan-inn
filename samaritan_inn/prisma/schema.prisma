@@ -49,6 +49,7 @@ model VerificationToken {
 model User {
   id                    String                  @id @default(cuid())
   email                 String                  @unique
+  salesforceUsername    String?                 @unique
   password              String
   name                  String
   role                  String                  @default("resident") // "resident" | "admin" | "caseworker" | "lead_lifecoach" (see src/lib/permissions.ts)

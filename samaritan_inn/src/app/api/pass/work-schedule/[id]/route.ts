@@ -4,7 +4,6 @@ import { getServerSessionInfo } from '@/lib/getServerSessionInfo';
 import { can } from '@/lib/permissions';
 import {
   createSalesforceWorkSchedule,
-  isAllowedSalesforceJwtUsername,
   isValidSalesforceId,
 } from '@/lib/salesforce';
 import type { NextRequest } from 'next/server';
@@ -65,7 +64,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
       const assignedCaseworker = await prisma.user.findUnique({
         where: { id: existing.assignedCaseworkerId },
-        select: { email: true, role: true },
+        select: { salesforceUsername: true, role: true },
       });
       if (
         !assignedCaseworker ||
@@ -76,13 +75,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           { status: 400 }
         );
       }
-      if (!isAllowedSalesforceJwtUsername(assignedCaseworker.email)) {
+      const assignedSalesforceUsername = assignedCaseworker.salesforceUsername?.trim();
+      if (!assignedSalesforceUsername) {
         return NextResponse.json(
-          { error: 'The assigned caseworker Salesforce username is not in the JWT allowlist.' },
+          { error: 'Add a Salesforce email to the assigned caseworker profile before approving this work schedule.' },
           { status: 400 }
         );
       }
-      salesforceUsername = assignedCaseworker.email;
+      salesforceUsername = assignedSalesforceUsername;
     }
 
     const updated = await prisma.workSchedule.update({

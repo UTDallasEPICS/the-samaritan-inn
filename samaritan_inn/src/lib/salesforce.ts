@@ -200,8 +200,8 @@ function encodeJwtPart(value: Record<string, string | number>) {
 async function getSalesforceJwtSession(username: string) {
   const resolvedUsername = username.trim();
   const normalizedUsername = resolvedUsername.toLowerCase();
-  if (!isAllowedSalesforceJwtUsername(resolvedUsername)) {
-    throw new Error("Assigned caseworker Salesforce username is not in SF_JWT_ALLOWED_USERNAMES.");
+  if (!resolvedUsername) {
+    throw new Error("Assigned caseworker Salesforce username is required.");
   }
 
   const cachedSession = cachedSalesforceJwtSessions.get(normalizedUsername);
