@@ -54,7 +54,8 @@ const HomePage = () => {
 
       <Navigation />
 
-      <div className="flex-grow bg-gray-100 p-4 flex flex-col items-center">
+      {/* relative: BackgroundBubbles fills this section, not just the first screen of the window */}
+      <div className="relative flex-grow bg-gray-100 p-4 flex flex-col items-center">
 
         <BackgroundBubbles />
 

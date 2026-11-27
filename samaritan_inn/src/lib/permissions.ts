@@ -2,10 +2,12 @@ export type Role = 'resident' | 'admin' | 'caseworker' | 'lead_lifecoach';
 
 export const ROLES: Role[] = ['resident', 'admin', 'caseworker', 'lead_lifecoach'];
 
+// What people see for each role. The stored role value stays 'caseworker';
+// the client calls the role "Empowerment Coach".
 export const ROLE_LABELS: Record<Role, string> = {
   resident: 'Resident',
   admin: 'Admin',
-  caseworker: 'Caseworker',
+  caseworker: 'Empowerment Coach',
   lead_lifecoach: 'Lead Lifecoach',
 };
 
@@ -16,6 +18,9 @@ export type Permission =
   | 'VIEW_ALL_CASEWORKER_REQUESTS' //see requests assigned to every caseworker
   | 'REVIEW_REQUESTS' //approve/deny those requests
   | 'MANAGE_USERS' //add/edit/disable other users' accounts and change their roles (admin only)
+  | 'MANAGE_CLASSES' //change the Calendly link shown on the Classes page (admin only)
+  | 'EDIT_OWN_COACH_PROFILE' //edit own Bookings link, availability and phone (Profile tab and /appointments)
+  | 'EDIT_OWN_SALESFORCE_USERNAME' //edit own Salesforce username (staff only)
 
   //Universal: every role gets these
   | 'VIEW_OWN_PROFILE'
@@ -71,6 +76,8 @@ const UNIVERSAL_PERMISSIONS: Permission[] = [
 
 //Admin's permissions on top of the universal set.
 const ADMIN_PERMISSIONS: Permission[] = [
+  'EDIT_OWN_SALESFORCE_USERNAME',
+  'MANAGE_CLASSES',
   'MANAGE_ANNOUNCEMENTS',
   'VIEW_ALL_REQUESTS',
   'VIEW_ALL_CASEWORKER_REQUESTS',
@@ -89,6 +96,8 @@ const ADMIN_PERMISSIONS: Permission[] = [
 
 //Caseworker's permissions on top of the universal set. 
 const CASEWORKER_PERMISSIONS: Permission[] = [
+  'EDIT_OWN_COACH_PROFILE',
+  'EDIT_OWN_SALESFORCE_USERNAME',
   'MANAGE_ANNOUNCEMENTS',
   'VIEW_ALL_REQUESTS',
   'REVIEW_REQUESTS',

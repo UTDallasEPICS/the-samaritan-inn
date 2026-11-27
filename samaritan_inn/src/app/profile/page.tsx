@@ -3,6 +3,9 @@
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
+import BookingLinkSection from '@/components/profile/BookingLinkSection';
+import SalesforceUserSection from '@/components/profile/SalesforceUserSection';
+import { can, isRole, ROLE_LABELS } from '@/lib/permissions';
 
 export default function Profile() {
   const { data: session, status } = useSession();
@@ -30,10 +33,15 @@ export default function Profile() {
                   <ul className="space-y-2 text-sm text-gray-700">
                     <li><strong>Name:</strong> {session.user.name}</li>
                     <li><strong>Email:</strong> {session.user.email}</li>
-                    <li><strong>Role:</strong> {session.user.role}</li>
+                    <li><strong>Role:</strong> {isRole(session.user.role) ? ROLE_LABELS[session.user.role] : session.user.role}</li>
                     <li><strong>User ID:</strong> {session.user.id}</li>
                   </ul>
                 </div>
+
+                {can(session.user.role, 'EDIT_OWN_COACH_PROFILE') && <BookingLinkSection />}
+                {can(session.user.role, 'EDIT_OWN_SALESFORCE_USERNAME') && (
+                  <SalesforceUserSection />
+                )}
                 
                 <div className="flex justify-between">
                   <Link 
