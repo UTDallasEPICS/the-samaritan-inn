@@ -4,6 +4,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import BookingLinkSection from '@/components/profile/BookingLinkSection';
+import SalesforceUserSection from '@/components/profile/SalesforceUserSection';
 import { can, isRole, ROLE_LABELS } from '@/lib/permissions';
 
 export default function Profile() {
@@ -38,6 +39,9 @@ export default function Profile() {
                 </div>
 
                 {can(session.user.role, 'EDIT_OWN_COACH_PROFILE') && <BookingLinkSection />}
+                {can(session.user.role, 'EDIT_OWN_SALESFORCE_USERNAME') && (
+                  <SalesforceUserSection />
+                )}
                 
                 <div className="flex justify-between">
                   <Link 

@@ -356,6 +356,21 @@ export async function fetchSalesforceUsers(options: {
   return data.records ?? [];
 }
 
+/** Returns whether Salesforce has an active user with this username. */
+export async function isActiveSalesforceUsername(username: string) {
+  const normalizedUsername = username.trim();
+  if (!normalizedUsername) return false;
+
+  const query = `SELECT Id FROM User
+    WHERE IsActive = true AND Username = '${escapeSoqlString(normalizedUsername)}'
+    LIMIT 1`;
+  const data = await salesforceRequest<{ records?: { Id: string }[] }>(
+    `/services/data/${SALESFORCE_API_VERSION}/query?q=${encodeURIComponent(query)}`
+  );
+
+  return (data.records?.length ?? 0) > 0;
+}
+
 type CreateSalesforceEventInput = {
   title: string;
   startDate: string;

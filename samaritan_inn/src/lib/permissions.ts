@@ -20,6 +20,7 @@ export type Permission =
   | 'MANAGE_USERS' //add/edit/disable other users' accounts and change their roles (admin only)
   | 'MANAGE_CLASSES' //change the Calendly link shown on the Classes page (admin only)
   | 'EDIT_OWN_COACH_PROFILE' //edit own Bookings link, availability and phone (Profile tab and /appointments)
+  | 'EDIT_OWN_SALESFORCE_USERNAME' //edit own Salesforce username (staff only)
 
   //Universal: every role gets these
   | 'VIEW_OWN_PROFILE'
@@ -75,6 +76,7 @@ const UNIVERSAL_PERMISSIONS: Permission[] = [
 
 //Admin's permissions on top of the universal set.
 const ADMIN_PERMISSIONS: Permission[] = [
+  'EDIT_OWN_SALESFORCE_USERNAME',
   'MANAGE_CLASSES',
   'MANAGE_ANNOUNCEMENTS',
   'VIEW_ALL_REQUESTS',
@@ -95,6 +97,7 @@ const ADMIN_PERMISSIONS: Permission[] = [
 //Caseworker's permissions on top of the universal set. 
 const CASEWORKER_PERMISSIONS: Permission[] = [
   'EDIT_OWN_COACH_PROFILE',
+  'EDIT_OWN_SALESFORCE_USERNAME',
   'MANAGE_ANNOUNCEMENTS',
   'VIEW_ALL_REQUESTS',
   'REVIEW_REQUESTS',
